@@ -1301,8 +1301,19 @@ var LOGO='<svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><re
 /* Enlaces entre los tres sitios: van chicos y al pie, solo para recorrer la demo. */
 function demoLinks(cur){var items=[['nicolas.html','Compradores','buy'],['proveedores.html','Proveedores','sell'],['admin.html','Administrador','admin']];return '<span class="demolinks"><button type="button" class="linkbtn" data-act="fitness-refresh">Actualizar datos</button> · '+items.filter(function(i){return i[2]!==cur;}).map(function(i){return '<a href="'+i[0]+'">'+i[1]+'</a>';}).join(' · ')+'</span>';}
 var CHAT='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>';
-/* Contacto por WhatsApp: el número se carga en el administrador. */
-function waUrl(text){ var n=String((db.contact||{}).wa||'').replace(/\D/g,''); return n?'https://wa.me/'+n+(text?'?text='+encodeURIComponent(text):''):''; }
+/* Consultas centralizadas con contexto de empresa y producto. */
+function contactMessage(company,product,text){
+ var lines=['Hola Nico, llegué desde Comparador Fitness.'];
+ if(company) lines.push('Quiero consultar por la empresa '+company+'.');
+ if(product) lines.push('Producto: '+product+'.');
+ if(product&&typeof ui!=='undefined'){if(ui.qty)lines.push('Cantidad de referencia: '+ui.qty+'.');if(ui.cp)lines.push('Código postal: '+ui.cp+'.');}
+ if(text)lines.push(text);
+ lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
+ return lines.join('\n');
+}
+function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent(contactMessage(company,product,text));}
+function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
+function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
 function waCta(label,cls,text){
   var u=waUrl(text);
   return u?'<a class="'+cls+'" href="'+esc(u)+'" target="_blank" rel="noopener">'+CHAT+'<span>'+label+'</span></a>'
@@ -1853,7 +1864,7 @@ function vProduct(){
     +'</div></fieldset>'
     +volumeFields(e)+'<div class="card sub"><p class="eyebrow">Lo carga el equipo del sitio</p><dl class="dl">'
     +ro('Compra', 'Mínimo '+e.minQty+' '+(e.unit==='Par'?'pares':e.unit==='Kit'?'kits':'unidades'))+ro('Entrega',days(e.lead))+ro('Garantía',months(e.warranty))+ro('Envío AMBA',e.shipAmba?money(e.shipAmba):'Sin cargo')+ro('Envío resto del país',e.shipInt?money(e.shipInt):'Sin cargo')+'</dl>'
-    +'<p class="note">Para cambiar estos datos, el modelo o la variante, escribinos y lo actualizamos.</p>'+waCta('Pedir un cambio','btn btn-outline btn-sm','Hola, soy '+v.name+' y quiero cambiar datos de '+e.model+' '+e.size)+'</div>'
+    +'<p class="note">Para cambiar estos datos, el modelo o la variante, escribinos y lo actualizamos.</p>'+contactCtas(v.name,offerDesc(e))+'</div>'
     +'<div class="actions"><button class="btn btn-accent btn-lg" type="submit">Guardar cambios</button><button class="btn btn-outline btn-lg" type="button" data-act="back-products">Cancelar</button></div></form>'
     +'<aside class="card strong side"><h2 class="display h-card">Lo que recibís por venta</h2>'
     +'<div class="rows num"><div><span class="muted">Precio publicado</span><span id="pv-price">'+money(e.price)+'</span></div><div><span class="muted">Comisión del sitio · '+pct+'%</span><span id="pv-com">'+money(e.price*pct/100)+'</span></div><div class="total"><span>Recibís</span><span id="pv-net" class="accent">'+money(e.price*(100-pct)/100)+'</span></div></div>'

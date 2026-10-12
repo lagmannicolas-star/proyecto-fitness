@@ -1294,8 +1294,19 @@ var LOGO='<svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><re
 /* Enlaces entre los tres sitios: van chicos y al pie, solo para recorrer la demo. */
 function demoLinks(cur){var items=[['nicolas.html','Compradores','buy'],['proveedores.html','Proveedores','sell'],['admin.html','Administrador','admin']];return '<span class="demolinks"><button type="button" class="linkbtn" data-act="fitness-refresh">Actualizar datos</button> · '+items.filter(function(i){return i[2]!==cur;}).map(function(i){return '<a href="'+i[0]+'">'+i[1]+'</a>';}).join(' · ')+'</span>';}
 var CHAT='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>';
-/* Contacto por WhatsApp: el número se carga en el administrador. */
-function waUrl(text){ var n=String((db.contact||{}).wa||'').replace(/\D/g,''); return n?'https://wa.me/'+n+(text?'?text='+encodeURIComponent(text):''):''; }
+/* Consultas centralizadas con contexto de empresa y producto. */
+function contactMessage(company,product,text){
+ var lines=['Hola Nico, llegué desde Comparador Fitness.'];
+ if(company) lines.push('Quiero consultar por la empresa '+company+'.');
+ if(product) lines.push('Producto: '+product+'.');
+ if(product&&typeof ui!=='undefined'){if(ui.qty)lines.push('Cantidad de referencia: '+ui.qty+'.');if(ui.cp)lines.push('Código postal: '+ui.cp+'.');}
+ if(text)lines.push(text);
+ lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
+ return lines.join('\n');
+}
+function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent(contactMessage(company,product,text));}
+function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
+function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
 function waCta(label,cls,text){
   var u=waUrl(text);
   return u?'<a class="'+cls+'" href="'+esc(u)+'" target="_blank" rel="noopener">'+CHAT+'<span>'+label+'</span></a>'
@@ -1919,8 +1930,7 @@ function vendorFile(v){
     +'<div class="actions"><button class="btn btn-primary btn-sm" data-act="v-edit" data-id="'+v.id+'">Editar datos y clave</button>'+vActs(v)
     +'<button class="btn btn-outline btn-sm" data-act="goto" data-tab="ventas" data-month="" data-status="" data-vendor="'+v.id+'">Ver sus ventas</button>'
     +'<button class="btn btn-outline btn-sm" data-act="stale" data-id="'+v.id+'">Ver su stock</button>'
-    +(v.wa?'<a class="btn btn-outline btn-sm" href="https://wa.me/'+esc(digits(v.wa)?String(v.wa).replace(/\D/g,''):'')+'" target="_blank" rel="noopener">'+CHAT+'WhatsApp</a>':'')
-    +(v.email?'<a class="btn btn-outline btn-sm" href="mailto:'+esc(v.email)+'">Email</a>':'')+'</div></div>'
+    +contactCtas(v.name,'')+'</div></div>'
     +(ui.vForm===v.id?vendorForm():'')+promotionForm(v)
     +'<div class="tiles kpis">'
     +kpi('money','Vendido',money(S.sold),'<span class="s">'+S.ok.length+(S.ok.length===1?' venta':' ventas')+(S.ref?' · '+S.ref+(S.ref===1?' devuelta':' devueltas'):'')+'</span>','main')
@@ -2049,7 +2059,7 @@ function userFile(b){
     +'<div class="card vfile-h"><div class="vc-h"><span class="avatar xl" aria-hidden="true">'+esc((b.name||'?').charAt(0))+'</span><div class="vc-t"><h2 class="display h-page" style="font-size:2.2rem!important">'+esc(b.name)+'</h2>'
     +'<span class="muted">'+esc(b.email)+(b.phone?' · '+esc(b.phone):'')+(s.city?' · '+esc(s.city):'')+'</span><span class="small muted">Registrado el '+(b.created?fdate(b.created):'—')+' · '+(VIA[b.via||'email']||'Email')+' · '+(b.marketing?'Acepta ofertas':'No acepta ofertas')+'</span></div>'
     +(b.blocked?'<span class="st bad">Bloqueado</span>':'<span class="st ok">Activo</span>')+'</div>'
-    +'<div class="actions"><a class="btn btn-primary btn-sm" href="mailto:'+esc(b.email)+'">Escribir un email</a>'+(wa?'<a class="btn btn-outline btn-sm" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+CHAT+'WhatsApp</a>':'')
+    +'<div class="actions"><a class="btn btn-primary btn-sm" href="'+esc(mailUrl(b.name,''))+'">Escribir un email</a>'+(wa?'<a class="btn btn-outline btn-sm" href="'+esc(waUrl('',b.name,''))+'" target="_blank" rel="noopener">'+CHAT+'WhatsApp</a>':'')
     +'<button class="btn btn-outline btn-sm" data-act="u-pw" data-id="'+b.id+'">'+(ui.confirm==='upw'+b.id?'Confirmar: crear clave temporal':'Restablecer clave')+'</button>'
     +'<button class="btn btn-outline btn-sm" data-act="u-block" data-id="'+b.id+'">'+(ui.confirm==='ublk'+b.id?(b.blocked?'Confirmar: desbloquear':'Confirmar: bloquear'):(b.blocked?'Desbloquear':'Bloquear'))+'</button>'
     +'<button class="btn '+(ui.confirm==='udl'+b.id?'btn-danger':'btn-outline')+' btn-sm" data-act="u-delacc" data-id="'+b.id+'">'+(ui.confirm==='udl'+b.id?'Confirmar: borrar la cuenta':'Borrar cuenta')+'</button></div>'
@@ -2104,7 +2114,7 @@ function guestsCard(){
         +'<td>'+esc(g.city||'—')+'<span class="sub">'+esc([g.address,g.prov].filter(Boolean).join(', '))+'</span></td>'
         +'<td>'+esc(g.iva||'Sin datos')+'<span class="sub">'+(g.cuit?'CUIT '+esc(g.cuit):'Sin CUIT')+'</span></td>'
         +'<td class="r num">'+g.n+'</td><td class="r num"><b>'+money(g.spent)+'</b></td><td class="nw">'+fdate(g.last)+'</td>'
-        +'<td><div class="actions nw" style="justify-content:flex-end">'+(g.email?'<a class="btn btn-outline btn-sm" href="mailto:'+esc(g.email)+'">Email</a>':'')
+        +'<td><div class="actions nw" style="justify-content:flex-end">'+(g.email?'<a class="btn btn-outline btn-sm" href="'+esc(mailUrl(g.name,''))+'">Email</a>':'')
         +(g.inv?'<span class="st ok">Invitado el '+fdate(g.inv)+'</span>':(g.email?'<button class="btn btn-primary btn-sm" data-act="g-invite" data-k="'+esc(g.key)+'">Invitar a crear cuenta</button>':''))+'</div></td></tr>'; }).join('')+'</tbody></table></div>'
       :'<div class="empty">Todos los que compraron tienen cuenta.</div>')+'</div>';
 }
@@ -2168,12 +2178,12 @@ function partners(ok){
     +'</div></div>';
 }
 function waCard(){
-  var n=(db.contact||{}).wa||'';
+  var n='541159656436';
   return '<form id="waform" class="card" novalidate style="max-width:520px"><h2 class="display h-card">WhatsApp de contacto</h2>'
-    +'<p class="note">Es el número al que escriben los proveedores desde el botón “Contactate por WhatsApp” del sitio.</p>'
+    +'<p class="note">Las consultas de la plataforma se derivan a Nico, con un mensaje precargado.</p>'
     +'<div id="wa-err" class="alert bad" role="alert" hidden></div>'
-    +'<div class="field"><label for="wa-num">Número con código de país</label><input id="wa-num" type="tel" inputmode="numeric" placeholder="Ej.: 5491122334455" value="'+esc(n)+'"><span class="hint">Solo números, sin espacios ni signos. Dejalo vacío si todavía no lo tenés.</span></div>'
-    +'<div><button class="btn btn-primary" type="submit">Guardar</button></div></form>';
+    +'<div class="field"><label for="wa-num">Número con código de país</label><input id="wa-num" type="tel" inputmode="numeric" placeholder="Ej.: 5491122334455" value="'+esc(n)+'" readonly><span class="hint">Contacto central de la plataforma. Email: lagmannicolas@gmail.com.</span></div>'
+    +contactCtas('','')+'</form>';
 }
 /* Formularios del administrador */
 function fld(id,label,input,hint){ return '<div class="field"><label for="'+id+'">'+label+'</label>'+input+(hint?'<span class="hint">'+hint+'</span>':'')+'</div>'; }
