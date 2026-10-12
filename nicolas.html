@@ -1227,7 +1227,7 @@ function load(){
   ['days','q','z'].forEach(function(k){ if(!d.traffic[k]) d.traffic[k]={}; });
   return d;
 }
-function save(){ try{ localStorage.setItem(STORE,JSON.stringify(db)); return true; }catch(e){ return false; } }
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify(db)); return true; }catch(e){ alert('No se pudieron guardar los cambios en este navegador. Revisá el espacio disponible y los permisos de almacenamiento antes de continuar.'); throw e; } }
 function sget(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
 function sset(k,v){ try{ if(v==null) sessionStorage.removeItem(k); else sessionStorage.setItem(k,v); }catch(e){} }
 
@@ -1321,7 +1321,9 @@ function payPct(v,method){var b=payBenefits(v);return method==='transfer'?b.tran
 function payLabel(method){return method==='transfer'?'Transferencia':method==='cash'?'Efectivo':method&&method.indexOf('installments-')===0?method.split('-')[1]+' cuotas sin interés':'Tarjeta · un pago';}
 function validMethod(v,method){var b=payBenefits(v);return method==='card'||method==='transfer'&&b.transfer>0||method==='cash'&&b.cash>0||method&&method.indexOf('installments-')===0&&(b.installments||[]).indexOf(Number(method.split('-')[1]))>=0;}
 function selectedMethod(v){var method=(ui.paymentMethods||{})[(v||{}).id]||'card';return validMethod(v,method)?method:'card';}
+function comparisonQuote(o,qty,cp){ return paymentQuote(o,qty,cp,selectedMethod(vendor(o.vendorId))); }
 function paymentQuote(o,qty,cp,method){
+ var v0=vendor(o.vendorId); method=validMethod(v0,method)?method:'card';
  var q=quote(o,qty,cp),v=vendor(o.vendorId),b=payBenefits(v),pct=payPct(v,method),volume=q.discount;
  if(pct&&!b.stackVolume){q.subtotal=q.baseSubtotal;q.discount=0;q.discountPct=0;volume=0;}
  q.paymentBase=q.subtotal;q.paymentDiscount=amount(q.subtotal*pct/100);q.paymentPct=pct;q.paymentMethod=method||'card';q.subtotal=amount(q.subtotal-q.paymentDiscount);q.volumeDiscount=volume;
@@ -2010,7 +2012,7 @@ function tryPick(){
   return {cat:best[0].category,model:best[0].model,size:best[0].size,offers:best.filter(function(o){ return o.unit===u; })};
 }
 function tryCalc(g,qty){
-  var rows=g.offers.map(function(o){ var q=quote(o,qty,ui.cp); return {o:o,v:vendor(o.vendorId),total:q.total,can:qty>=o.minQty}; });
+  var rows=g.offers.map(function(o){ var q=comparisonQuote(o,qty,ui.cp); return {o:o,v:vendor(o.vendorId),total:q.total,can:qty>=o.minQty}; });
   var el=rows.filter(function(r){ return r.can; }).sort(function(a,b){ return a.total-b.total; });
   var max=Math.max.apply(null,rows.map(function(r){ return r.total; }));
   var sum=!el.length?'Con esa cantidad ningún proveedor llega a su compra mínima.'
@@ -2339,7 +2341,7 @@ function cmpResults(d){
       +'<p>¿Vendés este producto? '+waCta('Contactate por WhatsApp','linkbtn wa','Hola, vendo un producto que todavía no tiene ofertas en Comparador Fitness.')+'</p></div>';
   }
   var qty=Math.max(1,ui.qty|0), ok=cpOk(ui.cp);
-  var rows=d.offers.map(function(o){ return {o:o,v:vendor(o.vendorId),q:quote(o,qty,ui.cp),can:qty>=o.minQty&&(o.units==null||qty<=o.units),few:o.units!=null&&qty>o.units}; });
+  var rows=d.offers.map(function(o){ return {o:o,v:vendor(o.vendorId),q:comparisonQuote(o,qty,ui.cp),can:qty>=o.minQty&&(o.units==null||qty<=o.units),few:o.units!=null&&qty>o.units}; });
   var by={total:function(a,b){ return a.q.total-b.q.total; },lead:function(a,b){ return a.o.lead-b.o.lead||a.q.total-b.q.total; },warranty:function(a,b){ return b.o.warranty-a.o.warranty||a.q.total-b.q.total; }};
   rows.sort(by[ui.sort]||by.total);
   var pool=rows.filter(function(r){ return r.can; }); if(!pool.length) pool=rows;
@@ -2454,24 +2456,24 @@ function vsHTML(){
   vs.forEach(function(v){ db.offers.filter(function(o){return o.vendorId===v.id&&isLive(o);}).forEach(function(o){
     var k=keyOf(o); if(!rows[k]){ rows[k]={o:o,offers:{}};order.push(k); }
     var prev=rows[k].offers[v.id];
-    if(!prev||quote(o,qty,cp).total<quote(prev,qty,cp).total) rows[k].offers[v.id]=o;
+    if(!prev||comparisonQuote(o,qty,cp).total<comparisonQuote(prev,qty,cp).total) rows[k].offers[v.id]=o;
   }); });
   var list=order.map(function(k){return rows[k];}).filter(function(r){return !ui.vsShared||Object.keys(r.offers).length>=2;}).sort(function(a,b){return (a.o.category+a.o.model+a.o.size).localeCompare(b.o.category+b.o.model+b.o.size,'es');});
   function cell(o,best){
     if(!o) return '<td class="vs-c none"><span class="muted small">Sin oferta publicada para esta variante</span></td>';
-    var q=quote(o,qty,cp),few=o.units!=null&&qty>o.units,win=!few&&best!=null&&(ok?q.total:q.subtotal)===best;
+    var q=comparisonQuote(o,qty,cp),few=o.units!=null&&qty>o.units,win=!few&&best!=null&&(ok?q.total:q.subtotal)===best;
     return '<td class="vs-c'+(win?' win':'')+'"><b class="num">'+money(ok?q.total:q.subtotal)+'</b><span class="muted small">'+(ok?'Total con envío':'Productos · envío a calcular')+' · '+qty+' '+(o.unit==='Par'?'pares':o.unit==='Kit'?'kits':'unidades')+'</span>'
       +'<span class="small">Precio '+perUnit(o.unit)+': '+money(o.price)+'</span>'
-      +(q.discount?'<span class="small accent">Volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</span>':'')
+      +(q.discount?'<span class="small accent">Volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</span>':'')+(q.paymentDiscount?'<span class="small accent">'+esc(payLabel(q.paymentMethod))+': −'+money(q.paymentDiscount)+'</span>':'')
       +'<span class="small">Envío: '+(!ok?'A calcular':q.shipping?money(q.shipping):'Gratis')+'</span>'
       +'<span class="small">'+ico('truck',14)+' '+days(o.lead)+' · llega aprox. '+arrival(o.lead)+'</span><span class="muted small">Garantía '+months(o.warranty)+'</span>'+benefitText(o)
       +(win?'<span class="tag">'+(ok?'Menor precio final':'Menor precio de productos')+'</span>':'')
       +(few?'<button class="btn btn-outline btn-sm" disabled>Quedan '+o.units+' · no alcanza para '+qty+'</button>':'<button class="btn '+(win?'btn-accent':'btn-primary')+' btn-sm" data-act="add-cart" data-id="'+o.id+'" data-qty="'+qty+'">'+(cartFind(o.id)?'En el carrito · actualizar':'Agregar al carrito')+'</button>')+'</td>';
   }
   return '<div class="vs-ctrl"><div class="field"><label for="vs-qty">Cantidad por producto</label><input id="vs-qty" type="number" min="1" step="1" value="'+qty+'"></div><div class="field"><label for="vs-cp">Código postal de entrega</label><input id="vs-cp" type="text" inputmode="numeric" maxlength="4" value="'+esc(cp)+'"></div><label class="check sm"><input id="vs-shared" type="checkbox"'+(ui.vsShared?' checked':'')+'> Solo variantes ofrecidas por dos o más proveedores</label></div>'
-    +'<p class="sumline"><b>'+vs.length+' proveedores</b> · '+list.length+' variantes. '+(ok?'El menor precio final incluye los descuentos por volumen y el envío para la cantidad indicada.':'Ingresá un código postal válido para comparar el total con envío.')+' Los empates se destacan por igual.</p><p class="note">Deslizá la tabla hacia los lados para ver todos los proveedores. Unidad, par y kit se comparan por separado.</p>'
+    +'<p class="sumline"><b>'+vs.length+' proveedores</b> · '+list.length+' variantes. '+(ok?'El menor precio final incluye los descuentos por volumen, el medio de pago seleccionado y el envío para la cantidad indicada.':'Ingresá un código postal válido para comparar el total con envío.')+' Los empates se destacan por igual.</p><p class="note">Deslizá la tabla hacia los lados para ver todos los proveedores. Unidad, par y kit se comparan por separado.</p>'
     +(list.length?'<div class="tablewrap" tabindex="0" role="region" aria-label="Comparación de todos los proveedores"><table class="vs-t" style="min-width:'+Math.max(820,260+vs.length*260)+'px"><thead><tr><th scope="col">Producto</th>'+vs.map(function(v){return '<th scope="col">'+esc(v.name)+'</th>';}).join('')+'</tr></thead><tbody>'+list.map(function(r){
-      var available=vs.map(function(v){return r.offers[v.id];}).filter(function(o){return o&&(o.units==null||qty<=o.units);}),best=available.length?Math.min.apply(null,available.map(function(o){var q=quote(o,qty,cp);return ok?q.total:q.subtotal;})):null;
+      var available=vs.map(function(v){return r.offers[v.id];}).filter(function(o){return o&&(o.units==null||qty<=o.units);}),best=available.length?Math.min.apply(null,available.map(function(o){var q=comparisonQuote(o,qty,cp);return ok?q.total:q.subtotal;})):null;
       return '<tr><th scope="row"><b>'+esc(r.o.model)+'</b><span class="sub">'+esc(r.o.category)+' · '+esc(r.o.size)+' · '+perUnit(r.o.unit)+'</span><button class="linkbtn small" data-act="cmp-offer" data-id="'+r.o.id+'">Ver todas las ofertas</button></th>'+vs.map(function(v){return cell(r.offers[v.id],best);}).join('')+'</tr>';
     }).join('')+'</tbody></table></div>':'<div class="empty">No hay variantes que coincidan con este filtro.</div>');
 }
@@ -2698,10 +2700,10 @@ document.addEventListener('submit',function(ev){
     var list=(liveIndex()[vkey(ui.fCat,ui.fModel,ui.fSize)]||[]), mu=mainUnit(list);
     var can=list.filter(function(o){ return o.unit===mu&&sq>=o.minQty&&(o.units==null||sq<=o.units); });
     if(!can.length){ go('compare',{cat:ui.fCat,model:ui.fModel,size:ui.fSize,unit:null,qty:sq,cp:scp,sort:'total'}); toast(list.length?'Ningún proveedor puede venderte '+sq+' unidades: mirá las condiciones de cada uno.':'Todavía no hay ofertas para esta variante.'); return; }
-    var best=can.slice().sort(function(a,b){ return cpOk(scp)?quote(a,sq,scp).total-quote(b,sq,scp).total:a.price-b.price; })[0], bv=vendor(best.vendorId);
+    var best=can.slice().sort(function(a,b){ return cpOk(scp)?comparisonQuote(a,sq,scp).total-comparisonQuote(b,sq,scp).total:comparisonQuote(a,sq,scp).subtotal-comparisonQuote(b,sq,scp).subtotal; })[0], bv=vendor(best.vendorId);
     track('p',[ui.fCat,ui.fModel,ui.fSize].join('|')); trackVendorOf(best.id);
     var upd=cartAdd(best,sq); rerender();
-    toast((upd?'Actualizamos tu carrito: ':'Agregaste ')+sq+' × '+best.model+' '+best.size+' de '+bv.name+', el menor precio final'+(cpOk(scp)?' ('+money(quote(best,sq,scp).total)+')':'')+'. Podés cambiar de proveedor en la comparación.');
+    toast((upd?'Actualizamos tu carrito: ':'Agregaste ')+sq+' × '+best.model+' '+best.size+' de '+bv.name+', el menor precio final'+(cpOk(scp)?' ('+money(comparisonQuote(best,sq,scp).total)+')':'')+'. Podés cambiar de proveedor en la comparación.');
   } else if(f.id==='checkout'&&ui.cartMode){
     ui.buyer=val('b-name').trim();
     ['email','phone','address','city','prov','notes'].forEach(function(k){ ui.ship[k]=val('b-'+k).trim(); });
