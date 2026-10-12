@@ -1606,7 +1606,7 @@ function userForm(){
     +'<div id="u-err" class="alert bad" role="alert" hidden></div><div class="formgrid">'
     +fld('u-name','Nombre',inp('u-name',u?u.name:'','type="text" maxlength="30"'))
     +fld('u-user','Usuario',inp('u-user',u?u.user:'','type="text" maxlength="30" autocapitalize="none" autocomplete="off"'),'Sin espacios. Con esto entra al panel.')
-    +fld('u-pass',u?'Clave nueva':'Clave',inp('u-pass','','type="password" autocomplete="new-password"'),u?'Dejala vacía para no cambiarla.':'Al menos 6 caracteres.')
+    +fld('u-pass',u?'Clave nueva':'Clave',inp('u-pass','','type="password" autocomplete="new-password"'),u?'Dejala vacía para no cambiarla.':'Al menos 8 caracteres.')
     +fld('u-pass2','Repetí la clave',inp('u-pass2','','type="password" autocomplete="new-password"'))
     +'</div><div class="actions"><button class="btn btn-primary" type="submit">'+(u?'Guardar':'Agregar usuario')+'</button><button class="btn btn-outline" type="button" data-act="u-cancel">Cancelar</button></div></form>';
 }
@@ -2651,7 +2651,7 @@ document.addEventListener('submit',function(ev){
     if(!nm) return showErr('u-err','Falta el nombre.','u-name');
     if(!us) return showErr('u-err','Falta el usuario.','u-user');
     if(db.users.some(function(x){ return x!==eu&&x.user===us; })) return showErr('u-err','Ese usuario ya existe.','u-user');
-    if((!eu||p1)&&p1.length<6) return showErr('u-err','La clave tiene que tener al menos 6 caracteres.','u-pass');
+    if((!eu||p1)&&p1.length<6) return showErr('u-err','La clave tiene que tener al menos 8 caracteres.','u-pass');
     if(p1!==p2) return showErr('u-err','Las dos claves no coinciden.','u-pass2');
     if(eu){ eu.name=nm; eu.user=us; if(p1) eu.hash=pwHash(p1); logAct((me()&&me().id===eu.id?'cambió sus datos':'editó al usuario '+nm)+(p1?' y la clave':'')); toast(p1?'Clave cambiada':'Datos guardados'); }
     else { db.users.push({id:'u'+(db.nextId++),name:nm,user:us,hash:pwHash(p1),last:''}); logAct('agregó al usuario '+nm); toast(nm+' ya puede entrar'); }
@@ -2709,7 +2709,7 @@ document.addEventListener('submit',function(ev){
     if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ showErr('v-err','Revisá el email: no parece válido.','v-email'); return; }
     var vuser=norm(val('v-user')).replace(/\s/g,''), vpass=val('v-pass');
     if(vuser&&db.vendors.some(function(v){ return v!==cur&&norm(v.user)===vuser; })){ showErr('v-err','Ese usuario ya lo usa otro proveedor.','v-user'); return; }
-    if(vpass&&vpass.length<6){ showErr('v-err','La clave tiene que tener al menos 6 caracteres.','v-pass'); return; }
+    if(vpass&&vpass.length<6){ showErr('v-err','La clave tiene que tener al menos 8 caracteres.','v-pass'); return; }
     if(vpass&&!vuser){ showErr('v-err','Poné un usuario para esa clave.','v-user'); return; }
     var data={};
     VFIELDS.forEach(function(g){ g[1].forEach(function(f){ data[f[0]]=val('v-'+f[0]).trim(); }); });

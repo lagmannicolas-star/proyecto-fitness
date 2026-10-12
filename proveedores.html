@@ -1644,7 +1644,7 @@ function copyText(txt,msg){
 
 /* ---------- Sitio de proveedores ---------- */
 var SKEY='fitness-vendor-ui';
-var ui={pf:JSON.parse(JSON.stringify(PF_DEF)),bulk:false,sheet:false,imp:null,bulkVals:null,bulkOdd:null,saveView:false,sf:'all',orderOpen:null,nMonth:'',vbell:false,seenN:null,route:'landing',tab:'resumen',editId:null,linkId:null,confirm:null,vendorId:db._identity&&db._identity.role==='vendor'?db._identity.vendorId:null,formError:'',applied:false,sim:1000000};
+var ui={pf:JSON.parse(JSON.stringify(PF_DEF)),bulk:false,sheet:false,imp:null,bulkVals:null,bulkOdd:null,saveView:false,sf:'all',orderOpen:null,nMonth:'',vbell:false,seenN:null,route:'landing',tab:'resumen',editId:null,linkId:null,confirm:null,vendorId:db._identity&&(db._identity.role==='vendor'||db._identity.role==='admin')?db._identity.vendorId:null,formError:'',applied:false,sim:1000000};
 if(ui.vendorId&&vendor(ui.vendorId)) ui.route='panel'; else ui.vendorId=null;
 
 function go(route,patch){
@@ -1657,7 +1657,7 @@ function rerender(focusId){
   render();
   if(focusId){ var el=document.getElementById(focusId); if(el){ try{ el.focus(); }catch(e){} } }
 }
-function me(){var i=db._identity;return i&&i.role==='vendor'?vendor(i.vendorId):null;}
+function me(){var i=db._identity;return i&&(i.role==='vendor'||i.role==='admin')&&i.vendorId?vendor(i.vendorId):null;}
 function header(){
   var v=me(), r=ui.route;
   var right=v
@@ -1714,7 +1714,7 @@ function vLanding(){
     +'<div class="field"><label for="a-contact">Nombre de contacto</label><input id="a-contact" type="text" autocomplete="name"></div>'
     +'<div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email"></div>'
     +'<div class="field"><label for="a-phone">Teléfono</label><input id="a-phone" type="tel" autocomplete="tel"></div>'
-    +'<div class="field"><label for="a-pass">Elegí una clave</label><input id="a-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 6 caracteres. Entrás con tu email y esta clave cuando te aprueben.</span></div>'
+    +'<div class="field"><label for="a-pass">Elegí una clave</label><input id="a-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 8 caracteres. Entrás con tu email y esta clave cuando te aprueben.</span></div>'
     +'</div><div><button class="btn btn-primary btn-lg" type="submit">Enviar solicitud</button></div></form></div></section>';
 }
 function vLogin(){
@@ -1877,12 +1877,12 @@ document.addEventListener('submit',async function(ev){
   if(['alogin','slogin','f-login'].indexOf(f.id)>=0){
    var em=val(f.id==='alogin'?'a-user':f.id==='slogin'?'l-user':'l-email').trim(),pw=val(f.id==='alogin'?'a-pass':'l-pass');db=await FC.login(em,pw);var id=db._identity;
    if(f.id==='alogin'){if(!id||id.role!=='admin'){db=FC.logout();throw Error('Esta cuenta no tiene acceso de administrador.');}sset(AKEY,id.id);ui.loginErr='';ui.tab='resumen';rerender();}
-   else if(f.id==='slogin'){var pending;try{pending=JSON.parse(sessionStorage.getItem('fitness-pending-vendor')||'null');}catch(e){}if(pending&&norm(pending.email)===norm(em)&&!id.vendorId){db=FC.apply(pending);sessionStorage.removeItem('fitness-pending-vendor');id=db._identity;}if(!id||id.role!=='vendor'){throw Error('Tu solicitud necesita aprobación del administrador.');}ui.vendorId=id.vendorId;ui.formError='';go('panel',{tab:'resumen'});}
+   else if(f.id==='slogin'){var pending;try{pending=JSON.parse(sessionStorage.getItem('fitness-pending-vendor')||'null');}catch(e){}if(pending&&norm(pending.email)===norm(em)&&!id.vendorId){db=FC.apply(pending);sessionStorage.removeItem('fitness-pending-vendor');id=db._identity;}if(!id||!id.vendorId||(id.role!=='vendor'&&id.role!=='admin')){ui.formError='Completá los datos de tu empresa para activar tu acceso de proveedor.';go('landing');return;}ui.vendorId=id.vendorId;ui.formError='';go('panel',{tab:'resumen'});}
    else{ui.authErr='';loginDone(acct(),'Ingresaste a tu cuenta.');}
   }else if(f.id==='f-register'){
    var pass=val('r-pass');if(pass!==val('r-pass2'))throw Error('Las claves no coinciden.');if(pass.length<8||!val('r-name').trim())throw Error('Ingresá el nombre y una clave de al menos 8 caracteres.');var res=await FC.signup(val('r-email').trim(),pass,val('r-name').trim());if(res.access_token){db=load();loginDone(acct(),'Cuenta creada.');}else{ui.authTab='login';ui.authErr='Revisá tu email y confirmá la cuenta antes de ingresar.';rerender();}
   }else if(f.id==='apply'){
-   var details={name:val('a-name').trim(),email:val('a-email').trim(),cuit:val('a-cuit'),contact:val('a-contact'),phone:val('a-phone'),type:val('a-type')};if(!details.name||details.cuit.replace(/\D/g,'').length!==11||val('a-pass').length<8)throw Error('Revisá nombre, CUIT y clave de al menos 8 caracteres.');var res=await FC.signup(details.email,val('a-pass'),details.name);if(res.access_token){db=FC.apply(details);ui.applied=true;render();}else{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));ui.formError='Confirmá tu email y luego ingresá con tu email y clave para enviar la solicitud.';render();}
+   var details={name:val('a-name').trim(),email:val('a-email').trim(),cuit:val('a-cuit'),contact:val('a-contact'),phone:val('a-phone'),type:val('a-type')};var existing=FC.identity()&&norm(FC.identity().email)===norm(details.email);if(!details.name||details.cuit.replace(/\D/g,'').length!==11||(!existing&&val('a-pass').length<8))throw Error('Revisá nombre, CUIT y clave de al menos 8 caracteres.');var res=existing?{access_token:true}:await FC.signup(details.email,val('a-pass'),details.name);if(res.access_token){db=FC.apply(details);ui.vendorId=db._identity.vendorId;ui.formError='';go('panel',{tab:'resumen'});}else{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));ui.formError='Confirmá tu email y luego ingresá con tu email y clave para enviar la solicitud.';render();}
   }else if(f.id==='f-forgot'){await FC.recover(val('fg-email').trim());ui.forgotSent=val('fg-email').trim();ui.authErr='';rerender();}
   else if(f.id==='f-pass'){if(val('pw-new').length<8||val('pw-new')!==val('pw-new2'))throw Error('Usá al menos 8 caracteres y repetí la misma clave.');await FC.password(val('pw-old'),val('pw-new'));toast('Clave actualizada.');}
   else if(f.id==='uform'){if(ui.uForm!==db._identity.id)throw Error('Para agregar administradores, creá la cuenta en Supabase Auth y asigná el permiso desde SQL.');if(val('u-pass').length<8||val('u-pass')!==val('u-pass2'))throw Error('Las claves deben coincidir y tener al menos 8 caracteres.');await FC.setPassword(val('u-pass'));ui.uForm=null;rerender();toast('Clave actualizada.');}
@@ -2005,7 +2005,7 @@ document.addEventListener('submit',function(ev){
     var name=val('a-name').trim(), cuit=String(val('a-cuit')).replace(/\D/g,''), email=val('a-email').trim();
     var keep={name:name,cuit:val('a-cuit'),contact:val('a-contact'),email:email,phone:val('a-phone'),type:val('a-type')};
     var pass=val('a-pass'), dup=db.vendors.some(function(v){ return norm(v.email)===norm(email)||norm(v.user)===norm(email); });
-    var err=!name?'Falta la razón social.':(cuit.length!==11?'El CUIT tiene que tener 11 dígitos.':(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)?'Revisá el email: no parece válido.':(dup?'Ya hay una cuenta con ese email.':(pass.length<6?'La clave tiene que tener al menos 6 caracteres.':''))));
+    var err=!name?'Falta la razón social.':(cuit.length!==11?'El CUIT tiene que tener 11 dígitos.':(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)?'Revisá el email: no parece válido.':(dup?'Ya hay una cuenta con ese email.':(pass.length<6?'La clave tiene que tener al menos 8 caracteres.':''))));
     if(err){
       ui.formError=err; ui.applied=false; render();
       ['name','cuit','contact','email','phone','type'].forEach(function(k){ var el=document.getElementById('a-'+k); if(el) el.value=keep[k]; });
