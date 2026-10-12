@@ -1,3 +1,4 @@
+-- Revisión de despliegue tras conectar la integración GitHub de producción.
 -- Alta automática de proveedores. Cada cuenta conserva sus permisos propios.
 create or replace function public.fitness_apply_vendor(details jsonb) returns jsonb language plpgsql security definer set search_path='' as $$
 declare p public.fitness_profiles; s jsonb; vid text;
