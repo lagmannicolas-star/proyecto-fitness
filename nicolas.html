@@ -1439,7 +1439,7 @@ function vLoginB(){
   else if(t==='register') body='<form id="f-register" class="authf" novalidate>'+google+e
     +'<div class="field"><label for="r-name">Nombre del gimnasio, club o empresa</label><input id="r-name" type="text" autocomplete="organization" maxlength="60" value="'+esc(ui.reg&&ui.reg.name||'')+'"></div>'
     +'<div class="field"><label for="r-email">Email</label><input id="r-email" type="email" autocomplete="email" value="'+esc(ui.reg&&ui.reg.email||'')+'"></div>'
-    +'<div class="formgrid"><div class="field"><label for="r-pass">Clave</label><input id="r-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 6 caracteres.</span></div>'
+    +'<div class="formgrid"><div class="field"><label for="r-pass">Clave</label><input id="r-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 8 caracteres.</span></div>'
     +'<div class="field"><label for="r-pass2">Repetí la clave</label><input id="r-pass2" type="password" autocomplete="new-password"></div></div>'
     +'<label class="check sm"><input id="r-mkt" type="checkbox" checked> Quiero recibir ofertas y novedades por email</label>'
     +'<button class="btn btn-accent btn-lg" type="submit">Crear mi cuenta</button><p class="muted small">Al crear la cuenta aceptás los términos y la política de privacidad del sitio.</p></form>';
@@ -1456,7 +1456,7 @@ function vLoginB(){
     +'<li>'+ico('truck',20)+'<span><b>Varias direcciones</b>Una por sede, y elegís en cada compra.</span></li>'
     +'<li>'+ico('refund',20)+'<span><b>Volver a comprar</b>Repetí un pedido con un clic, con los precios de hoy.</span></li>'
     +'<li>'+ico('bell',20)+'<span><b>Avisos de precio</b>Guardá favoritos y te avisamos cuando bajan.</span></li></ul>'
-    +'<p class="muted small">Podés comprar sin cuenta. La cuenta es gratis y la podés borrar cuando quieras.</p></aside></div>'
+    +'<p class="muted small">Para registrar pedidos necesitás una cuenta con email confirmado. Crear la cuenta es gratis.</p></aside></div>'
     +(ui.gModal?googleModal():'');
 }
 function googleModal(){
@@ -1732,7 +1732,7 @@ function cartPayModal(){
   var done=(ui.paidOrders||[]).length?ui.payStep:0, total=ui.payTotal||C.groups.length;
   return '<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pay-title">'
     +'<p class="eyebrow">Pago '+(ui.payStep+1)+' de '+total+'</p><h2 id="pay-title" class="display" style="font-size:1.8rem">Pago de prueba</h2>'
-    +'<p class="muted">Medio elegido: '+esc(payLabel(g.method))+'. En esta demo no se cobra nada. La transferencia o el efectivo deben confirmarse antes de aprobar el pedido; los planes de cuotas deben estar habilitados en el cobro real.</p>'
+    +'<p class="muted">Medio elegido: '+esc(payLabel(g.method))+'. Los pedidos se registran sin cobro hasta conectar Mercado Pago. La transferencia o el efectivo deben confirmarse antes de aprobar el pedido; los planes de cuotas deben estar habilitados en el cobro real.</p>'
     +'<div class="rows num"><div><span class="muted">Medio de pago</span><b>'+esc(payLabel(g.method))+'</b></div><div><span class="muted">Le pagás a</span><b>'+esc(mpName(g.v))+'</b></div><div><span class="muted">Productos</span><span>'+g.items.map(function(x){ return esc(x.o.model)+' × '+x.i.qty; }).join(', ')+'</span></div><div><span class="muted">En el resumen de tu tarjeta</span><b class="mono">'+esc(descriptor(g.v))+'</b></div><div class="total"><span>Total a pagar</span><b>'+money(g.total)+'</b></div></div>'
     +'<div class="actions"><button class="btn btn-accent" data-act="cpay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button><button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
 }
@@ -2321,7 +2321,7 @@ function payModal(){
   var o=offer(ui.offerId), v=vendor(o.vendorId), qty=Math.max(1,ui.qty|0), q=paymentQuote(o,qty,ui.cp,selectedMethod(v)), pct=pctOf(v), com=amount(q.subtotal*pct/100);
   return '<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pay-title">'
     +'<h2 id="pay-title" class="display" style="font-size:1.8rem">Pago de prueba</h2>'
-    +'<p class="muted">Medio elegido: '+esc(payLabel(selectedMethod(v)))+'. En esta demo no se cobra nada. Transferencia y efectivo requieren confirmación del cobro antes de aprobar el pedido.</p>'
+    +'<p class="muted">Medio elegido: '+esc(payLabel(selectedMethod(v)))+'. Los pedidos se registran sin cobro hasta conectar Mercado Pago. Transferencia y efectivo requieren confirmación del cobro antes de aprobar el pedido.</p>'
     +'<div class="rows num"><div><span class="muted">Le pagás a</span><b>'+esc(mpName(v))+'</b></div><div><span class="muted">En el resumen de tu tarjeta</span><b class="mono">'+esc(descriptor(v))+'</b></div><div class="total"><span>Total a pagar</span><b>'+money(q.total)+'</b></div></div>'
     +'<div class="actions"><button class="btn btn-accent" data-act="pay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button><button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
 }
@@ -2491,7 +2491,7 @@ document.addEventListener('submit',function(ev){
   }
   if(f.id==='f-register'){
     db=load(); var rn=val('r-name').trim().slice(0,60), re=val('r-email').trim(), rp=val('r-pass'), rp2=val('r-pass2'); ui.reg={name:rn,email:re};
-    ui.authErr=!rn?'Escribí el nombre del gimnasio, club o empresa.':(!emailOk(re)?'Escribí un email válido.':(acctByEmail(re)?'Ya hay una cuenta con ese email. Ingresá o recuperá la clave.':(rp.length<6?'La clave tiene que tener al menos 6 caracteres.':(rp!==rp2?'Las dos claves no coinciden.':''))));
+    ui.authErr=!rn?'Escribí el nombre del gimnasio, club o empresa.':(!emailOk(re)?'Escribí un email válido.':(acctByEmail(re)?'Ya hay una cuenta con ese email. Ingresá o recuperá la clave.':(rp.length<6?'La clave tiene que tener al menos 8 caracteres.':(rp!==rp2?'Las dos claves no coinciden.':''))));
     if(ui.authErr){ rerender(!rn?'r-name':(!emailOk(re)||acctByEmail(re)?'r-email':'r-pass')); return; }
     var nb={id:'b'+(db.nextId++),name:rn,contact:'',email:re,hash:pwHash(rp),phone:'',cuit:'',iva:'Consumidor final',addresses:[],favs:[],marketing:document.getElementById('r-mkt').checked,created:today(),logins:[],via:'email'};
     db.buyers=db.buyers||[]; db.buyers.push(nb); notify('user','usuarios','Nuevo usuario: '+nb.name+' ('+nb.email+') creó su cuenta con email.',nb.id); ui.reg=null; loginDone(nb,'Listo, ya tenés tu cuenta.'); return;
@@ -2523,13 +2523,13 @@ document.addEventListener('submit',function(ev){
   }
   if(f.id==='f-pass'){
     var pb=acct(); if(!pb) return; var po=val('pw-old'), pn=val('pw-new'), pn2=val('pw-new2');
-    var perr=pb.hash&&pb.hash!==pwHash(po)?['La clave actual no es correcta.','pw-old']:(pn.length<6?['La clave nueva tiene que tener al menos 6 caracteres.','pw-new']:(pn!==pn2?['Las dos claves no coinciden.','pw-new2']:null));
+    var perr=pb.hash&&pb.hash!==pwHash(po)?['La clave actual no es correcta.','pw-old']:(pn.length<6?['La clave nueva tiene que tener al menos 8 caracteres.','pw-new']:(pn!==pn2?['Las dos claves no coinciden.','pw-new2']:null));
     if(perr){ var pe=document.getElementById('pw-err'); pe.textContent=perr[0]; pe.hidden=false; document.getElementById(perr[1]).focus(); return; }
     pb.hash=pwHash(pn); save(); rerender(); toast('Clave actualizada'); return;
   }
   if(f.id==='f-quick'){
     var qp=val('qk-pass'), qo=ui.doneOrders&&ui.doneOrders.length?order(ui.doneOrders[0]):order(ui.orderId); if(!qo) return;
-    if(qp.length<6){ var qe=document.getElementById('qk-err'); qe.textContent='La clave tiene que tener al menos 6 caracteres.'; qe.hidden=false; document.getElementById('qk-pass').focus(); return; }
+    if(qp.length<6){ var qe=document.getElementById('qk-err'); qe.textContent='La clave tiene que tener al menos 8 caracteres.'; qe.hidden=false; document.getElementById('qk-pass').focus(); return; }
     db=load(); var s0=qo.ship||{}, qb={id:'b'+(db.nextId++),name:qo.buyer,contact:'',email:s0.email,hash:pwHash(qp),phone:s0.phone||'',cuit:(qo.billing||{}).cuit||'',iva:(qo.billing||{}).iva||'Consumidor final',
       addresses:s0.address?[{id:'ad'+(db.nextId++),label:'Principal',address:s0.address,city:s0.city||'',prov:s0.prov||'',cp:s0.cp||'',notes:s0.notes||'',def:true}]:[],favs:[],marketing:false,created:today(),logins:[new Date().toISOString()],via:'quick'};
     db.buyers=db.buyers||[]; db.buyers.push(qb); notify('user','usuarios','Nuevo usuario: '+qb.name+' ('+qb.email+') creó su cuenta al terminar una compra.',qb.id); setAcct(qb.id); ui.accTab='resumen'; save(); rerender(); toast('Listo: creamos tu cuenta con tus datos y tu dirección.'); return;
