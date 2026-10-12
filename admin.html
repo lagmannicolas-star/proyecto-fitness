@@ -1849,7 +1849,7 @@ function checkLate(){
 }
 function bellPanel(){
   var N=(db.notifs||[]).slice(0,40);
-  return '<div class="bellp card" id="bellp"><div class="ch"><span class="ic">'+ico('bell')+'</span><div class="ch-t"><h2 class="display h-card">Novedades</h2><p class="muted small">Lo que pasó en el sitio y tenés que saber.'+(db.prefs&&db.prefs.email?' También te llegan a '+esc(db.prefs.email)+'.':'')+'</p></div>'
+  return '<div class="bellp card" id="bellp"><div class="ch"><span class="ic">'+ico('bell')+'</span><div class="ch-t"><h2 class="display h-card">Novedades</h2><p class="muted small">Lo que pasó en el sitio y tenés que saber.'+'</p></div>'
     +(unread()?'<button class="btn btn-outline btn-sm" data-act="n-readall">Marcar todo como leído</button>':'')+'<button class="btn btn-outline btn-sm" data-act="bell" aria-label="Cerrar novedades">Cerrar</button></div>'
     +(N.length?'<ol class="nlist">'+N.map(function(n){ var k=NKIND[n.kind]||['bell','Aviso'];
       return '<li class="'+(n.read?'':'new')+'"><button type="button" data-act="n-go" data-id="'+n.id+'"><span class="ic sm k-'+n.kind+'">'+ico(k[0],18)+'</span><span class="n-b"><span class="n-t">'+esc(n.text)+'</span><span class="muted small">'+k[1]+' · '+ago(n.t)+'</span></span>'+(n.read?'':'<span class="n-dot" aria-label="Sin leer"></span>')+'</button></li>'; }).join('')+'</ol>'
@@ -1857,7 +1857,7 @@ function bellPanel(){
 }
 function prefsCard(){
   var P=db.prefs||{};
-  return '<form id="prefs" class="card" novalidate style="max-width:720px">'+chead('bell','Avisos','Qué novedades querés recibir. En el panel aparecen todas; las que marques también te llegan por email.')
+  return '<form id="prefs" class="card" novalidate style="max-width:720px">'+chead('bell','Avisos','Consultá las novedades en este panel. Los avisos por email todavía no están habilitados.')
     +'<div class="field" style="max-width:420px"><label for="pf-email">Email para los avisos</label><input id="pf-email" type="email" value="'+esc(P.email||'')+'" placeholder="tu@email.com"></div>'
     +'<div class="checks">'+NPREF.map(function(p){ return '<label class="check sm"><input type="checkbox" data-pref="'+p[0]+'"'+(P[p[0]]?' checked':'')+'> '+p[1]+'</label>'; }).join('')+'</div>'
     +'<p class="note">Los avisos se consultan en el panel. No se envían correos de ventas automáticamente en esta versión.</p>'

@@ -1594,7 +1594,7 @@ function buyerFieldsAcct(){
   var bill=ui.bill||{}, b0=b?'<p class="muted small">Comprás como <b>'+esc(b.name)+'</b> · '+esc(b.email)+'. <button type="button" class="linkbtn" data-act="logout-b">No soy yo</button></p>':'<p class="muted small">¿Ya tenés cuenta? <button type="button" class="linkbtn" data-act="login-checkout">Ingresá</button> y se completa solo. Si no, seguí como invitado.</p>';
   return b0
     +'<fieldset><legend style="font-size:1.2rem">Contacto</legend><div class="formgrid">'
-    +'<div class="field"><label for="b-email">Email</label><input id="b-email" type="email" autocomplete="email" value="'+esc(ui.ship.email)+'"><span class="hint">Te mandamos el seguimiento del envío.</span></div>'
+    +'<div class="field"><label for="b-email">Email</label><input id="b-email" type="email" autocomplete="email" value="'+esc(ui.ship.email)+'"><span class="hint">Email de contacto. El seguimiento se consulta en Mi cuenta.</span></div>'
     +'<div class="field"><label for="b-phone">Teléfono</label><input id="b-phone" type="tel" autocomplete="tel" value="'+esc(ui.ship.phone)+'"></div></div></fieldset>'
     +'<fieldset><legend style="font-size:1.2rem">Entrega</legend>'
     +(A.length?'<div class="addrpick" role="radiogroup" aria-label="Dirección de entrega">'+A.map(function(a){ return '<label class="addropt'+(a.id===sel?' on':'')+'"><input type="radio" name="addrsel" data-addrsel="'+a.id+'"'+(a.id===sel?' checked':'')+'><span><b>'+esc(a.label||'Dirección')+'</b>'+(a.def?' <span class="st ok">Predeterminada</span>':'')+'<span class="muted small">'+esc(a.address+', '+[a.city,a.prov].filter(Boolean).join(', ')+(a.cp?' · CP '+a.cp:''))+'</span></span></label>'; }).join('')
@@ -2333,7 +2333,7 @@ function vDone(){
     +'<h1 class="display h-page">Pedido registrado</h1>'
     +'<div class="split"><div class="card main"><div><b>'+esc(v?v.name:'')+'</b><p class="muted">'+esc(o.desc)+' × '+o.qty+'</p></div>'
     +(o.paymentDiscount?'<p class="note">'+esc(payLabel(o.paymentMethod))+': ahorraste '+money(o.paymentDiscount)+'</p>':'')+(o.discount?'<p class="note">Descuento por volumen aplicado: '+o.discountPct+'% · ahorraste '+money(o.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(o.subtotal)+'</span></div><div><span>Envío</span><span>'+(o.shipping===0?'Sin cargo':money(o.shipping))+'</span></div><div class="total"><span>Total del pedido</span><span>'+money(o.subtotal+o.shipping)+'</span></div></div>'
-    +'<p class="muted">El proveedor ya recibió el pedido y lo va a despachar. Cuando lo envíe, te mandamos el número de seguimiento a '+esc((o.ship||{}).email||'tu email')+'.</p><div class="actions"><button class="btn btn-primary" data-act="track-open" data-id="'+o.id+'">Seguir mi pedido</button><button class="btn btn-outline" data-go="buscar">Seguir comparando</button></div></div>'
+    +'<p class="muted">El proveedor ya recibió el pedido y lo va a despachar. Cuando lo envíe, podrás consultar el seguimiento desde Mi cuenta.</p><div class="actions"><button class="btn btn-primary" data-act="track-open" data-id="'+o.id+'">Seguir mi pedido</button><button class="btn btn-outline" data-go="buscar">Seguir comparando</button></div></div>'
     +'<aside class="side" style="display:flex;flex-direction:column;gap:16px">'+quickAccountCard((o.ship||{}).email)+'<div class="card"><h2 class="display" style="font-size:1.4rem">Para la demo</h2><p class="muted">Esta venta ya figura en el sitio de proveedores y en el administrador, con la comisión calculada.</p>'
     +'<div class="actions"><a class="btn btn-outline btn-sm" href="admin.html">Verla en el administrador</a></div></div></aside></div></div>';
 }
@@ -2552,7 +2552,7 @@ document.addEventListener('submit',function(ev){
   } else if(f.id==='checkout'&&ui.cartMode){
     ui.buyer=val('b-name').trim();
     ['email','phone','address','city','prov','notes'].forEach(function(k){ ui.ship[k]=val('b-'+k).trim(); });
-    var cc=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email válido: ahí te llega el seguimiento.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],[!ui.ship.address,'Escribí la dirección de entrega.','b-address'],[!ui.ship.city,'Escribí la ciudad.','b-city']];
+    var cc=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email de contacto válido.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],[!ui.ship.address,'Escribí la dirección de entrega.','b-address'],[!ui.ship.city,'Escribí la ciudad.','b-city']];
     var bad2=cc.filter(function(c){ return c[0]; })[0];
     if(bad2){ var bx=document.getElementById('co-err'); if(bx){ bx.textContent=bad2[1]; bx.hidden=false; } var fe2=document.getElementById(bad2[2]); if(fe2) fe2.focus(); return; }
     var CG=cartGroups(); if(CG.bad||!CG.ok){ go('carrito'); return; }
@@ -2564,7 +2564,7 @@ document.addEventListener('submit',function(ev){
     ['email','phone','address','city','prov','notes'].forEach(function(k){ ui.ship[k]=val('b-'+k).trim(); });
     var checks=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[ui.qty<o.minQty,'La compra mínima de este proveedor es de '+o.minQty+'.','b-qty'],
       [o.units!=null&&ui.qty>o.units,'Este proveedor tiene '+o.units+(o.units===1?' unidad disponible.':' unidades disponibles.'),'b-qty'],[!cpOk(ui.cp),'Ingresá los 4 dígitos del código postal.','b-cp'],
-      [!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email válido: ahí te llega el seguimiento.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],
+      [!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email de contacto válido.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],
       [!ui.ship.address,'Escribí la dirección de entrega.','b-address'],[!ui.ship.city,'Escribí la ciudad.','b-city']];
     var bad=checks.filter(function(c){ return c[0]; })[0];
     if(bad){

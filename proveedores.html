@@ -1411,7 +1411,7 @@ function checkLateV(v){
 }
 function vBell(v){
   var N=(v.notifs||[]).slice(0,40);
-  return '<div class="bellp card"><div class="ch"><span class="ic">'+ico('bell')+'</span><div class="ch-t"><h2 class="display h-card">Novedades</h2><p class="muted small">Ventas nuevas, aprobaciones, stock y demoras.'+(v.email?' En el sitio real también te llegan a '+esc(v.email)+'.':'')+'</p></div>'
+  return '<div class="bellp card"><div class="ch"><span class="ic">'+ico('bell')+'</span><div class="ch-t"><h2 class="display h-card">Novedades</h2><p class="muted small">Ventas nuevas, aprobaciones, stock y demoras.'+'</p></div>'
     +(vUnread(v)?'<button class="btn btn-outline btn-sm" data-act="vn-readall">Marcar todo como leído</button>':'')+'<button class="btn btn-outline btn-sm" data-act="vbell">Cerrar</button></div>'
     +(N.length?'<ol class="nlist">'+N.map(function(n){ var k=VNK[n.kind]||['bell','Aviso'];
       return '<li class="'+(n.read?'':'new')+'"><button type="button" data-act="vn-go" data-id="'+n.id+'"><span class="ic sm k-'+n.kind+'">'+ico(k[0],18)+'</span><span class="n-b"><span class="n-t">'+esc(n.text)+'</span><span class="muted small">'+k[1]+' · '+agoV(n.t)+'</span></span>'+(n.read?'':'<span class="n-dot" aria-label="Sin leer"></span>')+'</button></li>'; }).join('')+'</ol>'
@@ -1967,7 +1967,7 @@ document.addEventListener('submit',function(ev){
     if(tu&&!safeUrl(tu)){ var se2=document.getElementById('sh-err'); se2.textContent='El link tiene que empezar con https://'; se2.hidden=false; document.getElementById('sh-url').focus(); return; }
     so.shipped=true; so.shippedAt=today(); so.carrier=car; so.tracking=num; so.trackUrl=tu;
     notify('ship','ventas',me().name+' envió el pedido #'+so.id+' por '+car+(num?' ('+num+')':''),so.id); vact(me(),'envió el pedido #'+so.id+' por '+car);
-    save(); rerender(); toast('Pedido #'+so.id+' enviado. Le avisamos al comprador'+(so.ship&&so.ship.email?' a '+so.ship.email:'')+' con el seguimiento.'); return;
+    save(); rerender(); toast('Pedido #'+so.id+' enviado. El seguimiento ya se puede consultar en Mi cuenta.'); return;
   }
   if(f.id==='viewform'){
     var vn=val('vw-name').trim().slice(0,24); if(!vn){ toast('Ponele un nombre al filtro.'); document.getElementById('vw-name').focus(); return; }
