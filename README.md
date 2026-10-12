@@ -26,9 +26,10 @@ Con Node.js:
 
 ```sh
 node tests/regression.cjs
+node tests/pricing.test.cjs
 ```
 
-19 casos pasaron el 12/10/2026. Se ejecuta el código real en un entorno DOM simulado: comprueba cálculo, almacenamiento, generación inicial de vistas, importación, carrito y pedidos. No equivale a QA visual ni a pruebas de integración con una base de datos o Mercado Pago.
+19 casos pasaron el 12/10/2026. Se ejecuta el código real en un entorno DOM simulado: comprueba cálculo, almacenamiento, generación inicial de vistas, importación, carrito y pedidos. Además se verificaron inicio, comparación, cambios de cantidad, bloqueo de compra por stock insuficiente y carrito en navegador real de escritorio sobre la web publicada. Faltan pruebas visuales móviles y de integración con base de datos y Mercado Pago.
 
 ## Límites pendientes
 

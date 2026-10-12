@@ -10,8 +10,8 @@ La última prueba confirma expresamente que dos navegadores aislados NO comparte
 
 ## No verificado
 
-- Navegador real, revisión visual móvil y accesibilidad completa: no hay navegador de pruebas disponible en este entorno.
-- Versión publicada: cambios preparados localmente; la cuenta GitHub no está conectada para publicar.
+- Revisión visual móvil y accesibilidad completa: pendientes. Se comprobó en navegador real de escritorio el inicio, comparación, cambio de cantidad, bloqueo por stock insuficiente y carrito; total de $7.400 consistente entre oferta y carrito.
+- Publicación confirmada en GitHub Pages. Commit de código publicado: 3e9bfafd5f28da3336c1c1c74ce41db99c262cbd. La construcción y el despliegue terminaron correctamente.
 - Base de datos compartida, autenticación segura y compras concurrentes entre dispositivos: servicio no configurado.
 - Mercado Pago y emails: integraciones no configuradas.
 
