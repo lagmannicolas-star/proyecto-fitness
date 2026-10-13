@@ -688,8 +688,8 @@ tr.oddrow{background:var(--warn-bg)}
 .search-alt{grid-column:1 / -1;margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:.92rem;color:var(--muted)}
 .search-alt .linkbtn{min-height:36px}
 /* Cuentas de compradores */
-.acctbtn{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-left:4px;border:1px solid var(--strong-line);border-radius:999px;background:none;color:var(--strong-fg);font-weight:600;cursor:pointer}
-.acctbtn:hover,.acctbtn[aria-current="page"]{border-color:var(--strong-accent)}
+.acctbtn{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-left:4px;border:1px solid var(--accent);border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:600;cursor:pointer}
+.acctbtn:hover,.acctbtn[aria-current="page"]{border-color:var(--ink);filter:brightness(.95)}
 .acctbtn.in{padding-left:6px}
 .dotb{position:absolute;top:6px;right:8px;width:9px;height:9px;border-radius:50%;background:#A5CC21;box-shadow:0 0 0 2px var(--strong-bg)}
 @media (max-width:560px){ .acct-l{display:none} .acctbtn{padding:0 11px} .acctbtn.in{padding:0 6px} }
