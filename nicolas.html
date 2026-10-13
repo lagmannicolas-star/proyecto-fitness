@@ -233,7 +233,7 @@ legend{padding:0;font-family:var(--display);font-weight:700;font-size:1.4rem;tex
 .page{padding-block:28px 56px;display:flex;flex-direction:column;gap:24px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;background:var(--surface-2);font-size:.88rem;font-weight:600}
-.dark .chip{background:var(--strong-line);color:var(--strong-fg)}
+.dark .chip{background:var(--accent-soft);color:var(--ink);border:1px solid rgba(165,204,33,.45)}
 .controls{display:flex;flex-wrap:wrap;gap:16px 28px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;align-items:flex-start}
 .controls .field.q{flex:0 1 200px}
 .controls .field.cp{flex:0 1 170px}
@@ -839,6 +839,21 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 <meta name="nexofit-build" content="20261013-portada-ab">
 <style>
 .ab-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.ab-card{border:1px solid var(--line,#10171f25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;background:#FDFAF5}.ab-card h3{font-size:16px;line-height:1.4;margin:0;overflow-wrap:anywhere}.ab-card .btn{margin-top:auto}.ab-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:20px 0}.ab-pages{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px}.ab-variant{padding:18px 0;border-bottom:1px solid #10171f25}.ab-variant .actions{margin-top:12px}.ab-variant input{width:90px;min-height:44px}.ab-card .small{margin:0}@media(max-width:900px){.ab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:550px){.ab-filters{grid-template-columns:1fr}.ab-card{padding:12px}.ab-card h3{font-size:14px}.ab-card .btn{font-size:12px;padding:10px}}
+/* Celulares: tarjetas de catálogo más limpias y botones de portada ordenados */
+.ab-cat{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
+.ab-price{font-size:1.15rem;color:var(--ink)}
+.ab-card{background:#fff;box-shadow:0 1px 2px rgba(16,23,31,.05)}
+@media(max-width:560px){
+ .hero .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .hero .actions .btn{width:100%;justify-content:center;text-align:center;padding-left:10px;padding-right:10px}
+ .hero .actions .btn-accent{grid-column:1 / -1}
+ .process-line{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .process-line span{display:flex;flex-direction:column;gap:2px;font-size:.8rem;line-height:1.25}
+ .ab-grid{gap:10px}
+ .ab-card{gap:6px;border-radius:12px}
+ .ab-card h3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+ .ab-price{font-size:1.05rem;margin-top:auto}
+}
 </style></head>
 <body>
 <div id="app"></div>
@@ -2034,7 +2049,7 @@ function supplierCatalogSection(){
  var q=plain(ui.supplierQuery||'');if(q)list=list.filter(function(p){return plain(p.name+' '+p.category+' '+p.vendorName+' '+(p.properties||[]).map(function(x){return x.value;}).join(' ')).indexOf(q)>=0;});
  var page=Math.max(1,Math.min(ui.supplierPage||1,Math.max(1,Math.ceil(list.length/12))));ui.supplierPage=page;
  var vendors=Array.from(new Map(supplierCatalog.map(function(p){return [p.vendorId,p.vendorName];})).entries());
- return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Productos de nuestros proveedores</h2><p class="muted">Los catálogos cargados por las empresas, reunidos acá.</p><div class="ab-filters"><div class="field"><label for="supplier-search">Buscar producto</label><input id="supplier-search" type="search" value="'+esc(ui.supplierQuery||'')+'"></div><div class="field"><label for="supplier-vendor">Proveedor</label><select id="supplier-vendor"><option value="">Todos los proveedores</option>'+vendors.map(function(v){return '<option value="'+esc(v[0])+'"'+(v[0]===ui.supplierVendor?' selected':'')+'>'+esc(v[1])+'</option>';}).join('')+'</select></div></div><p role="status">'+(supplierCatalogError?'No se pudo actualizar el catálogo de proveedores. Intentá actualizar los datos.':list.length+' variantes disponibles para consultar')+'</p><div class="ab-grid">'+list.slice((page-1)*12,page*12).map(function(p){var o=p.offerId&&offer(p.offerId),active=o&&isLive(o);return '<article class="ab-card"><span class="small muted">'+esc(p.vendorName)+' · '+esc(p.category||'Catálogo')+'</span><h3>'+esc(p.name)+'</h3><p class="small">'+esc((p.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · '))+'</p><b>'+money(active?o.price:p.price)+'</b>'+(active?'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar al carrito</button>':'<span class="small muted">'+(p.units===0?'Sin stock':'Precio de catálogo · disponibilidad y condiciones por confirmar')+'</span>')+'</article>';}).join('')+'</div><div class="ab-pages"><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page-1)+'" '+(page===1?'disabled':'')+'>Anterior</button><span>'+page+' / '+Math.max(1,Math.ceil(list.length/12))+'</span><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page+1)+'" '+(page*12>=list.length?'disabled':'')+'>Siguiente</button></div></div></section>';
+ return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Productos de nuestros proveedores</h2><p class="muted">Los catálogos cargados por las empresas, reunidos acá.</p><div class="ab-filters"><div class="field"><label for="supplier-search">Buscar producto</label><input id="supplier-search" type="search" value="'+esc(ui.supplierQuery||'')+'"></div><div class="field"><label for="supplier-vendor">Proveedor</label><select id="supplier-vendor"><option value="">Todos los proveedores</option>'+vendors.map(function(v){return '<option value="'+esc(v[0])+'"'+(v[0]===ui.supplierVendor?' selected':'')+'>'+esc(v[1])+'</option>';}).join('')+'</select></div></div><p role="status">'+(supplierCatalogError?'No se pudo actualizar el catálogo de proveedores. Intentá actualizar los datos.':list.length+' variantes disponibles para consultar. Precios de catálogo: disponibilidad y condiciones por confirmar con cada empresa.')+'</p><div class="ab-grid">'+list.slice((page-1)*12,page*12).map(function(p){var o=p.offerId&&offer(p.offerId),active=o&&isLive(o),cat=String(p.category||'Catálogo').split(',')[0].split('>').pop().trim().toLowerCase();return '<article class="ab-card"><span class="small muted ab-cat" title="'+esc(p.category||'Catálogo')+'">'+esc(p.vendorName)+' · '+esc(cat)+'</span><h3>'+esc(p.name)+'</h3><p class="small">'+esc((p.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · '))+'</p><b class="ab-price">'+money(active?o.price:p.price)+'</b>'+(active?'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar al carrito</button>':(p.units===0?'<span class="small muted">Sin stock</span>':''))+'</article>';}).join('')+'</div><div class="ab-pages"><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page-1)+'" '+(page===1?'disabled':'')+'>Anterior</button><span>'+page+' / '+Math.max(1,Math.ceil(list.length/12))+'</span><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page+1)+'" '+(page*12>=list.length?'disabled':'')+'>Siguiente</button></div></div></section>';
 }
 function vFront(){
  return '<section class="hero"><div class="wrap hero-in hero-layout"><div class="hero-copy"><p class="eyebrow">Gimnasios · Clubes · Colegios</p>'
