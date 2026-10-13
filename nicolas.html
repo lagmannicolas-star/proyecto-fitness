@@ -860,6 +860,8 @@ var FC=(function(){
  function ensureSession(){if(session&&session.expires_at&&session.expires_at<Date.now()/1000+30){var s=sync('/auth/v1/token?grant_type=refresh_token',{refresh_token:session.refresh_token},false);putSession(s);}}
  async function init(){validateConfig();var fragment=new URLSearchParams(location.hash.slice(1));if(fragment.get('access_token')&&fragment.get('refresh_token')){recovery=fragment.get('type')==='recovery';putSession({access_token:fragment.get('access_token'),refresh_token:fragment.get('refresh_token'),expires_at:Date.now()/1000+Number(fragment.get('expires_in')||3600)});history.replaceState(null,'',location.pathname+location.search);}try{session=JSON.parse(sessionStorage.getItem(storageKey)||'null');}catch(e){}if(session&&session.expires_at&&session.expires_at<Date.now()/1000+30){try{putSession(await request('/auth/v1/token?grant_type=refresh_token',{refresh_token:session.refresh_token},false));}catch(e){putSession(null);}}state=await request('/rest/v1/rpc/fitness_snapshot',{},true);}
  function refresh(){ensureSession();state=sync('/rest/v1/rpc/fitness_snapshot',{},true);return clone();}
+ async function refreshAsync(){ensureSession();state=await request('/rest/v1/rpc/fitness_snapshot',{},true);return clone();}
+ async function publicCatalog(){return request('/rest/v1/rpc/fitness_public_catalog',{},false);}
  function clone(){return JSON.parse(JSON.stringify(state));}
  function save(data){ensureSession();if(!state._identity)throw Error('Iniciá sesión para guardar cambios');state=sync('/rest/v1/rpc/fitness_save',{payload:clean(data),expected_revision:data._revision},true);return clone();}
  async function login(email,password){putSession(await request('/auth/v1/token?grant_type=password',{email:email,password:password},false));state=await request('/rest/v1/rpc/fitness_snapshot',{},true);return clone();}
@@ -877,7 +879,7 @@ var FC=(function(){
  function recoveryForm(){if(!recovery)return;var box=document.createElement('div');box.style.cssText='position:fixed;inset:0;background:rgba(16,23,31,.85);z-index:9999;display:grid;place-items:center';box.innerHTML='<form style="background:#FDFAF5;color:#10171F;padding:24px;max-width:420px;border-radius:12px"><h2>Crear una nueva clave</h2><label>Clave nueva (mínimo 8 caracteres)<input type="password" name="new-password" autocomplete="new-password" minlength="8" required></label><label>Repetir clave<input type="password" name="repeat-password" autocomplete="new-password" minlength="8" required></label><button type="submit">Guardar clave</button><p role="alert"></p></form>';document.body.appendChild(box);box.querySelector('form').addEventListener('submit',async function(ev){ev.preventDefault();ev.stopImmediatePropagation();var p=box.querySelector('[name="new-password"]').value,p2=box.querySelector('[name="repeat-password"]').value;var btn=box.querySelector('button');btn.disabled=true;try{if(p.length<8||p!==p2)throw Error('Las claves deben coincidir y tener al menos 8 caracteres.');await setPassword(p);recovery=false;box.remove();}catch(e){box.querySelector('[role="alert"]').textContent=e.message;}finally{btn.disabled=false;}},true);}
 
  function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#A5CC21;color:#10171F;padding:16px;border-radius:8px';document.body.appendChild(box);}box.textContent=e.message||String(e);setTimeout(function(){box.remove();},12000);}
- return {importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
+ return {publicCatalog:publicCatalog,refreshAsync:refreshAsync,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
 })();
 
 
@@ -1166,6 +1168,8 @@ function sget(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null;
 function sset(k,v){ try{ if(v==null) sessionStorage.removeItem(k); else sessionStorage.setItem(k,v); }catch(e){} }
 
 var db=load();
+var supplierCatalog=[],supplierCatalogError=false;
+try{supplierCatalog=await FC.publicCatalog();}catch(e){supplierCatalogError=true;}
 var app=document.getElementById('app');
 var toastEl=document.getElementById('toast');
 var toastTimer=null;
@@ -2025,6 +2029,13 @@ function abResults(){
 function abSection(){return '<section class="section" id="ab-productos"><div class="wrap"><div class="section-head"><div><p class="eyebrow">AB Fitness en Nexo Fit</p><h2 class="display">Elegí tu próximo equipo</h2><p class="muted small">466 productos · 724 variantes. Armá tu selección en un solo carrito.</p></div><button class="btn btn-outline btn-sm" data-go="carrito">Ver carrito ↗</button></div><p class="small muted">Precios de referencia del catálogo importado. Precio y disponibilidad sujetos a confirmación.</p><div class="ab-filters"><div class="field"><label for="ab-search">Buscar en AB Fitness</label><input id="ab-search" type="search" placeholder="Mancuernas, colchonetas, 10 kg…" value="'+esc(ui.abQuery)+'"></div><div class="field"><label for="ab-category">Categoría</label><select id="ab-category"><option value="">Todas las categorías</option>'+Array.from(new Set(AB_PRODUCTS.map(function(p){return p.category;}))).sort().map(function(c){return '<option '+(c===ui.abCategory?'selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></div></div><div id="ab-results">'+abResults()+'</div></div></section>';}
 function vAbProduct(){var p=AB_PRODUCTS.find(function(p){return p.id===ui.abSlug;});if(!p)return abSection();return '<section class="section"><div class="wrap"><button class="linkbtn" data-act="ab-back">← Volver a los productos</button><p class="eyebrow">AB Fitness · '+esc(p.category)+'</p><h1 class="display h-page">'+esc(p.name)+'</h1><p class="small muted">Precios de referencia. Confirmá precio y disponibilidad antes de comprar.</p>'+p.variants.map(function(v,i){return '<article class="ab-variant"><b>'+esc(abVariant(v))+'</b><p>'+esc(abMoney(v.price))+' · precio del archivo</p>'+(v.sku?'<p class="small muted">SKU: '+esc(v.sku)+'</p>':'')+'<div class="actions"><label for="ab-qty-'+i+'">Cantidad <input id="ab-qty-'+i+'" type="number" min="1" max="999999" step="1" value="1" inputmode="numeric"></label><button class="btn btn-accent" data-act="ab-add" data-variant="'+i+'">Agregar al carrito</button></div></article>';}).join('')+'<div class="actions" style="margin-top:20px"><button class="btn btn-primary" data-go="carrito">Ver carrito ↗</button><a class="btn btn-outline" href="'+esc(p.url)+'" target="_blank" rel="noopener">Ver en AB Fitness ↗</a></div></div></section>';}
 
+function supplierCatalogSection(){
+ var list=supplierCatalog.filter(function(p){return !ui.supplierVendor||p.vendorId===ui.supplierVendor;});
+ var q=plain(ui.supplierQuery||'');if(q)list=list.filter(function(p){return plain(p.name+' '+p.category+' '+p.vendorName+' '+(p.properties||[]).map(function(x){return x.value;}).join(' ')).indexOf(q)>=0;});
+ var page=Math.max(1,Math.min(ui.supplierPage||1,Math.max(1,Math.ceil(list.length/12))));ui.supplierPage=page;
+ var vendors=Array.from(new Map(supplierCatalog.map(function(p){return [p.vendorId,p.vendorName];})).entries());
+ return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Productos de nuestros proveedores</h2><p class="muted">Los catálogos cargados por las empresas, reunidos acá.</p><div class="ab-filters"><div class="field"><label for="supplier-search">Buscar producto</label><input id="supplier-search" type="search" value="'+esc(ui.supplierQuery||'')+'"></div><div class="field"><label for="supplier-vendor">Proveedor</label><select id="supplier-vendor"><option value="">Todos los proveedores</option>'+vendors.map(function(v){return '<option value="'+esc(v[0])+'"'+(v[0]===ui.supplierVendor?' selected':'')+'>'+esc(v[1])+'</option>';}).join('')+'</select></div></div><p role="status">'+(supplierCatalogError?'No se pudo actualizar el catálogo de proveedores. Intentá actualizar los datos.':list.length+' variantes disponibles para consultar')+'</p><div class="ab-grid">'+list.slice((page-1)*12,page*12).map(function(p){var o=p.offerId&&offer(p.offerId),active=o&&isLive(o);return '<article class="ab-card"><span class="small muted">'+esc(p.vendorName)+' · '+esc(p.category||'Catálogo')+'</span><h3>'+esc(p.name)+'</h3><p class="small">'+esc((p.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · '))+'</p><b>'+money(active?o.price:p.price)+'</b>'+(active?'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar al carrito</button>':'<span class="small muted">'+(p.units===0?'Sin stock':'Precio de catálogo · disponibilidad y condiciones por confirmar')+'</span>')+'</article>';}).join('')+'</div><div class="ab-pages"><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page-1)+'" '+(page===1?'disabled':'')+'>Anterior</button><span>'+page+' / '+Math.max(1,Math.ceil(list.length/12))+'</span><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page+1)+'" '+(page*12>=list.length?'disabled':'')+'>Siguiente</button></div></div></section>';
+}
 function vFront(){
  return '<section class="hero"><div class="wrap hero-in hero-layout"><div class="hero-copy"><p class="eyebrow">Gimnasios · Clubes · Colegios</p>'
  +'<h1 class="display">Distintas empresas.<br>Un solo carrito.</h1><p class="lead">Reuní todo el equipamiento que necesitás en Nexo Fit.</p>'
@@ -2033,7 +2044,7 @@ function vFront(){
  +'<aside class="hero-demo" aria-label="Ejemplo de carrito con distintas empresas"><div class="demo-heading"><b>Tu equipamiento, reunido</b><span class="small muted">Ejemplo</span></div>'
  +[['Colchonetas','Empresa 1'],['Mancuernas','Empresa 2'],['Pesas rusas','Empresa 3']].map(function(item){return '<div class="demo-product"><span class="category-photo"><img src="'+esc(CATEGORY_PHOTOS[item[0]])+'" alt="" width="56" height="56"></span><div><b>'+esc(item[0])+'</b><span class="small muted">'+esc(item[1])+'</span></div><span class="demo-check" aria-hidden="true">✓</span></div>';}).join('')
  +'<div class="demo-total"><b>3 empresas</b><span>1 carrito</span></div><button class="btn btn-accent" data-go="buscar">Armar mi carrito ↗</button></aside></div></section>'
- +abSection()+spaceSection()+catSection(liveIndex())
+ +supplierCatalogSection()+abSection()+spaceSection()+catSection(liveIndex())
  +'<section class="section"><div class="wrap"><details class="tool-details"><summary>Calculá el peso de tu barra</summary>'+liftHTML()+'</details></div></section>'
  +'<section class="dark"><div class="wrap band-in"><div><p class="eyebrow">Para proveedores</p><h2 class="display">Sumá tu empresa a Nexo Fit</h2><p class="muted small">Mostrá tu catálogo a quienes buscan equipamiento.</p></div>'
  +waCta('Sumar mi empresa','btn btn-accent','Hola Nicolas, vengo de nexofit.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones? Muchas gracias')+'</div></section>';
@@ -2326,6 +2337,7 @@ document.addEventListener('click',function(ev){
   var a=t.getAttribute('data-act'), x;
   if(['addr-del','acc-del','cart-clear'].indexOf(a)<0) ui.confirm=null;
   switch(a){
+    case 'supplier-page': ui.supplierPage=Number(t.dataset.page);rerender();document.getElementById('productos-proveedores').scrollIntoView({block:'start'});break;
     case 'ab-open': go('ab-product',{abSlug:t.dataset.slug}); break;
     case 'ab-back': go('home',{scrollId:'ab-productos'}); break;
     case 'ab-page': ui.abPage=Number(t.dataset.page); document.getElementById('ab-results').innerHTML=abResults(); document.getElementById('ab-productos').scrollIntoView({block:'start'}); break;
@@ -2555,9 +2567,20 @@ try{ history.replaceState({r:ui.route,p:snap()},''); }catch(e){}
 trackView(ui.route);
 render();
 
+var refreshingCatalog=false;
+async function refreshBuyerCatalog(){
+ if(refreshingCatalog||document.visibilityState==='hidden'||document.querySelector('#app input:focus,#app textarea:focus,#app select:focus')||['checkout','cuenta'].indexOf(ui.route)>=0)return;
+ refreshingCatalog=true;try{var results=await Promise.all([FC.refreshAsync(),FC.publicCatalog()]);var fresh=results[0],catalog=results[1],changed=JSON.stringify(catalog)!==JSON.stringify(supplierCatalog)||supplierCatalogError;supplierCatalog=catalog;supplierCatalogError=false;if(fresh._revision!==db._revision||changed){db=load();render();}}catch(e){/* Preserve the last working catalog during temporary network failures. */}finally{refreshingCatalog=false;}
+}
+window.addEventListener('focus',refreshBuyerCatalog);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshBuyerCatalog();});
+setInterval(refreshBuyerCatalog,20000);
+document.addEventListener('input',function(ev){if(ev.target.id==='supplier-search'){ui.supplierQuery=ev.target.value;ui.supplierPage=1;var position=ev.target.selectionStart;rerender('supplier-search');var input=document.getElementById('supplier-search');if(input)input.setSelectionRange(position,position);}});
+document.addEventListener('change',function(ev){if(ev.target.id==='supplier-vendor'){ui.supplierVendor=ev.target.value;ui.supplierPage=1;rerender();}});
 window.addEventListener('storage',function(ev){ if(ev.key===CKEY){ try{ cart=JSON.parse(ev.newValue||'[]')||[]; }catch(e){ cart=[]; } render(); } });
 })();
 </script>
 </body>
 </html>
+
 
