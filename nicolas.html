@@ -836,6 +836,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
 </style>
+<meta name="nexofit-build" content="20261013-carrito-ab">
 </head>
 <body>
 <div id="app"></div>
@@ -1719,6 +1720,7 @@ function cartAdd(o,qty){
 function cartGroups(){
   var by={}, order=[], ok=cpOk(ui.cp);
   cart.forEach(function(i){
+    if(isABCartItem(i)) return;
     var o=offer(i.id), live=o&&isLive(o), vid=o?o.vendorId:'_';
     if(!by[vid]){ by[vid]={v:vendor(vid),method:selectedMethod(vendor(vid)),items:[],sub:0,paymentDiscount:0,discount:0,ship:0,com:0}; order.push(vid); }
     var g=by[vid], warn='';
@@ -1735,7 +1737,20 @@ function cartGroups(){
 function cartBtn(){
   return '<button type="button" class="cartbtn" data-go="carrito" aria-label="Carrito'+(cart.length?', '+cart.length+(cart.length===1?' producto':' productos'):'')+'"'+(ui.route==='carrito'?' aria-current="page"':'')+'>'+ico('ventas',22)+'<span class="cart-l">Carrito</span><span id="cart-n" class="count"'+(cart.length?'':' hidden')+'>'+cart.length+'</span></button>';
 }
+function isABCartItem(i){return !!i&&i.kind==='ab-catalog'&&typeof i.id==='string'&&i.id.indexOf('ab:')===0;}
+function vABCart(items){
+ var priced=items.filter(function(i){return Number(i.price)>0;}),subtotal=priced.reduce(function(sum,i){return sum+Number(i.price)*i.qty;},0),unknown=items.length-priced.length;
+ return '<div class="wrap page"><div class="section-head"><h1 class="display h-page">Tu carrito</h1><button class="linkbtn" data-act="cart-clear">'+(ui.confirm==='cart-clear'?'Confirmar: vaciar el carrito':'Vaciar carrito')+'</button></div><section class="card" aria-label="Productos de AB Fitness"><div class="cg-h"><div><span class="muted small">Proveedor</span><b>AB Fitness</b></div><span class="st warn">Pendiente de confirmar</span></div><p class="note">Tu selección queda guardada en este navegador. Los precios son de referencia; disponibilidad, envío y compra deben confirmarse antes de pagar.</p>'
+ +items.map(function(i){var q=Math.max(1,Math.min(999999,Math.floor(Number(i.qty)||1)));return '<div class="citem"><div class="ci-t"><b>'+esc(i.model)+'</b><span class="muted small">'+esc(i.size)+' · '+esc(i.category)+'</span><span class="muted small">'+(i.price>0?money(i.price)+' · precio del catálogo':'Precio a confirmar')+'</span></div><div class="stepper sm"><button type="button" data-act="cq-dec" data-id="'+esc(i.id)+'" aria-label="Restar una unidad de '+esc(i.model)+'">−</button><input type="number" min="1" max="999999" step="1" inputmode="numeric" data-abqty="'+esc(i.id)+'" value="'+q+'" aria-label="Cantidad de '+esc(i.model+' '+i.size)+'"><button type="button" data-act="cq-inc" data-id="'+esc(i.id)+'" aria-label="Sumar una unidad de '+esc(i.model)+'">+</button></div><b class="num ci-p">'+(i.price>0?money(Number(i.price)*q):'A confirmar')+'</b><button type="button" class="ci-x" data-act="cart-del" data-id="'+esc(i.id)+'" aria-label="Quitar '+esc(i.model+' '+i.size)+'">×</button></div>';}).join('')
+ +'<div class="rows num cg-f"><div><span>Subtotal de referencia, sin envío</span><b>'+(priced.length?money(subtotal):'A confirmar')+(unknown&&priced.length?' + '+unknown+' '+(unknown===1?'precio':'precios')+' a confirmar':'')+'</b></div></div><div class="actions"><a class="btn btn-accent" href="catalogo-ab.html">Agregar más productos de AB Fitness</a><button class="btn btn-outline" type="button" disabled>Compra pendiente de activar</button></div></section></div>';
+}
 function vCart(){
+ var reference=cart.filter(isABCartItem);if(!reference.length)return vActiveCart();
+ var liveItems=cart.filter(function(i){return !isABCartItem(i);}),active=liveItems.length?vActiveCart():'';
+ if(active){active=active.replace('<h1 class="display h-page">Tu carrito</h1>','<h2 class="display h-page">Ofertas activas de otros proveedores</h2>').replace(/<button class="linkbtn" data-act="cart-clear">[^<]*<\/button>/,'');}
+ return vABCart(reference)+active;
+}
+function vActiveCart(){
   if(!cart.length) return '<div class="wrap page"><h1 class="display h-page">Tu carrito</h1><div class="empty"><p><b>Tu carrito está vacío.</b></p><p>Compará un producto y agregalo desde la oferta que más te convenga.</p><div><button class="btn btn-accent" data-go="buscar">Compará y comprá</button></div></div></div>';
   var C=cartGroups(), n=C.groups.length;
   return '<div class="wrap page"><div class="section-head" style="margin:0"><h1 class="display h-page">Tu carrito</h1><button class="linkbtn" data-act="cart-clear">'+(ui.confirm==='cart-clear'?'Confirmar: vaciar el carrito':'Vaciar carrito')+'</button></div>'
@@ -1766,7 +1781,7 @@ function vCart(){
 }
 /* Confirmar datos una sola vez y pagar proveedor por proveedor */
 function vCheckoutCart(){
-  var C=cartGroups(); if(!cart.length||C.bad||!C.ok) return vCart();
+  var C=cartGroups(); if(!C.groups.length||C.bad||!C.ok) return vCart();
   var cp0=ui.cp; prefillFromAcct(); if(ui.cp!==cp0){ C=cartGroups(); if(C.bad||!C.ok){ ui.cp=cp0; C=cartGroups(); } }
   var paid=ui.paidOrders||[];
   return '<div class="wrap page"><nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-go="carrito">Volver al carrito</button></nav>'
@@ -2349,12 +2364,12 @@ document.addEventListener('click',function(ev){
     case 'cart-del': cart=cart.filter(function(i){ return i.id!==t.dataset.id; }); cartSave(); rerender(); toast('Producto quitado del carrito'); break;
     case 'cq-dec': case 'cq-inc':
       x=cartFind(t.dataset.id); var co=offer(t.dataset.id); if(!x) break;
-      x.qty=Math.max(1,x.qty+(a==='cq-inc'?1:-1)); if(co&&co.units!=null&&x.qty>co.units){ x.qty=co.units; toast('Quedan '+co.units+' unidades de este producto.'); } cartSave(); rerender(); break;
+      x.qty=Math.min(999999,Math.max(1,x.qty+(a==='cq-inc'?1:-1))); if(co&&co.units!=null&&x.qty>co.units){ x.qty=co.units; toast('Quedan '+co.units+' unidades de este producto.'); } cartSave(); rerender(); break;
     case 'cart-clear': if(ui.confirm!=='cart-clear'){ ui.confirm='cart-clear'; rerender(); break; } cart=[]; ui.confirm=null; cartSave(); rerender(); toast('Vaciaste el carrito'); break;
     case 'cart-pay': ui.paidOrders=[]; ui.payStep=0; ui.payError=''; go('checkout',{cartMode:true}); break;
     case 'cpay-ok':
       var ids=payFirstGroup(); ui.paidOrders=(ui.paidOrders||[]).concat(ids); ui.payStep++;
-      if(!cart.length){ ui.pay=false; go('done',{doneOrders:ui.paidOrders.slice()}); toast(ui.payTotal>1?'Listo: pedidos registrados sin cobro':'Pedido pendiente de pago'); }
+      if(!cartGroups().groups.length){ ui.pay=false; go('done',{doneOrders:ui.paidOrders.slice()}); toast(ui.payTotal>1?'Listo: pedidos registrados sin cobro':'Pedido pendiente de pago'); }
       else { rerender(); toast('Pedido registrado sin cobro. Sigue el proveedor '+(ui.payStep+1)+' de '+ui.payTotal+'.'); }
       break;
     case 'cpay-fail': x=cartGroups().groups[0]; ui.pay=false; ui.payError='El pago a '+(x&&x.v?x.v.name:'este proveedor')+' fue rechazado y no se cobró nada. Podés intentar de nuevo.'+((ui.paidOrders||[]).length?' Lo que ya pagaste quedó registrado.':''); rerender(); break;
@@ -2445,7 +2460,7 @@ document.addEventListener('submit',function(ev){
     var cc=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email de contacto válido.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],[!ui.ship.address,'Escribí la dirección de entrega.','b-address'],[!ui.ship.city,'Escribí la ciudad.','b-city']];
     var bad2=cc.filter(function(c){ return c[0]; })[0];
     if(bad2){ var bx=document.getElementById('co-err'); if(bx){ bx.textContent=bad2[1]; bx.hidden=false; } var fe2=document.getElementById(bad2[2]); if(fe2) fe2.focus(); return; }
-    var CG=cartGroups(); if(CG.bad||!CG.ok){ go('carrito'); return; }
+    var CG=cartGroups(); if(!CG.groups.length||CG.bad||!CG.ok){ go('carrito'); return; }
     if(!(ui.paidOrders||[]).length){ ui.payStep=0; ui.payTotal=CG.groups.length; }
     if(!buyerExtras()) return; ui.payError=''; ui.pay=true; render();
   } else if(f.id==='checkout'){
@@ -2481,6 +2496,8 @@ document.addEventListener('change',function(ev){
     rerender(id);
   } else if(id==='c-var'){ ui.size=t.value; ui.unit=null; trackProduct(); rerender(id); }
 });
+document.addEventListener('change',function(ev){var t=ev.target;if(!t.dataset.abqty)return;var i=cartFind(t.dataset.abqty);if(!i||!isABCartItem(i))return;var q=Number(t.value);if(!Number.isInteger(q)||q<1||q>999999){t.value=i.qty;toast('Ingresá una cantidad entera entre 1 y 999999.');return;}i.qty=q;cartSave();rerender();});
+
 document.addEventListener('input',function(ev){
   if(ev.target.id==='acc-q'){ ui.accQ=ev.target.value; var ap=ev.target.selectionStart; rerender('acc-q'); var aq=document.getElementById('acc-q'); if(aq){ try{ aq.setSelectionRange(ap,ap); }catch(e){} } return; }
   var t=ev.target;
@@ -2501,6 +2518,7 @@ window.addEventListener('popstate',function(ev){
 });
 /* Link de pago: index.html#pagar-<id> abre directo el pago de esa oferta. */
 function fromHash(){
+  if(location.hash==='#carrito'){ui.route='carrito';ui.cartMode=false;return true;}
   var m=/^#pagar-([A-Za-z0-9]+)$/.exec(location.hash||''); if(!m) return false;
   var o=offer(m[1]); ui.route='checkout'; ui.offerId=m[1]; ui.cartMode=false; ui.doneOrders=null; ui.pay=false; ui.payError='';
   if(o){ ui.qty=Math.max(1,o.minQty); ui.cat=o.category; ui.model=o.model; ui.size=o.size; ui.unit=o.unit; track('v',o.vendorId); }
