@@ -819,6 +819,22 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .side-who .small,.adm > .side .demolinks,.adm > .side .demolinks a{color:var(--muted)}.side-foot{border-color:var(--line)}.adm > .side .btn-outline{border-color:var(--field-line);color:var(--ink)}
 .foot{padding-block:0}.foot-in{padding-block:18px}
 .cartbtn .ico,.btn-primary .ico{color:var(--bg)}.cartbtn svg{stroke:var(--bg)}
+
+/* Fondo y fotografías comerciales, sin ilustraciones de categorías. */
+.hero{background:radial-gradient(ellipse at 85% 12%,rgba(165,204,33,.16),transparent 60%),var(--bg);border-bottom:1px solid var(--line)}
+.section:nth-of-type(2n){background:rgba(16,23,31,.025)}
+.hero-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(270px,1fr);gap:40px;align-items:center;padding-block:4px}
+.hero-copy{display:flex;flex-direction:column;gap:16px}.hero-copy h1{max-width:23ch;font-size:clamp(2rem,4.1vw,3.25rem)}
+.hero-demo{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--bg);box-shadow:0 10px 26px rgba(16,23,31,.06);display:flex;flex-direction:column;gap:10px}
+.demo-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}.demo-heading b{font-size:1rem}.demo-heading .small{font-size:.75rem}
+.demo-product{display:flex;align-items:center;gap:12px;padding-block:5px;border-bottom:1px solid var(--line)}.demo-product>div{display:flex;flex-direction:column;gap:2px;flex:1}.demo-product b{font-size:.95rem}.demo-check{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);font-size:.85rem;font-weight:700}
+.demo-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:6px;font-size:.9rem}.demo-total span{background:var(--accent-soft);padding:3px 8px;border-radius:5px;font-weight:700}
+.category-photo{flex:none;width:56px;height:56px;display:grid;place-items:center;overflow:hidden;border-radius:8px;background:var(--bg)}
+.category-photo img{display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;filter:grayscale(1)}
+.cat-card{min-height:76px;padding:9px 12px;justify-content:flex-start;gap:10px}.cat-card b{flex:1;min-width:0;font-size:.9rem}.cat-card .choice-arrow{margin-left:auto}
+.cat-card[aria-pressed="true"] .category-photo{background:var(--accent)}
+@media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
+
 </style>
 </head>
 <body>
@@ -1925,9 +1941,11 @@ function catStats(c,idx){
   c.m.forEach(function(m){ if(m[1].some(function(s){ return idx[vkey(c.n,m[0],s)]; })) withOffers++; });
   return {models:c.m.length,withOffers:withOffers};
 }
+var CATEGORY_PHOTOS={"Colchonetas": "assets/categories/category-0.jpg", "Mancuernas": "assets/categories/category-1.jpg", "Discos": "assets/categories/category-2.jpg", "Pesas rusas": "assets/categories/category-3.png", "Barras": "assets/categories/category-4.jpg", "Pelotas de Pilates": "assets/categories/category-5.jpg", "Esferodinamias": "assets/categories/category-6.jpg", "Medicine balls": "assets/categories/category-7.jpg", "Steps": "assets/categories/category-8.jpg", "Mats de yoga": "assets/categories/category-9.jpg", "Conos y señalizadores": "assets/categories/category-10.webp", "Elementos de coordinación": "assets/categories/category-11.jpg", "Tobilleras": "assets/categories/category-12.jpg", "Bandas de látex": "assets/categories/category-13.jpg", "Bandas de tela": "assets/categories/category-14.jpg", "Combos y kits": "assets/categories/category-15.png"};
+CATEGORY_PHOTOS['Bandas']=CATEGORY_PHOTOS['Bandas de tela'];
 function catCards(idx,only){
   return CATALOG.filter(function(c){ return !only||only.indexOf(c.n)>=0; }).map(function(c){
-    return '<button class="cat-card" data-go="cat" data-cat="'+esc(c.n)+'" aria-pressed="'+(ui.cat===c.n)+'"><b>'+esc(c.n)+'</b><span class="choice-arrow" aria-hidden="true">↗</span></button>';
+    return '<button class="cat-card" data-go="cat" data-cat="'+esc(c.n)+'" aria-pressed="'+(ui.cat===c.n)+'">'+(CATEGORY_PHOTOS[c.n]?'<span class="category-photo"><img src="'+esc(CATEGORY_PHOTOS[c.n])+'" alt="" width="56" height="56" loading="lazy" decoding="async"></span>':'')+'<b>'+esc(c.n)+'</b><span class="choice-arrow" aria-hidden="true">↗</span></button>';
   }).join('');
 }
 function searchHTML(q){
@@ -1961,170 +1979,7 @@ function sizeOptions(cat,m,idx,cur){
 }
 
 /* Espacios: para qué tipo de lugar se equipa. Cada uno lleva a sus categorías. */
-/* Escenas de cada espacio, dibujadas con volumen, luz y sombra, en los colores de los discos. Se pueden reemplazar por fotos. */
-var FX='<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>'
-  +'<radialGradient id="fx-ball" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FDFAF5" stop-opacity=".62"/><stop offset=".28" stop-color="#FDFAF5" stop-opacity=".12"/><stop offset=".6" stop-color="#10171F" stop-opacity="0"/><stop offset="1" stop-color="#10171F" stop-opacity=".5"/></radialGradient>'
-  +'<linearGradient id="fx-rod" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10171F" stop-opacity=".2"/><stop offset=".24" stop-color="#FDFAF5" stop-opacity=".42"/><stop offset=".55" stop-color="#10171F" stop-opacity="0"/><stop offset="1" stop-color="#10171F" stop-opacity=".48"/></linearGradient>'
-  +'<linearGradient id="fx-col" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#10171F" stop-opacity=".3"/><stop offset=".3" stop-color="#FDFAF5" stop-opacity=".32"/><stop offset=".58" stop-color="#10171F" stop-opacity="0"/><stop offset="1" stop-color="#10171F" stop-opacity=".45"/></linearGradient>'
-  +'<linearGradient id="fx-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10171F"/><stop offset="1" stop-color="#10171F"/></linearGradient>'
-  +'<linearGradient id="fx-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10171F"/><stop offset="1" stop-color="#10171F"/></linearGradient>'
-  +'<radialGradient id="fx-spot" cx=".5" cy="0" r=".95"><stop offset="0" stop-color="#FDFAF5" stop-opacity=".2"/><stop offset="1" stop-color="#FDFAF5" stop-opacity="0"/></radialGradient>'
-  +'<filter id="fx-soft" x="-60%" y="-300%" width="220%" height="700%"><feGaussianBlur stdDeviation="3.2"/></filter>'
-  +'</defs></svg>';
-function P(c){ return c==='steel'?'var(--steel)':(c==='iron'?'var(--iron)':'var(--plate-'+c+')'); }
-function n(v){ return Math.round(v*10)/10; }
-function shd(cx,cy,rx,ry){ return '<ellipse cx="'+n(cx)+'" cy="'+n(cy)+'" rx="'+n(rx)+'" ry="'+n(ry||rx*0.2)+'" fill="#10171F" opacity=".6" filter="url(#fx-soft)"/>'; }
-function poly(pts,fill,extra){ return '<polygon points="'+pts.map(function(p){ return n(p[0])+','+n(p[1]); }).join(' ')+'" fill="'+fill+'"'+(extra||'')+'/>'; }
-function rodH(x,y,w,h,fill,rx){ var a=' x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="'+n(h)+'" rx="'+n(rx==null?h/2:rx)+'"'; return '<rect'+a+' fill="'+fill+'"/><rect'+a+' fill="url(#fx-rod)"/>'; }
-function ball(cx,cy,r,c){ return shd(cx,cy+r,r*0.92)+'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+P(c)+'"/><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="url(#fx-ball)"/>'; }
-function dumbbell(cx,by,s,c){
-  var hh=27*s, hw=30*s, hl=34*s, cy=by-hh, out=shd(cx,by,(hl+hw)*0.96,5*s);
-  out+=rodH(cx-hl-2,cy-5*s,2*hl+4,10*s,P('steel'),2);
-  for(var i=-3;i<=3;i++) out+='<rect x="'+n(cx+i*7*s-0.6)+'" y="'+n(cy-5*s)+'" width="1.2" height="'+n(10*s)+'" fill="#10171F" opacity=".22"/>';
-  [-1,1].forEach(function(d){
-    var x0=d<0?cx-hl-hw:cx+hl, b=3*s, k=hh*0.48;
-    out+=poly([[x0+b,cy-hh],[x0+hw-b,cy-hh],[x0+hw,cy-k],[x0+hw,cy+k],[x0+hw-b,cy+hh],[x0+b,cy+hh],[x0,cy+k],[x0,cy-k]],P(c));
-    out+=poly([[x0+b,cy-hh],[x0+hw-b,cy-hh],[x0+hw,cy-k],[x0,cy-k]],'#FDFAF5',' opacity=".24"');
-    out+=poly([[x0,cy+k],[x0+hw,cy+k],[x0+hw-b,cy+hh],[x0+b,cy+hh]],'#10171F',' opacity=".34"');
-    out+='<rect x="'+n(x0)+'" y="'+n(cy-k)+'" width="'+n(hw)+'" height="1.2" fill="#FDFAF5" opacity=".3"/>';
-    out+='<rect x="'+n(d<0?x0+hw-1.5:x0)+'" y="'+n(cy-k)+'" width="1.5" height="'+n(2*k)+'" fill="#10171F" opacity=".25"/>';
-  });
-  return out;
-}
-function plates(x,by,w,cols){
-  var out=shd(x+w/2,by,w*0.6,5);
-  cols.forEach(function(c,i){ var y=by-13*(i+1), o=(i%2)*3; out+=rodH(x+o,y,w-2*o,12,P(c),4)+'<rect x="'+n(x+o+w*0.36)+'" y="'+n(y+4.5)+'" width="'+n(w*0.28-2*o)+'" height="3" rx="1.5" fill="#10171F" opacity=".3"/>'; });
-  return out;
-}
-function kettlebell(cx,by,r,c){
-  var cy=by-r*0.97, t=by-r*2.9;
-  var d='M'+n(cx-r*0.68)+' '+n(cy-r*0.5)+' C'+n(cx-r*1.1)+' '+n(t)+' '+n(cx+r*1.1)+' '+n(t)+' '+n(cx+r*0.68)+' '+n(cy-r*0.5), w=n(r*0.36);
-  return shd(cx,by,r*1.02)
-    +'<path d="'+d+'" fill="none" stroke="'+P(c)+'" stroke-width="'+w+'" stroke-linecap="round"/>'
-    +'<path d="'+d+'" fill="none" stroke="#10171F" stroke-opacity=".3" stroke-width="'+w+'" stroke-linecap="round"/>'
-    +'<path d="'+d+'" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="'+n(r*0.07)+'" stroke-linecap="round" transform="translate('+n(-r*0.04)+' '+n(-r*0.08)+')"/>'
-    +'<circle cx="'+cx+'" cy="'+n(cy)+'" r="'+r+'" fill="'+P(c)+'"/><circle cx="'+cx+'" cy="'+n(cy)+'" r="'+r+'" fill="url(#fx-ball)"/>'
-    +'<ellipse cx="'+cx+'" cy="'+n(by-r*0.03)+'" rx="'+n(r*0.52)+'" ry="'+n(r*0.07)+'" fill="#10171F" opacity=".4"/>';
-}
-function box3d(x,y,w,h,d,c){
-  var dy=d*0.55;
-  return shd(x+w/2+d/2,y+h,w*0.62,6)
-    +poly([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],P(c))
-    +poly([[x,y],[x+d,y-dy],[x+w+d,y-dy],[x+w,y]],P(c))+poly([[x,y],[x+d,y-dy],[x+w+d,y-dy],[x+w,y]],'#FDFAF5',' opacity=".3"')
-    +poly([[x+w,y],[x+w+d,y-dy],[x+w+d,y+h-dy],[x+w,y+h]],P(c))+poly([[x+w,y],[x+w+d,y-dy],[x+w+d,y+h-dy],[x+w,y+h]],'#10171F',' opacity=".36"')
-    +'<rect x="'+n(x+w*0.3)+'" y="'+n(y+h*0.2)+'" width="'+n(w*0.4)+'" height="'+n(h*0.17)+'" rx="'+n(h*0.085)+'" fill="#10171F" opacity=".5"/>'
-    +'<rect x="'+n(x)+'" y="'+n(y)+'" width="'+n(w)+'" height="1.4" fill="#FDFAF5" opacity=".35"/>';
-}
-function cone(cx,by,h,c){
-  var w=function(t){ return 0.08*h+(0.31-0.08)*h*t; }, y=function(t){ return by-h+(h*0.95)*t; };
-  var body=[[cx-w(0),y(0)],[cx+w(0),y(0)],[cx+w(1),y(1)],[cx-w(1),y(1)]], st=[[cx-w(0.38),y(0.38)],[cx+w(0.38),y(0.38)],[cx+w(0.56),y(0.56)],[cx-w(0.56),y(0.56)]];
-  return shd(cx,by,h*0.5,h*0.08)
-    +'<ellipse cx="'+cx+'" cy="'+n(by-h*0.04)+'" rx="'+n(h*0.47)+'" ry="'+n(h*0.085)+'" fill="'+P(c)+'"/><ellipse cx="'+cx+'" cy="'+n(by-h*0.04)+'" rx="'+n(h*0.47)+'" ry="'+n(h*0.085)+'" fill="#10171F" opacity=".3"/>'
-    +'<ellipse cx="'+cx+'" cy="'+n(by-h*0.065)+'" rx="'+n(h*0.44)+'" ry="'+n(h*0.07)+'" fill="'+P(c)+'"/>'
-    +poly(body,P(c))+poly(st,P('white'))+poly(body,'url(#fx-col)')
-    +'<ellipse cx="'+cx+'" cy="'+n(y(0))+'" rx="'+n(w(0))+'" ry="'+n(h*0.018)+'" fill="#10171F" opacity=".55"/>';
-}
-function disc(cx,cy,rx,c){ return shd(cx,cy+2,rx,3)+'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+n(rx*0.3)+'" fill="'+P(c)+'"/><ellipse cx="'+cx+'" cy="'+n(cy-1)+'" rx="'+n(rx*0.72)+'" ry="'+n(rx*0.19)+'" fill="#FDFAF5" opacity=".22"/><ellipse cx="'+cx+'" cy="'+n(cy-0.5)+'" rx="'+n(rx*0.26)+'" ry="'+n(rx*0.08)+'" fill="#10171F" opacity=".5"/>'; }
-function hoopFloor(cx,cy,rx,ry,c){
-  var e=function(dy,stroke,sw,op){ return '<ellipse cx="'+cx+'" cy="'+n(cy+dy)+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'"'+(op?' stroke-opacity="'+op+'"':'')+'/>'; };
-  return '<ellipse cx="'+cx+'" cy="'+n(cy+3)+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="#10171F" stroke-width="7" stroke-opacity=".6" filter="url(#fx-soft)"/>'+e(0,P(c),6.5)+e(1.6,'#10171F',2.2,'.3')+e(-1.6,'#FDFAF5',1.6,'.45');
-}
-function hoopStand(cx,cy,r,c){
-  return shd(cx,cy+r,r*0.5,3.5)+'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+P(c)+'" stroke-width="6.5"/><circle cx="'+cx+'" cy="'+cy+'" r="'+n(r+1.8)+'" fill="none" stroke="#10171F" stroke-opacity=".28" stroke-width="2"/><circle cx="'+cx+'" cy="'+cy+'" r="'+n(r-1.6)+'" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="1.6"/>';
-}
-function roll(x,y,w,h,c){
-  return shd(x+w/2,y+h,w*0.55,5)+rodH(x,y,w,h,P(c),h*0.3)
-    +'<rect x="'+n(x+w*0.22)+'" y="'+n(y)+'" width="4" height="'+h+'" fill="#10171F" opacity=".35"/><rect x="'+n(x+w*0.7)+'" y="'+n(y)+'" width="4" height="'+h+'" fill="#10171F" opacity=".35"/>'
-    +'<ellipse cx="'+n(x+w)+'" cy="'+n(y+h/2)+'" rx="'+n(h*0.3)+'" ry="'+n(h/2)+'" fill="'+P(c)+'"/><ellipse cx="'+n(x+w)+'" cy="'+n(y+h/2)+'" rx="'+n(h*0.3)+'" ry="'+n(h/2)+'" fill="#10171F" opacity=".3"/>'
-    +'<ellipse cx="'+n(x+w)+'" cy="'+n(y+h/2)+'" rx="'+n(h*0.19)+'" ry="'+n(h*0.33)+'" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="1.4"/><ellipse cx="'+n(x+w)+'" cy="'+n(y+h/2)+'" rx="'+n(h*0.08)+'" ry="'+n(h*0.15)+'" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="1.4"/>';
-}
-function scene(inner){
-  return '<svg viewBox="0 0 320 172" aria-hidden="true" focusable="false"><rect width="320" height="172" fill="url(#fx-wall)"/><rect y="122" width="320" height="50" fill="url(#fx-floor)"/><rect y="121" width="320" height="1.6" fill="#10171F" opacity=".55"/><rect width="320" height="172" fill="url(#fx-spot)"/>'+inner+'</svg>';
-}
-var ART={
- gym:scene(dumbbell(52,136,0.6,'blue')+plates(238,150,70,['yellow','green','blue'])+dumbbell(158,154,1,'red')),
- box:scene(box3d(206,92,62,56,22,'yellow')+ball(74,126,24,'blue')+'<ellipse cx="74" cy="126" rx="24" ry="7" fill="none" stroke="#10171F" stroke-opacity=".28" stroke-width="2.2"/><ellipse cx="74" cy="126" rx="8" ry="24" fill="none" stroke="#10171F" stroke-opacity=".28" stroke-width="2.2"/>'+kettlebell(150,156,30,'red')),
- pilates:scene(poly([[26,160],[212,160],[188,134],[58,134]],P('blue'))+poly([[26,160],[212,160],[188,134],[58,134]],'url(#fx-rod)',' opacity=".55"')+'<rect x="26" y="160" width="186" height="3" fill="#10171F" opacity=".45"/>'
-   +ball(92,84,46,'green')+'<ellipse cx="92" cy="84" rx="46" ry="13" fill="none" stroke="#10171F" stroke-opacity=".14" stroke-width="1.6"/><ellipse cx="92" cy="66" rx="42" ry="10" fill="none" stroke="#10171F" stroke-opacity=".12" stroke-width="1.4"/><ellipse cx="92" cy="103" rx="41" ry="10" fill="none" stroke="#10171F" stroke-opacity=".14" stroke-width="1.4"/>'
-   +roll(214,118,74,28,'red')+ball(166,138,15,'yellow')),
- club:scene(disc(40,146,17,'blue')+cone(98,140,64,'yellow')+disc(280,148,18,'blue')+cone(238,144,74,'green')+cone(166,158,96,'red')),
- school:scene(hoopStand(262,82,40,'green')+hoopFloor(232,132,34,8,'blue')+hoopFloor(160,141,44,11,'yellow')+hoopFloor(74,152,56,14,'red')+cone(40,128,40,'yellow')+ball(196,150,13,'blue')),
- kine:scene(roll(128,84,128,30,'blue')
-   +'<ellipse cx="96" cy="150" rx="66" ry="15" fill="none" stroke="#10171F" stroke-width="10" stroke-opacity=".6" filter="url(#fx-soft)"/><ellipse cx="96" cy="146" rx="66" ry="15" fill="none" stroke="'+P('green')+'" stroke-width="10"/><ellipse cx="96" cy="143.5" rx="66" ry="15" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="2"/><ellipse cx="96" cy="149" rx="66" ry="15" fill="none" stroke="#10171F" stroke-opacity=".3" stroke-width="3"/>'
-   +shd(248,160,42,6)+rodH(208,126,82,34,P('red'),11)+[0,1,2,3].map(function(i){ return '<rect x="'+(226+i*15)+'" y="126" width="1.6" height="34" fill="#10171F" opacity=".3"/>'; }).join('')+rodH(240,122,18,42,P('white'),3)+'<rect x="243" y="137" width="12" height="8" rx="2" fill="none" stroke="#10171F" stroke-opacity=".45" stroke-width="1.6"/>'
-   +ball(170,146,13,'yellow'))
-};
-function plateFace(cx,by,r,c){
-  var cy=by-r;
-  return shd(cx,by,r*0.8,r*0.12)
-    +'<circle cx="'+n(cx+r*0.12)+'" cy="'+n(cy)+'" r="'+r+'" fill="'+P(c)+'"/><circle cx="'+n(cx+r*0.12)+'" cy="'+n(cy)+'" r="'+r+'" fill="#10171F" opacity=".45"/>'
-    +'<circle cx="'+cx+'" cy="'+n(cy)+'" r="'+r+'" fill="'+P(c)+'"/><circle cx="'+cx+'" cy="'+n(cy)+'" r="'+r+'" fill="url(#fx-ball)" opacity=".7"/>'
-    +'<circle cx="'+cx+'" cy="'+n(cy)+'" r="'+n(r*0.92)+'" fill="none" stroke="#10171F" stroke-opacity=".22" stroke-width="1.4"/>'
-    +'<circle cx="'+cx+'" cy="'+n(cy)+'" r="'+n(r*0.3)+'" fill="'+P('steel')+'"/><circle cx="'+cx+'" cy="'+n(cy)+'" r="'+n(r*0.3)+'" fill="url(#fx-ball)"/><circle cx="'+cx+'" cy="'+n(cy)+'" r="'+n(r*0.13)+'" fill="#10171F"/>';
-}
-function plateEdge(x,cy,h,w,c){ var a=' x="'+n(x)+'" y="'+n(cy-h/2)+'" width="'+n(w)+'" height="'+n(h)+'" rx="'+n(w*0.35)+'"'; return '<rect'+a+' fill="'+P(c)+'"/><rect'+a+' fill="url(#fx-col)"/>'; }
-function barbell(by){
-  var cy=by-40, out=shd(160,by,150,5);
-  out+=rodH(18,cy-3.5,284,7,P('steel'));
-  [[40,'red',16],[58,'blue',14],[74,'yellow',11]].forEach(function(p){ out+=plateEdge(p[0],cy,80,p[2],p[1])+plateEdge(320-p[0]-p[2],cy,80,p[2],p[1]); });
-  out+=rodH(88,cy-9,8,18,P('steel'),2)+rodH(224,cy-9,8,18,P('steel'),2);
-  for(var i=0;i<10;i++) out+='<rect x="'+(112+i*10)+'" y="'+n(cy-3.5)+'" width="1.2" height="7" fill="#10171F" opacity=".25"/>';
-  return out;
-}
-function stepPlat(x,y,w,d,c,leg){
-  var dy=d*0.55;
-  return shd(x+w/2+d/2,y+26,w*0.62,6)
-    +box3d(x+w*0.06,y+12,w*0.16,14,d*0.8,leg)+box3d(x+w*0.78,y+12,w*0.16,14,d*0.8,leg)
-    +box3d(x,y,w,12,d,c)
-    +[1,2,3,4,5,6].map(function(i){ return '<path d="M'+n(x+i*w/7)+' '+n(y)+'l'+n(d)+' '+n(-dy)+'" stroke="#10171F" stroke-opacity=".22" stroke-width="2.2"/>'; }).join('');
-}
-function ankle(x,y,w,h,c){
-  return shd(x+w/2,y+h,w*0.55,5)+rodH(x,y,w,h,P(c),h*0.32)
-    +[1,2,3,4].map(function(i){ return '<rect x="'+n(x+i*w/5)+'" y="'+n(y)+'" width="1.6" height="'+n(h)+'" fill="#10171F" opacity=".3"/>'; }).join('')
-    +rodH(x+w*0.4,y-4,w*0.2,h+8,P('white'),3)+'<rect x="'+n(x+w*0.43)+'" y="'+n(y+h*0.32)+'" width="'+n(w*0.14)+'" height="'+n(h*0.36)+'" rx="2" fill="none" stroke="#10171F" stroke-opacity=".45" stroke-width="1.6"/>';
-}
-function loop(cx,cy,rx,ry,sw,c,stitch){
-  var e=function(dy,stroke,w,op,extra){ return '<ellipse cx="'+cx+'" cy="'+n(cy+dy)+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="'+stroke+'" stroke-width="'+w+'"'+(op?' stroke-opacity="'+op+'"':'')+(extra||'')+'/>'; };
-  return '<ellipse cx="'+cx+'" cy="'+n(cy+4)+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="#10171F" stroke-width="'+sw+'" stroke-opacity=".55" filter="url(#fx-soft)"/>'
-    +e(0,P(c),sw)+e(sw*0.3,'#10171F',sw*0.3,'.28')+e(-sw*0.28,'#FDFAF5',1.6,'.45')+(stitch?e(0,'#FDFAF5',1.1,'.55',' stroke-dasharray="3 3"'):'');
-}
-function ladder(){
-  var L=[[34,164],[124,126]], R=[[176,164],[196,126]], out='', lerp=function(a,b,t){ return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]; };
-  [L,R].forEach(function(r){ out+='<path d="M'+r[0][0]+' '+r[0][1]+'L'+r[1][0]+' '+r[1][1]+'" stroke="'+P('yellow')+'" stroke-width="4.5" stroke-linecap="round"/>'; });
-  [0.04,0.24,0.44,0.62,0.8,0.97].forEach(function(t){ var a=lerp(L[0],L[1],t), b=lerp(R[0],R[1],t); out+='<path d="M'+n(a[0])+' '+n(a[1])+'L'+n(b[0])+' '+n(b[1])+'" stroke="'+P('yellow')+'" stroke-width="'+n(4-2*t)+'"/><path d="M'+n(a[0])+' '+n(a[1]+1.6)+'L'+n(b[0])+' '+n(b[1]+1.6)+'" stroke="#10171F" stroke-opacity=".35" stroke-width="1.4"/>'; });
-  return out;
-}
-function hurdle(cx,by,w,h,c){
-  var d='M'+n(cx-w/2)+' '+by+'C'+n(cx-w/2)+' '+n(by-h*1.3)+' '+n(cx+w/2)+' '+n(by-h*1.3)+' '+n(cx+w/2)+' '+by;
-  return shd(cx,by,w*0.55,4)+'<path d="'+d+'" fill="none" stroke="'+P(c)+'" stroke-width="7" stroke-linecap="round"/><path d="'+d+'" fill="none" stroke="#FDFAF5" stroke-opacity=".4" stroke-width="1.6" transform="translate(-1 -2)"/>'
-    +rodH(cx-w/2-9,by-5,18,6,P(c),2)+rodH(cx+w/2-9,by-5,18,6,P(c),2);
-}
-function seams(cx,cy,r){ return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+n(r*0.3)+'" fill="none" stroke="#10171F" stroke-opacity=".3" stroke-width="2"/><ellipse cx="'+cx+'" cy="'+cy+'" rx="'+n(r*0.3)+'" ry="'+r+'" fill="none" stroke="#10171F" stroke-opacity=".3" stroke-width="2"/>'; }
-function ribs(cx,cy,r){ return [-0.45,0,0.45].map(function(k){ return '<ellipse cx="'+cx+'" cy="'+n(cy+r*k)+'" rx="'+n(r*Math.sqrt(1-k*k))+'" ry="'+n(r*0.22)+'" fill="none" stroke="#10171F" stroke-opacity=".13" stroke-width="1.5"/>'; }).join(''); }
-function matFlat(pts,c){ return poly(pts,P(c))+poly(pts,'url(#fx-rod)',' opacity=".5"')+'<rect x="'+n(pts[0][0])+'" y="'+n(pts[0][1])+'" width="'+n(pts[1][0]-pts[0][0])+'" height="3" fill="#10171F" opacity=".45"/>'; }
-function catScene(inner){ return scene(inner).replace('viewBox="0 0 320 172"','viewBox="0 30 320 142"'); }
-var CAT_ART={
- 'Colchonetas':catScene(box3d(40,130,190,14,46,'blue')+box3d(56,116,170,14,42,'red')+box3d(72,102,150,14,38,'yellow')),
- 'Mancuernas':catScene(dumbbell(70,134,0.58,'blue')+dumbbell(252,134,0.54,'yellow')+dumbbell(156,160,0.95,'red')),
- 'Discos':catScene(plateFace(262,148,30,'yellow')+plateFace(194,152,40,'blue')+plateFace(102,156,52,'red')),
- 'Pesas rusas':catScene(kettlebell(264,150,17,'yellow')+kettlebell(204,152,23,'blue')+kettlebell(116,156,31,'red')),
- 'Barras':catScene(barbell(152)),
- 'Pelotas de Pilates':catScene(matFlat([[20,162],[300,162],[270,136],[50,136]],'green')+ball(84,128,22,'yellow')+ball(150,138,15,'red')+ball(254,124,20,'blue')+ball(284,124,20,'blue')+ball(206,142,11,'white')),
- 'Esferodinamias':catScene(ball(214,116,32,'blue')+ribs(214,116,32)+ball(108,104,48,'green')+ribs(108,104,48)+ball(280,140,14,'red')+[[-6,-6],[5,-8],[8,3],[-3,7],[-9,1],[1,0]].map(function(p){ return '<circle cx="'+(280+p[0])+'" cy="'+(140+p[1])+'" r="1.6" fill="#10171F" opacity=".35"/>'; }).join('')),
- 'Medicine balls':catScene(ball(250,118,34,'yellow')+seams(250,118,34)+ball(96,126,28,'blue')+seams(96,126,28)+ball(174,134,22,'red')+'<path d="M156 128q18 8 36 0M156 140q18 8 36 0" fill="none" stroke="#10171F" stroke-opacity=".3" stroke-width="2"/>'),
- 'Steps':catScene(stepPlat(196,96,96,26,'blue','green')+stepPlat(30,120,150,34,'red','yellow')),
- 'Mats de yoga':catScene(matFlat([[16,164],[196,164],[176,136],[40,136]],'green')+roll(200,98,92,24,'blue')+roll(196,128,100,26,'red')),
- 'Conos y señalizadores':catScene(disc(34,150,15,'blue')+cone(82,142,52,'yellow')+cone(266,144,58,'green')+disc(212,156,16,'red')+cone(160,158,80,'red')),
- 'Elementos de coordinación':catScene(ladder()+hurdle(258,140,64,30,'red')+hoopFloor(256,156,34,7,'blue')),
- 'Tobilleras':catScene(ankle(40,118,104,36,'red')+ankle(176,128,100,34,'blue')),
- 'Bandas de látex':catScene(loop(104,146,58,13,7,'red')+loop(150,134,52,11,7,'yellow')+loop(208,148,56,12,7,'green')+loop(250,128,46,10,7,'blue')),
- 'Bandas de tela':catScene(loop(112,148,64,15,14,'green',1)+loop(214,140,58,13,14,'blue',1)+'<circle cx="270" cy="98" r="30" fill="none" stroke="'+P('red')+'" stroke-width="13"/><circle cx="270" cy="98" r="30" fill="none" stroke="#FDFAF5" stroke-opacity=".55" stroke-width="1.1" stroke-dasharray="3 3"/>'+shd(270,130,26,4))
-};
-function catArt(c){
-  var u=img('cat:'+c.n); if(u) return '<img src="'+esc(u)+'" alt="">';
-  return CAT_ART[c.n]||catScene(box3d(70,128,170,16,48,c.c||'green')+ball(250,120,22,c.c==='red'?'blue':'red'));
-}
-function spaceArt(s){ var u=img('space:'+s.a); return u?'<img src="'+esc(u)+'" alt="">':(ART[s.a]||ART.gym); }
+var FX='';
 function spaceCards(){
   return spaces().map(function(s){
     return '<button class="space-card" data-act="space" data-space="'+esc(s.n)+'" aria-pressed="'+(ui.space===s.n)+'"><b>'+esc(s.n)+'</b><span class="choice-arrow" aria-hidden="true">'+(ui.space===s.n?'✓':'↗')+'</span></button>';
@@ -2141,10 +1996,13 @@ function spaceSection(){
  return '<section class="section" id="espacios"><div class="wrap"><div class="section-head"><h2 class="display">¿Qué espacio estás equipando?</h2></div><div class="choice-grid">'+spaceCards()+'</div></div></section>';
 }
 function vFront(){
- return '<section class="hero"><div class="wrap hero-in"><p class="eyebrow">Gimnasios · Clubes · Colegios</p>'
- +'<h1 class="display">Equipá tu espacio.<br>Compará y elegí.</h1><p class="lead">Productos y proveedores en un solo lugar.</p>'
+ return '<section class="hero"><div class="wrap hero-in hero-layout"><div class="hero-copy"><p class="eyebrow">Gimnasios · Clubes · Colegios</p>'
+ +'<h1 class="display">Distintas empresas.<br>Un solo carrito.</h1><p class="lead">Reuní todo el equipamiento que necesitás en Nexo Fit.</p>'
  +'<div class="actions"><button class="btn btn-accent" data-go="buscar">Comparar productos ↗</button><a class="btn btn-outline" href="#cats">Ver categorías</a></div>'
- +'<div class="process-line"><span><b>01</b> Elegí equipamiento</span><span><b>02</b> Compará el total</span><span><b>03</b> Armá tu pedido</span></div></div></section>'
+ +'<div class="process-line"><span><b>01</b> Elegí productos</span><span><b>02</b> Compará empresas</span><span><b>03</b> Armá tu carrito</span></div></div>'
+ +'<aside class="hero-demo" aria-label="Ejemplo de carrito con distintas empresas"><div class="demo-heading"><b>Tu equipamiento, reunido</b><span class="small muted">Ejemplo</span></div>'
+ +[['Colchonetas','Empresa 1'],['Mancuernas','Empresa 2'],['Pesas rusas','Empresa 3']].map(function(item){return '<div class="demo-product"><span class="category-photo"><img src="'+esc(CATEGORY_PHOTOS[item[0]])+'" alt="" width="56" height="56"></span><div><b>'+esc(item[0])+'</b><span class="small muted">'+esc(item[1])+'</span></div><span class="demo-check" aria-hidden="true">✓</span></div>';}).join('')
+ +'<div class="demo-total"><b>3 empresas</b><span>1 carrito</span></div><button class="btn btn-accent" data-go="buscar">Armar mi carrito ↗</button></aside></div></section>'
  +spaceSection()+catSection(liveIndex())
  +'<section class="section"><div class="wrap"><details class="tool-details"><summary>Calculá el peso de tu barra</summary>'+liftHTML()+'</details></div></section>'
  +'<section class="dark"><div class="wrap band-in"><div><p class="eyebrow">Para proveedores</p><h2 class="display">Sumá tu empresa a Nexo Fit</h2><p class="muted small">Mostrá tu catálogo a quienes buscan equipamiento.</p></div>'

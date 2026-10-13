@@ -1,42 +1,32 @@
-# Comparador Fitness
+# Nexo Fit
 
-Demo para compradores (`nicolas.html`), proveedores (`proveedores.html`) y administración (`admin.html`). `index.html` abre la pantalla de compradores.
+La web reúne categorías y un carrito con productos de distintas empresas. Los pedidos, mínimos, envíos y medios de pago se organizan por proveedor.
 
-## Publicar esta actualización en GitHub Pages
+## Archivos
+- nicolas.html: compradores.
+- proveedores.html: proveedores e importación de catálogos.
+- admin.html: administración.
+- index.html: entrada de compradores.
+- assets/: logo original y fotografías reales de referencia para categorías.
 
-Subir los cuatro HTML y la carpeta `assets` completa, conservando nombres y rutas. Los HTML ahora necesitan los archivos CSS/JS de esa carpeta. No subir únicamente los tres HTML. GitHub Pages debe publicar `main` desde `/ (root)`.
+Los HTML contienen sus estilos y JavaScript. Mantener los nombres, las rutas y los archivos de assets al publicar.
 
-## Cambios del 12/10/2026
+## Estado verificado - 13 de octubre de 2026
+- Publicación del rediseño inicial confirmada en GitHub Pages.
+- La API de Supabase responde a fitness_snapshot. Devuelve un proveedor y ninguna oferta publicada en la comprobación realizada.
+- Arranque y navegación comprobados con respuestas simuladas: espacios, categorías, variantes, carrito, ingreso y seguimiento.
+- Las fotografías originales conservan sus bytes; las miniaturas de categorías usan CSS en tonos neutros. Fuentes en assets/categories/SOURCES.md.
+- El carrito reúne empresas; el checkout separa los pedidos y pagos por proveedor. No se anuncia un único pago ni un único envío.
 
-- Motor compartido de precios: mismo cálculo de descuentos y envío en comparación y checkout.
-- Beneficios configurados en el proveedor compatibles con comprador y administrador.
-- Validación del stock y precio actual al confirmar un pedido de prueba.
-- Protección contra duplicar un mismo pedido con la misma referencia de pago.
-- Grupo de carrito guardado conjuntamente: si falla antes del guardado, se restaura el estado anterior.
-- Errores visibles al fallar el almacenamiento y protección de los datos corruptos.
-- Importación de precios con decimales y validación de unidades enteras.
-- Proveedor suspendido no accede a su panel de prueba.
-- Google no simula una verificación de identidad inexistente; recuperación por email informa que no envía mensajes.
-- Envío gratis AMBA requiere códigos postales exactos. Completar la cobertura antes de activar promociones.
-- CSS común y JavaScript separados de las páginas.
+## Pendientes para ventas reales
+1. Importar, revisar y publicar productos con precios, unidades, stock, mínimos, cobertura y plazos de envío.
+2. Completar una prueba con proveedor, administrador y comprador en cuentas/dispositivos separados, incluyendo reserva, cancelación y recuperación de stock.
+3. Conectar y comprobar cobros, confirmación de pagos, comisiones, reembolsos y notificaciones. Mercado Pago permanece pendiente.
+4. Acordar condiciones comerciales y operación de envíos, facturación, garantías y cambios con los proveedores.
+5. Confirmar el dominio y los enlaces a compartir; revisar diseño móvil y accesibilidad.
 
-## Verificación
+## Pruebas
+npm install
+npm test
 
-Con Node.js:
-
-```sh
-node tests/regression.cjs
-node tests/pricing.test.cjs
-```
-
-19 casos pasaron el 12/10/2026. Se ejecuta el código real en un entorno DOM simulado: comprueba cálculo, almacenamiento, generación inicial de vistas, importación, carrito y pedidos. Además se verificaron inicio, comparación, cambios de cantidad, bloqueo de compra por stock insuficiente y carrito en navegador real de escritorio sobre la web publicada. Faltan pruebas visuales móviles y de integración con base de datos y Mercado Pago.
-
-## Límites pendientes
-
-- Datos en `localStorage`: no hay sincronización entre dispositivos.
-- Credenciales y sesiones son de demostración. No representan autenticación segura del servidor.
-- Pagos, conexiones Mercado Pago y devolución son simulaciones. No se mueve dinero.
-- Notificaciones por email no están conectadas.
-- Envíos son tarifas ingresadas, no cotización de transportistas; la clasificación general de código postal sigue siendo aproximada.
-- Antes de un piloto con datos reales: backend, autenticación por roles, base de datos compartida, control transaccional de stock, respaldo y pruebas con usuarios separados.
-- No cargar datos sensibles de clientes en esta demo pública.
+La suite utiliza datos de ejemplo y respuestas de API simuladas; no confirma pagos reales ni reemplaza una prueba de producción.
