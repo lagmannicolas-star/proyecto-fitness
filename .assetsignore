@@ -1,0 +1,11 @@
+# Publish only storefront files and browser assets.
+*
+!index.html
+!nicolas.html
+!proveedores.html
+!admin.html
+!catalogo-ab.html
+!_headers
+!assets/
+!assets/**
+assets/**/*.md
