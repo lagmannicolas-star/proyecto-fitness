@@ -1310,6 +1310,7 @@ function contactMessage(company,product,text){
 }
 function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent(contactMessage(company,product,text));}
 function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
+function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
 function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
 function waCta(label,cls,text){
   var u=waUrl(text);
@@ -2216,7 +2217,7 @@ function cmpResults(d){
       +'<div><dt>Garantía</dt><dd>'+months(o.warranty)+'</dd></div>'
       +'<div><dt>Stock</dt><dd>'+stockName(o.stock)+'</dd></div>'
       +'</dl>'
-      +'<div class="offer-buy"><div class="t"><span>Total final</span><b class="num">'+(ok?money(r.q.total):'—')+'</b></div>'+btn+contactCtas(r.v.name,offerDesc(o))+'</div></article>';
+      +'<div class="offer-buy"><div class="t"><span>Total final</span><b class="num">'+(ok?money(r.q.total):'—')+'</b></div>'+btn+vendorMinimumNote(r.v)+contactCtas(r.v.name,offerDesc(o))+'</div></article>';
   }).join('');
   return hls+(rows.length===1?'<div class="alert">Por ahora hay un solo proveedor con esta variante, así que no hay con quién compararlo.</div>':'')+'<div class="offers">'+list+'</div>';
 }
@@ -2284,7 +2285,7 @@ function vendorTabsHTML(){
   var v=vendor(ui.vTab), mine=function(id){ return db.offers.filter(function(o){ return o.vendorId===id&&isLive(o); }); }, list=mine(v.id);
   return '<div class="tabs" role="tablist">'+vs.map(function(x){ return '<button class="tab" role="tab" data-act="vtab" data-id="'+x.id+'" aria-selected="'+(x.id===v.id)+'">'+esc(x.name)+'<span class="count neutral">'+mine(x.id).length+'</span></button>'; }).join('')+'</div>'
     +'<p class="muted">'+esc(v.type)+' · Proveedor registrado · '+(list.length===1?'1 producto publicado':list.length+' productos publicados')+'</p>'
-    +contactCtas(v.name,'')+'<div class="tablewrap"><table style="min-width:960px"><thead><tr><th>Producto</th><th>Variante</th><th>Marca</th><th class="r">Precio</th><th>Stock</th><th>Compra</th><th></th></tr></thead><tbody>'
+    +vendorMinimumNote(v)+contactCtas(v.name,'')+'<div class="tablewrap"><table style="min-width:960px"><thead><tr><th>Producto</th><th>Variante</th><th>Marca</th><th class="r">Precio</th><th>Stock</th><th>Compra</th><th></th></tr></thead><tbody>'
     +list.map(function(o){
       return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+(o.detail?' · '+esc(o.detail):'')+'</span></td><td>'+esc(o.size)+'<span class="sub">'+perUnit(o.unit)+'</span></td><td class="nw">'+esc(o.brand||'—')+'</td><td class="r num"><b>'+money(o.price)+'</b></td><td class="nw">'+stockName(o.stock)+'</td><td>'+o.minQty+' presentaciones</td>'
         +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn btn-outline btn-sm" data-act="cmp-offer" data-id="'+o.id+'">Comparar</button>'+(o.units!=null&&o.units<o.minQty?'<button class="btn btn-outline btn-sm" disabled>Sin stock suficiente</button>':'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+o.id+'">'+(cartFind(o.id)?'En el carrito':'Agregar')+'</button>')+'</div></td></tr>';
