@@ -30,3 +30,7 @@ npm install
 npm test
 
 La suite utiliza datos de ejemplo y respuestas de API simuladas; no confirma pagos reales ni reemplaza una prueba de producción.
+
+## Catálogo AB Fitness
+
+`catalogo-ab.html` incluye 466 productos visibles y 724 variantes de la exportación recibida. Ofrece búsqueda, filtro por 35 categorías visibles, detalle de variantes y enlace al proveedor. Los 93 productos ocultos no se exponen. Los precios se identifican como referencia del archivo, no como oferta activa. La importación autenticada de los 865 borradores y la activación de ofertas en el carrito permanecen pendientes de acceso y validación comercial.
