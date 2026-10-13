@@ -1308,7 +1308,7 @@ function contactMessage(company,product,text){
  lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
  return lines.join('\n');
 }
-function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent(contactMessage(company,product,text));}
+function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
 function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
 function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
 function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
