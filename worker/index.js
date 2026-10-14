@@ -8,7 +8,7 @@
 //   SUPABASE_SERVICE_ROLE_KEY  Clave secret/service_role de Supabase (guardar conexiones y confirmar pagos)
 //   TOKEN_KEY                  32 bytes al azar en base64: cifra las llaves de los proveedores y firma los enlaces
 // Valores públicos en wrangler.jsonc: MP_CLIENT_ID, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ALLOWED_ORIGINS.
-// Fotos de productos: archivos en R2 (binding FOTOS) e imágenes generadas con Workers AI (binding AI).
+// Fotos de productos: solo fotos reales, guardadas en R2 (binding FOTOS).
 
 const MP_API = 'https://api.mercadopago.com';
 const MP_AUTH = 'https://auth.mercadopago.com.ar/authorization';
@@ -303,10 +303,8 @@ async function paymentNotice(request, env, url) {
 }
 
 // ---------- Fotos de productos ----------
-// 1) Foto real: se toma de la página del producto en la tienda del proveedor (og:image y fotos por variante).
-// 2) Si no hay, se genera con IA y queda pendiente hasta que el administrador la apruebe.
-// 3) El administrador o el propio proveedor pueden subir otra foto.
-const AI_MODEL = '@cf/black-forest-labs/flux-1-schnell';
+// Solo fotos reales: la de la página del producto en la tienda del proveedor (og:image y fotos por variante)
+// o la que suban el administrador o el propio proveedor. No se generan imágenes.
 const MAX_PHOTO = 4 * 1024 * 1024;
 const PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
@@ -350,7 +348,7 @@ async function photosApi(request, env, url, route, headers) {
   const products = productsOf(vendor);
   const list = async () => (await rpc(env, 'fitness_images_list', { p_vendor_id: vendorId }, { service: true })).data || [];
 
-  if (route === 'GET /api/fotos') return json({ products: products.map(({ slug, name, category, variants }) => ({ slug, name, category, variants: variants.length })), images: await list(), ai: !!(env.AI || env.AI_TEST_URL) }, 200, headers);
+  if (route === 'GET /api/fotos') return json({ products: products.map(({ slug, name, category, variants }) => ({ slug, name, category, variants: variants.length })), images: await list() }, 200, headers);
 
   if (route === 'POST /api/fotos/subir') {
     const key = String(form && form.get('key') || ''), file = form && form.get('file');
@@ -372,13 +370,6 @@ async function photosApi(request, env, url, route, headers) {
     return r.ok ? json({ ok: true }, 200, headers) : json({ error: 'No se pudo cambiar el estado.' }, 400, headers);
   }
 
-  if (route === 'POST /api/fotos/regenerar') {
-    const product = products.find(p => p.slug === body.slug);
-    if (!product) return json({ error: 'Producto inexistente.' }, 404, headers);
-    const result = await aiPhoto(env, vendorId, product);
-    return result ? json({ ok: true, path: result }, 200, headers) : json({ error: 'La IA no está disponible.' }, 503, headers);
-  }
-
   if (route === 'POST /api/fotos/procesar') {
     const limit = Math.max(1, Math.min(6, Number(body.limit) || 4));
     const done = new Set((await list()).map(i => i.key));
@@ -389,7 +380,6 @@ async function photosApi(request, env, url, route, headers) {
       let result = 'sin-foto';
       try {
         if (await storeShopPhotos(env, vendor, product)) result = 'tienda';
-        else if (await aiPhoto(env, vendorId, product)) result = 'ia';
       } catch (e) { console.error('foto', product.slug, e && e.message); result = 'error'; }
       results.push({ slug: product.slug, result });
     }
@@ -464,22 +454,4 @@ async function storeShopPhotos(env, vendor, product) {
     extra++;
   }
   return true;
-}
-
-export function photoPrompt(product) {
-  const variant = product.variants.length === 1 && product.variants[0].label ? ' (' + product.variants[0].label + ')' : '';
-  return 'Professional studio product photograph for an online fitness equipment store. Product: "' + product.name + '"' + variant +
-    (product.category ? '. Category: ' + product.category : '') +
-    '. Single product, centered, entire product visible, plain pure white background, soft even studio lighting, realistic materials, colors and proportions, sharp focus, high resolution, e-commerce catalog style. No text, no watermark, no logo, no people, no hands.';
-}
-
-// Genera una foto ilustrativa con Workers AI. Queda "pendiente" hasta que el administrador la apruebe.
-async function aiPhoto(env, vendorId, product) {
-  let image;
-  if (env.AI) image = (await env.AI.run(AI_MODEL, { prompt: photoPrompt(product), steps: 8 })).image;
-  else if (env.AI_TEST_URL) image = (await (await fetch(env.AI_TEST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: photoPrompt(product), slug: product.slug }) })).json()).image;
-  if (!image) return null;
-  const path = await storePhoto(env, vendorId, product.slug, 'ia', Uint8Array.from(atob(image), c => c.charCodeAt(0)), 'image/jpeg');
-  await setPhoto(env, vendorId, product.slug, product.slug, path, 'ia', 'pendiente');
-  return path;
 }

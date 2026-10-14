@@ -1,13 +1,13 @@
 begin;
--- Fotos de productos. El archivo vive en Cloudflare R2; acá se guarda de dónde salió y si está aprobada.
--- source: 'tienda' (foto real de la tienda del proveedor), 'proveedor' (subida por el proveedor o el admin), 'ia' (generada).
+-- Fotos reales de productos. El archivo vive en Cloudflare R2; acá se guarda de dónde salió y si está publicada.
+-- source: 'tienda' (foto de la tienda del proveedor) o 'proveedor' (subida por el proveedor o el admin).
 -- image_key: el identificador del producto (slug) o de una variante puntual (clave de importación).
 create table if not exists public.fitness_product_images(
  vendor_id text not null,
  image_key text not null,
  slug text not null,
  path text not null,
- source text not null check (source in ('tienda','proveedor','ia')),
+ source text not null check (source in ('tienda','proveedor')),
  status text not null check (status in ('aprobada','pendiente','rechazada')),
  updated_at timestamptz not null default now(),
  primary key(vendor_id,image_key)
@@ -54,12 +54,12 @@ language sql stable security definer set search_path='' as $$
     and o->>'status'='published' and o->>'stock'<>'none'
     and (o->'units'='null'::jsonb or (o->>'units')::numeric>0)
     limit 1),
-  'image',img.path,'imageAi',img.source='ia'
+  'image',img.path
   ) as item
  from public.fitness_state s
  cross join lateral jsonb_array_elements(coalesce(s.data->'vendors','[]'::jsonb)) v
  cross join lateral jsonb_array_elements(coalesce(v->'catalogDrafts','[]'::jsonb)) d
- left join lateral (select i.path,i.source from public.fitness_product_images i
+ left join lateral (select i.path from public.fitness_product_images i
    where i.vendor_id=v->>'id' and i.status='aprobada'
    and (i.image_key=d->>'key' or i.image_key=coalesce(d->>'sourceSlug',split_part(d->>'key','#',1)))
    order by (i.image_key=d->>'key') desc limit 1) img on true
@@ -74,11 +74,11 @@ language sql stable security definer set search_path='' as $$
    'offerId',case when o->>'status'='published' and o->>'stock'<>'none'
      and (o->'units'='null'::jsonb or (o->>'units')::numeric>0)
      then o->>'id' else null end,
-   'image',img.path,'imageAi',img.source='ia') as item
+   'image',img.path) as item
   from public.fitness_state s
   cross join lateral jsonb_array_elements(coalesce(s.data->'vendors','[]'::jsonb)) v
   cross join lateral jsonb_array_elements(coalesce(s.data->'offers','[]'::jsonb)) o
-  left join lateral (select i.path,i.source from public.fitness_product_images i
+  left join lateral (select i.path from public.fitness_product_images i
     where i.vendor_id=v->>'id' and i.status='aprobada' and i.image_key=o->>'id' limit 1) img on true
   where s.id=true and v->>'status'='active' and o->>'vendorId'=v->>'id'
   and o->>'status' in ('review','published')

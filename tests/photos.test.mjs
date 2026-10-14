@@ -1,12 +1,11 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
-// Fotos de productos en el Worker, con R2, Workers AI, Supabase y la tienda del proveedor simulados.
+// Fotos reales de productos en el Worker, con R2, Supabase y la tienda del proveedor simulados.
 const src=fs.readFileSync(new URL('../worker/index.js',import.meta.url),'utf8');
 const worker=await import('data:text/javascript,'+encodeURIComponent(src));
 const site='https://proyecto-fitness.example.workers.dev';
-const r2=new Map(),images=new Map();let aiCalls=[];
+const r2=new Map(),images=new Map();
 const env={SUPABASE_URL:'https://db.example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SERVICE_ROLE_KEY:'sb_secret_test',ASSETS:{fetch:async()=>new Response('asset')},
- FOTOS:{async put(k,v,o){r2.set(k,{bytes:new Uint8Array(v),type:o.httpMetadata.contentType});},async get(k){const x=r2.get(k);return x?{body:x.bytes,httpMetadata:{contentType:x.type}}:null;}},
- AI:{async run(model,input){aiCalls.push({model,input});return {image:Buffer.from('jpeg-ia').toString('base64')};}}};
+ FOTOS:{async put(k,v,o){r2.set(k,{bytes:new Uint8Array(v),type:o.httpMetadata.contentType});},async get(k){const x=r2.get(k);return x?{body:x.bytes,httpMetadata:{contentType:x.type}}:null;}}};
 const drafts=[
  {key:'kit#[{"name":"Color","value":"Rosa"}]',sourceSlug:'kit',name:'Kit Fuerza',sourceCategory:'Combos',properties:[{name:'Color',value:'Rosa'}],hidden:false,price:100},
  {key:'kit#[{"name":"Color","value":"Negro"}]',sourceSlug:'kit',name:'Kit Fuerza',sourceCategory:'Combos',properties:[{name:'Color',value:'Negro'}],hidden:false,price:100},
@@ -38,29 +37,29 @@ assert.deepEqual(info.variants.map(v=>v.options[0]),['Rosa','Negro']);
 assert.equal((await call('buyer','/api/fotos?v=ab_fitness')).status,403,'un comprador no ve el panel');
 assert.equal((await call('otro','/api/fotos?v=ab_fitness')).status,403,'otro proveedor no ve fotos ajenas');
 let r=await call('vendor','/api/fotos?v=ab_fitness');assert.equal(r.status,200);
-let d=await r.json();assert.deepEqual(d.products.map(p=>p.slug),['kit','soga'],'los ocultos no se listan');assert.equal(d.ai,true);
+let d=await r.json();assert.deepEqual(d.products.map(p=>p.slug),['kit','soga'],'los ocultos no se listan');assert.equal(d.ai,undefined);
 assert.equal((await post('vendor','/api/fotos/procesar',{vendorId:'ab_fitness'})).status,403,'solo el admin procesa');
 
-// Procesar: foto real de la tienda (más grande), foto propia de la variante Negro e IA para la soga.
+// Procesar: foto real de la tienda (más grande) y foto propia de la variante Negro. La soga no tiene foto: queda sin foto (no se inventa).
 r=await post('admin','/api/fotos/procesar',{vendorId:'ab_fitness',limit:4});d=await r.json();
-assert.deepEqual(d.results,[{slug:'kit',result:'tienda'},{slug:'soga',result:'ia'}]);assert.equal(d.remaining,0);
+assert.deepEqual(d.results,[{slug:'kit',result:'tienda'},{slug:'soga',result:'sin-foto'}]);assert.equal(d.remaining,0);
 assert.equal(images.get('kit').source,'tienda');assert.equal(images.get('kit').status,'aprobada');
 assert.equal(images.get('kit#[{"name":"Color","value":"Negro"}]').source,'tienda','la variante con foto propia se guarda aparte');
 assert(!images.has('kit#[{"name":"Color","value":"Rosa"}]'),'la variante con la misma foto usa la principal');
-assert.equal(images.get('soga').source,'ia');assert.equal(images.get('soga').status,'pendiente','la IA espera aprobación');
-assert.equal(aiCalls[0].model,'@cf/black-forest-labs/flux-1-schnell');assert.match(aiCalls[0].input.prompt,/Soga de saltar/);assert.match(aiCalls[0].input.prompt,/white background/);
+assert(!images.has('soga'),'sin foto real no se guarda ninguna imagen');
+assert(!src.includes('env.AI')&&!src.includes('Workers AI'),'no se generan imágenes con IA');
 assert.equal(new TextDecoder().decode(r2.get(images.get('kit').path).bytes),'grande','se guarda la versión grande de la foto');
 // Servir la foto guardada.
 r=await worker.default.fetch(new Request(site+'/fotos/'+images.get('kit').path),env);assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'image/webp');assert.equal(await r.text(),'grande');
 assert.equal((await worker.default.fetch(new Request(site+'/fotos/ab_fitness/x%2F..%2F..%2Fsecreto'),env)).status,404,'no se sale de la carpeta de fotos');
 
-// Aprobar la foto de IA (solo admin) y regenerar.
-assert.equal((await post('vendor','/api/fotos/estado',{vendorId:'ab_fitness',key:'soga',status:'aprobada'})).status,403);
-assert.equal((await post('admin','/api/fotos/estado',{vendorId:'ab_fitness',key:'soga',status:'aprobada'})).status,200);assert.equal(images.get('soga').status,'aprobada');
-const before=images.get('soga').path;assert.equal((await post('admin','/api/fotos/regenerar',{vendorId:'ab_fitness',slug:'soga'})).status,200);
-assert.notEqual(images.get('soga').path,before);assert.equal(images.get('soga').status,'pendiente');
+// Rechazar y volver a publicar una foto (solo admin). No existe la generación con IA.
+assert.equal((await post('vendor','/api/fotos/estado',{vendorId:'ab_fitness',key:'kit',status:'rechazada'})).status,403);
+assert.equal((await post('admin','/api/fotos/estado',{vendorId:'ab_fitness',key:'kit',status:'rechazada'})).status,200);assert.equal(images.get('kit').status,'rechazada');
+assert.equal((await post('admin','/api/fotos/estado',{vendorId:'ab_fitness',key:'kit',status:'aprobada'})).status,200);assert.equal(images.get('kit').status,'aprobada');
+assert.equal((await post('admin','/api/fotos/regenerar',{vendorId:'ab_fitness',slug:'soga'})).status,404);
 
-// El proveedor sube su propia foto: se publica sin esperar aprobación. Se validan tipo y tamaño.
+// El proveedor sube la foto real que falta: se publica en el momento. Se validan tipo y tamaño.
 const form=(type,size)=>{const f=new FormData();f.append('vendorId','ab_fitness');f.append('key','soga');f.append('file',new File([new Uint8Array(size)],'foto',{type}));return f;};
 assert.equal((await call('vendor','/api/fotos/subir',{method:'POST',body:form('application/pdf',10)})).status,400);
 assert.equal((await call('vendor','/api/fotos/subir',{method:'POST',body:form('image/png',5*1024*1024)})).status,400);
@@ -70,4 +69,4 @@ assert.equal((await call('otro','/api/fotos/subir',{method:'POST',body:form('ima
 
 // Sin R2 configurado, las fotos avisan que no están activas.
 assert.equal((await worker.default.fetch(new Request(site+'/api/fotos?v=ab_fitness',{headers:{Authorization:'Bearer admin'}}),{...env,FOTOS:undefined})).status,503);
-console.log('OK: fotos de productos: tienda del proveedor (principal y por variante), IA pendiente de aprobación, permisos, subida validada y archivos servidos desde R2.');
+console.log('OK: fotos reales de productos: tienda del proveedor (principal y por variante), sin imágenes inventadas, permisos, subida validada y archivos servidos desde R2.');
