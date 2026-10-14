@@ -65,7 +65,9 @@ assert.equal((await post('/api/pagos/preferencia',{payRef:'ref-zzzzzzzzzzzzzzzz'
 payment={id:123,status:'approved',status_detail:'accredited',transaction_amount:13000,currency_id:'ARS',external_reference:'ref-aaaaaaaaaaaaaaaa',collector_id:555,fee_details:[{type:'mercadopago_fee',amount:800},{type:'application_fee',amount:1000}]};
 const ts='1700000000',rid='req-1',sig=crypto.createHmac('sha256','whsec').update('id:123;request-id:'+rid+';ts:'+ts+';').digest('hex');
 const notice=signature=>call('/api/pagos/aviso?v=v1&data.id=123&type=payment',{method:'POST',headers:{'x-signature':signature,'x-request-id':rid,'Content-Type':'application/json'},body:JSON.stringify({type:'payment',data:{id:'123'}})});
-calls=[];assert.equal((await notice('ts='+ts+',v1='+'0'.repeat(64))).status,401);assert.equal(calls.length,0,'firma inválida no consulta nada');
+calls=[];
+assert.equal((await notice(null)).status,401,'un aviso sin firma se rechaza');assert.equal(calls.length,0,'sin firma no consulta nada');
+assert.equal((await notice('ts='+ts+',v1='+'0'.repeat(64))).status,401);assert.equal(calls.length,0,'firma inválida no consulta nada');
 r=await notice('ts='+ts+',v1='+sig);assert.equal(r.status,200);
 assert.equal(calls.find(c=>c.url.includes('/v1/payments/123')).opts.headers.Authorization,'Bearer VENDOR-ACCESS-1');
 const reg=calls.find(c=>c.url.includes('fitness_register_payment'));assert.equal(reg.opts.headers.apikey,'sb_secret_test');
