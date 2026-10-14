@@ -8,6 +8,7 @@
 //   SUPABASE_SERVICE_ROLE_KEY  Clave secret/service_role de Supabase (guardar conexiones y confirmar pagos)
 //   TOKEN_KEY                  32 bytes al azar en base64: cifra las llaves de los proveedores y firma los enlaces
 // Valores públicos en wrangler.jsonc: MP_CLIENT_ID, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ALLOWED_ORIGINS.
+// Fotos de productos: archivos en R2 (binding FOTOS) e imágenes generadas con Workers AI (binding AI).
 
 const MP_API = 'https://api.mercadopago.com';
 const MP_AUTH = 'https://auth.mercadopago.com.ar/authorization';
@@ -18,6 +19,7 @@ const mpApi = env => env.MP_API_URL || MP_API;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/fotos/') && request.method === 'GET') return servePhoto(env, url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
       return await api(request, env, url);
@@ -33,6 +35,7 @@ async function api(request, env, url) {
   const route = request.method + ' ' + url.pathname;
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (route === 'GET /api/pagos/estado') return json({ mercadoPago: configured(env) }, 200, headers);
+  if (url.pathname.startsWith('/api/fotos')) return photosApi(request, env, url, route, headers);
   if (!configured(env)) return json({ error: 'Mercado Pago todavía no está configurado.' }, 503, headers);
   if (route === 'POST /api/pagos/conectar') return connectStart(request, env, headers);
   if (route === 'GET /api/pagos/conectado') return connectFinish(request, env, url);
@@ -297,4 +300,186 @@ async function paymentNotice(request, env, url) {
     return json({ error: 'No se pudo registrar el pago' }, 500, {});
   }
   return json({ ok: true }, 200, {});
+}
+
+// ---------- Fotos de productos ----------
+// 1) Foto real: se toma de la página del producto en la tienda del proveedor (og:image y fotos por variante).
+// 2) Si no hay, se genera con IA y queda pendiente hasta que el administrador la apruebe.
+// 3) El administrador o el propio proveedor pueden subir otra foto.
+const AI_MODEL = '@cf/black-forest-labs/flux-1-schnell';
+const MAX_PHOTO = 4 * 1024 * 1024;
+const PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+
+async function servePhoto(env, url) {
+  const key = decodeURIComponent(url.pathname.slice('/fotos/'.length));
+  if (!env.FOTOS || !/^[A-Za-z0-9_-]+\/[A-Za-z0-9_\/.-]+$/.test(key) || key.includes('..')) return new Response('No encontrada', { status: 404 });
+  const obj = await env.FOTOS.get(key);
+  if (!obj) return new Response('No encontrada', { status: 404 });
+  return new Response(obj.body, { headers: { 'Content-Type': (obj.httpMetadata && obj.httpMetadata.contentType) || 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable', 'Access-Control-Allow-Origin': '*' } });
+}
+
+const slugOf = d => String(d.sourceSlug || String(d.key).split('#')[0]);
+const safe = s => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'producto';
+const variantLabel = d => (d.properties || []).map(p => p.name + ': ' + p.value).join(' · ');
+
+function productsOf(vendor) {
+  const map = new Map();
+  for (const d of vendor.catalogDrafts || []) {
+    if (d.hidden) continue;
+    const slug = slugOf(d);
+    if (!map.has(slug)) map.set(slug, { slug, name: d.name, category: d.sourceCategory || '', variants: [] });
+    map.get(slug).variants.push({ key: d.key, label: variantLabel(d), properties: d.properties || [] });
+  }
+  return [...map.values()];
+}
+
+async function photosApi(request, env, url, route, headers) {
+  if (!env.FOTOS || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
+  const me = await whoAmI(request, env);
+  if (!me) return json({ error: 'Ingresá a tu cuenta.' }, 401, headers);
+  const isAdmin = me.identity.role === 'admin';
+  let body = {}, form = null;
+  if (request.method === 'POST') {
+    if ((request.headers.get('Content-Type') || '').includes('multipart/form-data')) form = await request.formData();
+    else body = await request.json().catch(() => ({}));
+  }
+  const vendorId = String(url.searchParams.get('v') || (form ? form.get('vendorId') : body.vendorId) || '');
+  if (!isAdmin && me.identity.vendorId !== vendorId) return json({ error: 'No autorizado.' }, 403, headers);
+  const vendor = (me.snapshot.vendors || []).find(v => v.id === vendorId);
+  if (!vendor) return json({ error: 'Proveedor inexistente.' }, 404, headers);
+  const products = productsOf(vendor);
+  const list = async () => (await rpc(env, 'fitness_images_list', { p_vendor_id: vendorId }, { service: true })).data || [];
+
+  if (route === 'GET /api/fotos') return json({ products: products.map(({ slug, name, category, variants }) => ({ slug, name, category, variants: variants.length })), images: await list(), ai: !!(env.AI || env.AI_TEST_URL) }, 200, headers);
+
+  if (route === 'POST /api/fotos/subir') {
+    const key = String(form && form.get('key') || ''), file = form && form.get('file');
+    const product = products.find(p => p.slug === key || p.variants.some(v => v.key === key));
+    if (!product) return json({ error: 'Producto inexistente.' }, 404, headers);
+    if (!file || typeof file === 'string' || !PHOTO_TYPES[file.type]) return json({ error: 'Subí una foto JPG, PNG o WEBP.' }, 400, headers);
+    if (file.size > MAX_PHOTO) return json({ error: 'La foto no puede pesar más de 4 MB.' }, 400, headers);
+    const path = await storePhoto(env, vendorId, product.slug, 'proveedor', await file.arrayBuffer(), file.type);
+    await setPhoto(env, vendorId, key, product.slug, path, 'proveedor', 'aprobada');
+    return json({ ok: true, path }, 200, headers);
+  }
+
+  // El resto de las acciones son del administrador.
+  if (!isAdmin) return json({ error: 'Solo el administrador puede hacer esto.' }, 403, headers);
+
+  if (route === 'POST /api/fotos/estado') {
+    if (!['aprobada', 'rechazada', 'pendiente'].includes(body.status)) return json({ error: 'Estado inválido.' }, 400, headers);
+    const r = await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: String(body.key || ''), p_status: body.status }, { service: true });
+    return r.ok ? json({ ok: true }, 200, headers) : json({ error: 'No se pudo cambiar el estado.' }, 400, headers);
+  }
+
+  if (route === 'POST /api/fotos/regenerar') {
+    const product = products.find(p => p.slug === body.slug);
+    if (!product) return json({ error: 'Producto inexistente.' }, 404, headers);
+    const result = await aiPhoto(env, vendorId, product);
+    return result ? json({ ok: true, path: result }, 200, headers) : json({ error: 'La IA no está disponible.' }, 503, headers);
+  }
+
+  if (route === 'POST /api/fotos/procesar') {
+    const limit = Math.max(1, Math.min(6, Number(body.limit) || 4));
+    const done = new Set((await list()).map(i => i.key));
+    const skip = new Set(Array.isArray(body.skip) ? body.skip.map(String) : []);
+    const todo = products.filter(p => !done.has(p.slug) && !skip.has(p.slug));
+    const results = [];
+    for (const product of todo.slice(0, limit)) {
+      let result = 'sin-foto';
+      try {
+        if (await storeShopPhotos(env, vendor, product)) result = 'tienda';
+        else if (await aiPhoto(env, vendorId, product)) result = 'ia';
+      } catch (e) { console.error('foto', product.slug, e && e.message); result = 'error'; }
+      results.push({ slug: product.slug, result });
+    }
+    return json({ results, remaining: Math.max(0, todo.length - results.length) }, 200, headers);
+  }
+  return json({ error: 'No encontrado' }, 404, headers);
+}
+
+async function storePhoto(env, vendorId, slug, source, bytes, type) {
+  const path = safe(vendorId) + '/' + safe(slug) + '/' + source + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + '.' + (PHOTO_TYPES[type] || 'jpg');
+  await env.FOTOS.put(path, bytes, { httpMetadata: { contentType: type } });
+  return path;
+}
+async function setPhoto(env, vendorId, key, slug, path, source, status) {
+  const r = await rpc(env, 'fitness_image_set', { p_vendor_id: vendorId, p_image_key: key, p_slug: slug, p_path: path, p_source: source, p_status: status }, { service: true });
+  if (!r.ok) throw Error('No se pudo guardar la foto');
+}
+
+const decodeHtml = s => String(s).replace(/&quot;|&#34;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+function absolute(src, base) {
+  try {
+    const u = new URL(String(src).replace(/^\/\//, 'https://'), base);
+    // Siempre https; http solo se acepta para pruebas en la propia máquina (localhost).
+    if (u.protocol === 'http:' && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)) u.protocol = 'https:';
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null;
+  } catch (e) { return null; }
+}
+
+// Lee la página pública del producto: foto principal (og:image) y, si existen, fotos propias de cada variante.
+export function readShopPage(html, base) {
+  const meta = /<meta[^>]+(?:property|name)=["']og:image["'][^>]*content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']og:image["']/i.exec(html);
+  const main = meta ? absolute(decodeHtml(meta[1] || meta[2]), base) : null;
+  let variants = [];
+  const attr = /data-variants=(["'])([\s\S]*?)\1/i.exec(html);
+  if (attr) {
+    try {
+      variants = JSON.parse(decodeHtml(attr[2])).map(v => ({ options: [v.option0, v.option1, v.option2].filter(x => x != null && x !== ''), image: v.image_url ? absolute(v.image_url, base) : null })).filter(v => v.image);
+    } catch (e) { variants = []; }
+  }
+  return { main, variants };
+}
+
+async function download(url) {
+  const r = await fetch(url, { headers: { Accept: 'image/*' } });
+  const type = (r.headers.get('Content-Type') || '').split(';')[0].trim();
+  if (!r.ok || !PHOTO_TYPES[type]) return null;
+  const bytes = await r.arrayBuffer();
+  return bytes.byteLength > 0 && bytes.byteLength <= MAX_PHOTO * 2 ? { bytes, type } : null;
+}
+
+async function storeShopPhotos(env, vendor, product) {
+  const web = absolute(vendor.web || '', 'https://x.invalid');
+  if (!web) return false;
+  const page = await fetch(new URL('/productos/' + encodeURIComponent(product.slug) + '/', web).href, { headers: { Accept: 'text/html' } });
+  if (!page.ok) return false;
+  const info = readShopPage(await page.text(), page.url || web);
+  if (!info.main) return false;
+  const big = info.main.replace(/-(\d+)-(\d+)\.(webp|jpg|jpeg|png)$/i, '-1024-1024.$3');
+  const main = (big !== info.main && await download(big)) || await download(info.main);
+  if (!main) return false;
+  await setPhoto(env, vendor.id, product.slug, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', main.bytes, main.type), 'tienda', 'aprobada');
+  // Fotos por variante (por ejemplo, otro color), solo si son distintas de la principal.
+  let extra = 0;
+  for (const v of product.variants) {
+    if (extra >= 6) break;
+    const values = v.properties.map(p => String(p.value));
+    const match = info.variants.find(x => x.options.length === values.length && x.options.every((o, i) => String(o) === values[i]));
+    if (!match || match.image === info.main) continue;
+    const photo = await download(match.image);
+    if (!photo) continue;
+    await setPhoto(env, vendor.id, v.key, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', photo.bytes, photo.type), 'tienda', 'aprobada');
+    extra++;
+  }
+  return true;
+}
+
+export function photoPrompt(product) {
+  const variant = product.variants.length === 1 && product.variants[0].label ? ' (' + product.variants[0].label + ')' : '';
+  return 'Professional studio product photograph for an online fitness equipment store. Product: "' + product.name + '"' + variant +
+    (product.category ? '. Category: ' + product.category : '') +
+    '. Single product, centered, entire product visible, plain pure white background, soft even studio lighting, realistic materials, colors and proportions, sharp focus, high resolution, e-commerce catalog style. No text, no watermark, no logo, no people, no hands.';
+}
+
+// Genera una foto ilustrativa con Workers AI. Queda "pendiente" hasta que el administrador la apruebe.
+async function aiPhoto(env, vendorId, product) {
+  let image;
+  if (env.AI) image = (await env.AI.run(AI_MODEL, { prompt: photoPrompt(product), steps: 8 })).image;
+  else if (env.AI_TEST_URL) image = (await (await fetch(env.AI_TEST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: photoPrompt(product), slug: product.slug }) })).json()).image;
+  if (!image) return null;
+  const path = await storePhoto(env, vendorId, product.slug, 'ia', Uint8Array.from(atob(image), c => c.charCodeAt(0)), 'image/jpeg');
+  await setPhoto(env, vendorId, product.slug, product.slug, path, 'ia', 'pendiente');
+  return path;
 }
