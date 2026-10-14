@@ -1,9 +1,24 @@
 {
   "name": "proyecto-fitness",
+  "main": "worker/index.js",
   "compatibility_date": "2026-10-13",
   "assets": {
     "directory": ".",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "none"
+    "not_found_handling": "none",
+    // Solo /api/* y /fotos/* pasan por el código del Worker; el resto se sirve como archivos.
+    "run_worker_first": ["/api/*", "/fotos/*"]
+  },
+  // Fotos reales de productos (Cloudflare R2, espacio "nexofit-fotos").
+  "r2_buckets": [{ "binding": "FOTOS", "bucket_name": "nexofit-fotos" }],
+  // Valores públicos. Las claves secretas (MP_CLIENT_SECRET, MP_WEBHOOK_SECRET,
+  // SUPABASE_SERVICE_ROLE_KEY, TOKEN_KEY) se cargan como secretos del Worker, nunca acá.
+  "vars": {
+    // Número de aplicación (Client ID) de Mercado Pago. Es público; completarlo al crear la aplicación.
+    "MP_CLIENT_ID": "",
+    "SUPABASE_URL": "https://ecdaxdqvdwplhovcmnxr.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-",
+    "ALLOWED_ORIGINS": "https://lagmannicolas-star.github.io"
   }
 }

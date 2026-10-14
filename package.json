@@ -2,9 +2,10 @@
   "name": "nexofit",
   "private": true,
   "scripts": {
-    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs"
+    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs && node tests/supplier-catalog.test.cjs && node tests/payments.test.mjs && node tests/photos.test.mjs"
   },
   "devDependencies": {
-    "jsdom": "30.1.2"
+    "jsdom": "30.1.2",
+    "wrangler": "4.150.0"
   }
 }
