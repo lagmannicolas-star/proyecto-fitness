@@ -2071,7 +2071,8 @@ function photoIndex(){
  return photoCache;
 }
 function photoFor(key,slug){var ix=photoIndex();return (key&&ix.byKey[key])||(slug&&ix.bySlug[slug])||(key&&ix.bySlug[String(key).split('#')[0]])||null;}
-function photoHTML(ph,alt,cls){if(!ph)return '';return '<div class="pimg'+(cls?' '+cls:'')+'"><img src="'+esc(paymentsUrl('/fotos/'+ph.path))+'" alt="'+esc(alt)+'" loading="lazy" decoding="async"></div>';}
+function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}
+function photoHTML(ph,alt,cls){if(!ph)return '';return '<div class="pimg'+(cls?' '+cls:'')+'"><img src="'+esc(photoSrc(ph.path))+'" alt="'+esc(alt)+'" loading="lazy" decoding="async"></div>';}
 function supplierCatalogSection(){
  var list=supplierCatalog.filter(function(p){return !ui.supplierVendor||p.vendorId===ui.supplierVendor;});
  var q=plain(ui.supplierQuery||'');if(q)list=list.filter(function(p){return plain(p.name+' '+p.category+' '+p.vendorName+' '+(p.properties||[]).map(function(x){return x.value;}).join(' ')).indexOf(q)>=0;});

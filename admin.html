@@ -2933,6 +2933,7 @@ document.addEventListener('change',function(ev){
 });
 /* ---------- Fotos de productos (a través del Worker: R2 + Workers AI) ---------- */
 function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+path;}
+function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}
 async function photosCall(path,opts){opts=opts||{};var h={Authorization:'Bearer '+FC.token()};if(opts.json!==undefined)h['Content-Type']='application/json';var r=await fetch(paymentsUrl(path),{method:opts.method||'GET',headers:h,body:opts.form||(opts.json!==undefined?JSON.stringify(opts.json):undefined)});var d={};try{d=await r.json();}catch(e){}if(!r.ok)throw Error(d.error||'No se pudo completar la acción con las fotos.');return d;}
 async function loadPhotos(vid,keep){var prev=ui.photos&&ui.photos.vid===vid?ui.photos:{};ui.photos={vid:vid,loading:true,filter:prev.filter||'todas',page:keep?prev.page||1:1,progress:prev.progress||''};try{var d=await photosCall('/api/fotos?v='+encodeURIComponent(vid));ui.photos.products=d.products;ui.photos.images=d.images;}catch(e){ui.photos.error=e.message;}ui.photos.loading=false;rerender();}
 function photoMain(slug){return ((ui.photos&&ui.photos.images)||[]).filter(function(i){return i.key===slug;})[0]||null;}
@@ -2950,9 +2951,10 @@ function photosPanel(v){
  return '<section class="card" id="fotos"><h2 class="display h-card">Fotos de productos</h2>'
   +'<p class="note">Solo fotos reales: se toma la foto de cada producto de la tienda del proveedor y se publica. Si un producto no tiene foto en la tienda, subí una real (o pedísela al proveedor). Podés rechazar o reemplazar cualquier foto.</p>'
   +'<div class="rows num"><div><span class="muted">Productos</span><b>'+prods.length+'</b></div><div><span class="muted">Con foto publicada</span><b>'+ok+'</b></div><div><span class="muted">Sin foto o rechazadas</span><b>'+(none+rej+pend)+'</b></div></div>'
-  +'<div class="actions"><button class="btn btn-primary" data-act="photos-run" data-id="'+esc(v.id)+'"'+(P.running||!none?' disabled':'')+'>'+(P.running?'Buscando fotos…':'Buscar fotos en la tienda del proveedor')+'</button>'+(P.progress?'<span class="small" role="status">'+esc(P.progress)+'</span>':'')+'</div>'
+  +'<div class="actions"><button class="btn btn-primary" data-act="photos-run" data-id="'+esc(v.id)+'"'+(P.running||!none?' disabled':'')+'>'+(P.running?'Buscando fotos…':'Buscar fotos en la tienda del proveedor')+'</button><label class="btn btn-outline" for="photos-bulk">Subir varias fotos a la vez</label><input class="photo-file" id="photos-bulk" type="file" multiple accept="image/jpeg,image/png,image/webp" data-bulk-vendor="'+esc(v.id)+'">'+(P.progress?'<span class="small" role="status">'+esc(P.progress)+'</span>':'')+'</div>'
+  +'<p class="small muted">Para subir varias: nombrá cada archivo como el producto (por ejemplo “Pesa rusa cromada 8 kg.jpg”) o con su identificador de la tienda. Se asignan solas.</p>'+(P.bulkReport?'<p class="alert" role="status">'+esc(P.bulkReport)+'</p>':'')
   +'<div class="chips2" role="group" aria-label="Filtrar fotos">'+[['todas','Todas'],['sin','Sin foto ('+(none+rej+pend)+')'],['aprobadas','Publicadas ('+ok+')']].map(function(f){return '<button type="button" class="chipbtn" data-act="photos-filter" data-f="'+f[0]+'" aria-pressed="'+(P.filter===f[0])+'">'+f[1]+'</button>';}).join('')+'</div>'
-  +'<div class="photos-grid">'+list.slice((P.page-1)*24,P.page*24).map(function(x,i){var img=x.img,s2=img&&st[img.status];return '<article class="photo-card"><div class="pimg">'+(img?'<img src="'+esc(paymentsUrl('/fotos/'+img.path))+'" alt="'+esc(x.p.name)+'" loading="lazy">':'Sin foto')+'</div><b>'+esc(x.p.name)+'</b>'
+  +'<div class="photos-grid">'+list.slice((P.page-1)*24,P.page*24).map(function(x,i){var img=x.img,s2=img&&st[img.status];return '<article class="photo-card"><div class="pimg">'+(img?'<img src="'+esc(photoSrc(img.path))+'" alt="'+esc(x.p.name)+'" loading="lazy">':'Sin foto')+'</div><b>'+esc(x.p.name)+'</b>'
     +(img?'<span class="small muted">'+esc(src[img.source]||img.source)+'</span><span class="st '+s2[0]+'">'+s2[1]+'</span>':'<span class="small muted">'+x.p.variants+(x.p.variants===1?' variante':' variantes')+'</span>')
     +'<div class="actions">'+(img&&img.status!=='aprobada'?'<button class="btn btn-primary" data-act="photos-status" data-id="'+esc(v.id)+'" data-key="'+esc(x.p.slug)+'" data-status="aprobada">Publicar</button>':'')+(img&&img.status!=='rechazada'?'<button class="btn btn-outline" data-act="photos-status" data-id="'+esc(v.id)+'" data-key="'+esc(x.p.slug)+'" data-status="rechazada">Rechazar</button>':'')
     +'<label class="btn btn-outline" for="photo-file-'+i+'">Subir foto</label><input class="photo-file" id="photo-file-'+i+'" type="file" accept="image/jpeg,image/png,image/webp" data-photo-vendor="'+esc(v.id)+'" data-photo-key="'+esc(x.p.slug)+'"></div></article>';}).join('')+'</div>'
@@ -2984,8 +2986,21 @@ document.addEventListener('click',function(ev){
  var call=photosCall('/api/fotos/estado',{method:'POST',json:{vendorId:vid,key:t.dataset.key,status:t.dataset.status}});
  call.then(function(){toast(t.dataset.status==='aprobada'?'Foto publicada.':'Foto rechazada: ya no se muestra.');return loadPhotos(vid,true);}).catch(function(e){t.disabled=false;toast(e.message);});
 });
+/* Subida masiva: cada archivo se asigna al producto cuyo nombre o identificador coincide con el nombre del archivo. */
+function photoNorm(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\.[a-z0-9]+$/,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+function photoMatch(file,prods){var n=photoNorm(file.name);if(!n)return null;return prods.filter(function(p){return p.slug===n||photoNorm(p.name)===n;})[0]||prods.filter(function(p){return p.slug.replace(/-[a-z0-9]{5}$/,'')===n;})[0]||null;}
+async function bulkPhotos(vid,files){
+ var P=ui.photos,prods=P.products||[],ok=0,miss=[],fail=[];
+ for(var i=0;i<files.length;i++){var f=files[i],p=photoMatch(f,prods);P.bulkReport='Subiendo '+(i+1)+' de '+files.length+'…';rerender();
+  if(!p){miss.push(f.name);continue;}
+  var form=new FormData();form.append('vendorId',vid);form.append('key',p.slug);form.append('file',f);
+  try{await photosCall('/api/fotos/subir',{method:'POST',form:form});ok++;}catch(e){fail.push(f.name+' ('+e.message+')');}}
+ P.bulkReport=ok+' fotos publicadas'+(miss.length?' · '+miss.length+' sin producto que coincida: '+miss.slice(0,8).join(', ')+(miss.length>8?'…':''):'')+(fail.length?' · '+fail.length+' con error: '+fail.slice(0,4).join(', '):'')+'.';
+ var report=P.bulkReport;await loadPhotos(vid,true);ui.photos.bulkReport=report;rerender();
+}
 document.addEventListener('change',function(ev){
- var t=ev.target;if(!t.dataset||!t.dataset.photoKey||!t.files||!t.files[0])return;
+ var t=ev.target;if(t.dataset&&t.dataset.bulkVendor&&t.files&&t.files.length){bulkPhotos(t.dataset.bulkVendor,[].slice.call(t.files));return;}
+ if(!t.dataset||!t.dataset.photoKey||!t.files||!t.files[0])return;
  var f=new FormData();f.append('vendorId',t.dataset.photoVendor);f.append('key',t.dataset.photoKey);f.append('file',t.files[0]);
  photosCall('/api/fotos/subir',{method:'POST',form:f}).then(function(){toast('Foto subida y publicada.');return loadPhotos(t.dataset.photoVendor,true);}).catch(function(e){toast(e.message);});
 });
