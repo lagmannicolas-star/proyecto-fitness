@@ -222,6 +222,7 @@ legend{padding:0;font-family:var(--display);font-weight:700;font-size:1.4rem;tex
 .legend .vchip{min-height:32px;cursor:default}
 .clave{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:var(--r);background:var(--surface-2);max-width:90ch}
 .q-box{display:flex;flex-direction:column;gap:10px}
+.q-sub{margin:6px 0 0;font-weight:600}.q-prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:10px}.q-prod{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}.q-prod-b{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}.q-prod-b>b{line-height:1.3;overflow-wrap:anywhere}.q-var{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;padding-top:6px;border-top:1px solid var(--line);font-size:.9rem}.q-var .btn{min-height:36px;padding:0 12px}
 .q-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:8px}
 .q-item{display:flex;flex-direction:column;gap:2px;text-align:left;min-height:56px;padding:10px 14px;border-radius:8px;border:1px solid var(--strong-line);background:var(--strong-surface);color:var(--strong-fg);cursor:pointer}
 .q-item span{color:var(--strong-muted);font-size:.85rem}
@@ -2020,10 +2021,36 @@ function searchHTML(q){
   });
   /* Primero los modelos que tienen la palabra en el nombre. */
   out.sort(function(a,b){ return b.score-a.score||a.pos-b.pos; });
-  if(!out.length) return '<div class="q-none">No encontramos productos con “'+esc(q)+'”. Probá con otra palabra o elegí una categoría.</div>';
-  return '<div class="q-list">'+out.slice(0,8).map(function(r){
+  /* Productos publicados por los proveedores: lo que se puede comprar hoy, con sus variantes. */
+  var prods=supplierSearch(toks),idx=liveIndex();
+  var withOffers=out.filter(function(r){ return r.m[1].some(function(sz){ return idx[vkey(r.c.n,r.m[0],sz)]; }); });
+  if(prods.length) out=withOffers;
+  if(!out.length&&!prods.length) return '<div class="q-none">No encontramos productos con “'+esc(q)+'”. Probá con otra palabra o elegí una categoría.</div>';
+  return supplierResultsHTML(prods)+(out.length?(prods.length?'<p class="q-sub">Comparar entre empresas</p>':'')+'<div class="q-list">'+out.slice(0,8).map(function(r){
     return '<button class="q-item" data-act="open-model" data-cat="'+esc(r.c.n)+'" data-mi="'+r.i+'"><b>'+esc(r.m[0])+'</b><span>'+esc(r.c.n)+' · '+(r.m[1].length===1?'1 variante':r.m[1].length+' variantes')+'</span></button>';
-  }).join('')+(out.length>8?'<div class="q-more">Hay '+(out.length-8)+' resultados más. Escribí otra palabra para afinar.</div>':'')+'</div>';
+  }).join('')+(out.length>8?'<div class="q-more">Hay '+(out.length-8)+' resultados más. Escribí otra palabra para afinar.</div>':'')+'</div>':'');
+}
+/* Busca en los productos publicados por los proveedores y los agrupa por producto, con todas sus variantes. */
+function supplierSearch(toks){
+  var groups={},order=[];
+  supplierCatalog.forEach(function(p){
+    var props=(p.properties||[]).map(function(x){ return x.name+': '+x.value; }).join(' · ');
+    if(!toks.every(function(t){ return plain(p.name+' '+(p.category||'')+' '+p.vendorName+' '+props).indexOf(t)>=0; })) return;
+    var g=p.vendorId+'|'+String(p.key).split('#')[0];
+    if(!groups[g]){ groups[g]={name:p.name,vendor:p.vendorName,cat:p.category,items:[],score:toks.filter(function(t){ return plain(p.name).indexOf(t)>=0; }).length,pos:order.length}; order.push(g); }
+    groups[g].items.push({p:p,label:props||'Presentación única',hit:toks.every(function(t){ return plain(p.name+' '+props).indexOf(t)>=0; })});
+  });
+  return order.map(function(k){ return groups[k]; }).sort(function(a,b){ return b.score-a.score||a.pos-b.pos; });
+}
+function supplierResultsHTML(prods){
+  if(!prods.length) return '';
+  return '<p class="q-sub">'+prods.length+(prods.length===1?' producto disponible':' productos disponibles')+'</p><div class="q-prods">'+prods.slice(0,6).map(function(g){
+    var items=g.items.slice().sort(function(a,b){ return (b.hit?1:0)-(a.hit?1:0); }),shown=items.slice(0,6);
+    return '<article class="q-prod">'+photoHTML(photoFor(g.items[0].p.key),g.name,'pimg-sm')+'<div class="q-prod-b"><b>'+esc(g.name)+'</b><span class="small muted">'+esc(g.vendor)+(g.cat?' · '+esc(g.cat):'')+' · '+(g.items.length===1?'1 variante':g.items.length+' variantes')+'</span>'
+      +shown.map(function(x){ var o=x.p.offerId&&offer(x.p.offerId),live=o&&isLive(o);
+        return '<div class="q-var"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
+      +(items.length>6?'<span class="small muted">Y '+(items.length-6)+' variantes más: escribí la medida o el color para verlas.</span>':'')+'</div></article>';
+  }).join('')+'</div>'+(prods.length>6?'<div class="q-more">Hay '+(prods.length-6)+' productos más. Escribí otra palabra para afinar.</div>':'');
 }
 function ensureFilters(idx){
   var c=catBy(ui.fCat)||CATALOG[0]; ui.fCat=c.n;
