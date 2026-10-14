@@ -280,7 +280,8 @@ async function paymentNotice(request, env, url) {
   const vendorId = url.searchParams.get('v');
   if (type !== 'payment' || !dataId || !vendorId) return json({ ok: true, ignored: true }, 200, {});
   const signature = request.headers.get('x-signature');
-  if (signature && !(await validSignature(env.MP_WEBHOOK_SECRET, signature, request.headers.get('x-request-id'), dataId))) {
+  // Mercado Pago firma cada webhook. La ausencia de firma se rechaza igual que una firma incorrecta.
+  if (!signature || !(await validSignature(env.MP_WEBHOOK_SECRET, signature, request.headers.get('x-request-id'), dataId))) {
     return json({ error: 'Firma inválida' }, 401, {});
   }
   const account = await vendorAccount(env, vendorId);
