@@ -2,7 +2,7 @@
   "name": "nexofit",
   "private": true,
   "scripts": {
-    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs"
+    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs && node tests/supplier-catalog.test.cjs && node tests/payments.test.mjs"
   },
   "devDependencies": {
     "jsdom": "30.1.2"

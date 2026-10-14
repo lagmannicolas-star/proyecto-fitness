@@ -832,6 +832,8 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .cat-card[aria-pressed="true"] .category-photo{background:var(--accent)}
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
+
+.bulk{display:flex;flex-direction:column;gap:12px;margin:4px 0 18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--accent-soft)}.bulk h3{margin:0;font-size:1.05rem}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
 </head>
@@ -1385,7 +1387,7 @@ function tabsHTML(list,cur){
 function bizDays(a,b){ var d=new Date(a+'T12:00:00'), t=new Date(b+'T12:00:00'), n=0; while(d<t){ d.setDate(d.getDate()+1); var w=d.getDay(); if(w!==0&&w!==6) n++; } return n; }
 function calDays(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5); }
 function lateDays(o){ return (o.status==='approved'&&!o.shipped)?bizDays(o.date,today())-(o.lead==null?5:o.lead):0; }
-function orderStatus(o){var labels={pending_payment:'Pendiente de pago',expired:'Reserva vencida',cancelled:'Cancelado',refunded:'Devuelto',approved:o.delivered?'Entregado':o.shipped?'Enviado':'Pagado, por enviar'};return '<span class="st '+(o.status==='approved'?'ok':'warn')+'">'+esc(labels[o.status]||o.status)+'</span>';}
+function orderStatus(o){var labels={pending_payment:'Pendiente de pago',expired:'Reserva vencida',cancelled:'Cancelado',refunded:'Devuelto',approved:o.delivered?'Entregado':o.shipped?'Enviado':'Pagado, por enviar'};return '<span class="st '+(o.status==='approved'?'ok':'warn')+'">'+esc(labels[o.status]||o.status)+'</span>'+(o.paymentIssue?'<span class="st bad">'+esc(o.paymentIssue)+'</span>':'');}
 function offerStatus(o){
   var m={published:['ok','Publicado'],review:['warn','En revisión'],paused:['neu','Pausado'],rejected:['bad','Rechazado']}[o.status]||['neu',o.status];
   return '<span class="st '+m[0]+'">'+m[1]+'</span>';
@@ -1951,7 +1953,51 @@ function vActs(v){
   if(v.status==='active') return '<button class="btn btn-outline btn-sm" data-act="v-suspend" data-id="'+v.id+'">Suspender</button>';
   return '<button class="btn btn-outline btn-sm" data-act="v-approve" data-id="'+v.id+'">'+(v.status==='suspended'?'Reactivar':'Aprobar')+'</button>';
 }
-function catalogDraftPanel(v){var items=v&&v.catalogDrafts||[];if(!items.length)return '';return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. Son borradores: falta completar la clasificación, presentación, entrega, garantía y envío antes de publicar. Los productos ocultos conservan esa condición.</p><div class="tablewrap"><table style="min-width:700px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Estado de origen</th></tr></thead><tbody>'+items.map(function(x,index){return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(x.hidden?'Oculto':'Visible')+' · Borrador'+(!x.hidden&&x.price>0?'<br><button type="button" class="btn btn-primary btn-sm" data-act="draft-prepare" data-id="'+esc(v.id)+'" data-index="'+index+'">Completar y publicar</button>':'')+'</td></tr>';}).join('')+'</tbody></table></div></section>';}
+/* Publicación masiva: crea o actualiza una oferta por cada variante visible con precio, con condiciones comunes. Nunca duplica (usa la clave de importación). */
+function draftCategory(v,d){var c=String(d.sourceCategory||'').split('>')[0].split(',')[0].replace(/[\\?¿]+/g,' ').replace(/\s+/g,' ').trim();if(!c)return 'Catálogo '+v.name;if(c===c.toUpperCase())c=c.charAt(0)+c.slice(1).toLowerCase();return c.slice(0,60);}
+function bulkPlan(v,c){
+  var ops=[],n={create:0,update:0,pause:0,skip:0};
+  (v.catalogDrafts||[]).forEach(function(d){
+    var ex=db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0];
+    if(d.hidden||!(d.price>0)){ if(ex&&ex.status==='published'){ops.push({kind:'pause',o:ex});n.pause++;} else n.skip++; return; }
+    var units=d.units==null?null:d.units,f={category:draftCategory(v,d),model:d.name,size:(d.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · ')||'Única',
+      unit:d.kind==='kit'?'Kit':c.unit,brand:String(d.brand||'').slice(0,40),detail:String(d.description||'').slice(0,80),price:Math.round(d.price*100)/100,
+      units:units,stock:units===0?'none':'stock',minQty:c.minQty,lead:c.lead,warranty:c.warranty,shipAmba:c.shipAmba,shipInt:c.shipInt,updated:today(),sourceKey:d.key};
+    if(ex){ops.push({kind:'update',o:ex,f:f});n.update++;}else{ops.push({kind:'create',f:f});n.create++;}
+  });
+  return {ops:ops,n:n};
+}
+function bulkApply(v,plan){
+  plan.ops.forEach(function(op){
+    if(op.kind==='pause'){op.o.status='paused';op.o.updated=today();return;}
+    if(op.kind==='update'){for(var k in op.f)op.o[k]=op.f[k];if(op.o.status==='review')op.o.status='published';return;}
+    var o=op.f;o.id='o'+(db.nextId++);o.vendorId=v.id;o.status='published';o.lowAt=null;o.volumeTiers=[];db.offers.push(o);
+  });
+}
+function bulkCond(){
+  var c={unit:val('bulk-unit'),lead:val('bulk-lead').trim(),warranty:val('bulk-warr').trim(),shipAmba:parseMoney(val('bulk-amba')),shipInt:parseMoney(val('bulk-int')),minQty:val('bulk-min').trim()};
+  if(['Unidad','Par','Kit'].indexOf(c.unit)<0)throw ['Elegí cómo se vende.','bulk-unit'];
+  if(!/^\d+$/.test(c.lead))throw ['La entrega tiene que ser un número entero de días.','bulk-lead'];
+  if(!/^\d+$/.test(c.warranty))throw ['La garantía tiene que ser un número entero de meses.','bulk-warr'];
+  if(c.shipAmba===null||!Number.isFinite(c.shipAmba)||c.shipAmba<0)throw ['Completá el envío a AMBA (0 = sin cargo).','bulk-amba'];
+  if(c.shipInt===null||!Number.isFinite(c.shipInt)||c.shipInt<0)throw ['Completá el envío al resto del país (0 = sin cargo).','bulk-int'];
+  if(!/^[1-9]\d*$/.test(c.minQty))throw ['La compra mínima tiene que ser 1 o más.','bulk-min'];
+  c.lead=Number(c.lead);c.warranty=Number(c.warranty);c.minQty=Number(c.minQty);return c;
+}
+function bulkPanel(v){
+  var b=ui.bulk&&ui.bulk.vid===v.id?ui.bulk:null,c=b?b.cond:{unit:'Unidad',lead:'',warranty:'',shipAmba:'',shipInt:'',minQty:1},
+    ready=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0;}).length;
+  if(b&&b.plan){var n=b.plan.n;return '<div class="bulk"><h3>Confirmá la publicación</h3><p>Se van a publicar <b>'+n.create+'</b> variantes nuevas y actualizar <b>'+n.update+'</b> ya publicadas'+(n.pause?'; se pausan <b>'+n.pause+'</b> que el archivo ahora marca ocultas':'')+'. Entrega '+c.lead+' días hábiles · garantía '+c.warranty+' meses · envío AMBA '+money(c.shipAmba)+' · resto del país '+money(c.shipInt)+' · mínimo '+c.minQty+'.</p><div class="actions"><button type="button" class="btn btn-primary" data-act="bulk-confirm" data-id="'+esc(v.id)+'">Confirmar y publicar</button><button type="button" class="btn btn-outline" data-act="bulk-cancel">Volver</button></div></div>';}
+  return '<div class="bulk"><h3>Publicar todo el catálogo</h3><p class="note">Publica de una vez las '+ready+' variantes visibles con precio, con estas condiciones. Si ya estaban publicadas, actualiza precio y stock sin duplicarlas. Las que el archivo marca ocultas no se publican.</p><div id="bulk-err" class="alert bad" role="alert" hidden></div><div class="formgrid">'
+    +fld('bulk-unit','Se vende por',sel('bulk-unit',['Unidad','Par','Kit'],c.unit),'Los combos y kits se marcan como Kit.')
+    +fld('bulk-lead','Entrega (días hábiles)',inp('bulk-lead',c.lead,'type="number" min="0" step="1"'))
+    +fld('bulk-warr','Garantía (meses)',inp('bulk-warr',c.warranty,'type="number" min="0" step="1"'))
+    +fld('bulk-amba','Envío AMBA ($)',inp('bulk-amba',c.shipAmba,'type="text" inputmode="numeric"'),'0 = sin cargo')
+    +fld('bulk-int','Envío resto del país ($)',inp('bulk-int',c.shipInt,'type="text" inputmode="numeric"'),'0 = sin cargo')
+    +fld('bulk-min','Compra mínima (presentaciones)',inp('bulk-min',c.minQty,'type="number" min="1" step="1"'))
+    +'</div><div class="actions"><button type="button" class="btn btn-primary" data-act="bulk-review" data-id="'+esc(v.id)+'"'+(ready?'':' disabled')+'>Revisar y publicar</button></div></div>';
+}
+function catalogDraftPanel(v){var items=v&&v.catalogDrafts||[];if(!items.length)return '';return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. Son borradores: falta completar la clasificación, presentación, entrega, garantía y envío antes de publicar. Los productos ocultos conservan esa condición.</p>'+bulkPanel(v)+'<div class="tablewrap"><table style="min-width:700px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Estado de origen</th></tr></thead><tbody>'+items.map(function(x,index){return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(x.hidden?'Oculto':'Visible')+' · Borrador'+(!x.hidden&&x.price>0?'<br><button type="button" class="btn btn-primary btn-sm" data-act="draft-prepare" data-id="'+esc(v.id)+'" data-index="'+index+'">Completar y publicar</button>':'')+'</td></tr>';}).join('')+'</tbody></table></div></section>';}
 function vendorFile(v){
   var S=vStats(v), cp=vComplete(v), now=today(), idle=S.last&&calDays(S.last.slice(0,10),now)>14;
   /* Ingresos por semana, últimas 10 semanas */
@@ -2665,6 +2711,17 @@ document.addEventListener('click',function(ev){
       if(ui.confirm!=='vdel'+id){ ui.confirm='vdel'+id; rerender(); break; }
       x=vendor(id); db.offers=db.offers.filter(function(o){ return o.vendorId!==id; }); db.vendors=db.vendors.filter(function(v){ return v.id!==id; });
       ui.confirm=null; ui.vForm=null; logAct('eliminó el proveedor '+(x?x.name:'')); save(); rerender(); toast((x?x.name:'Proveedor')+' eliminado'); break;
+    case 'bulk-review':
+      var bv=vendor(id); if(!bv) break;
+      try{ var bc=bulkCond(); }catch(err){ ui.bulk={vid:id,cond:{unit:val('bulk-unit'),lead:val('bulk-lead'),warranty:val('bulk-warr'),shipAmba:val('bulk-amba'),shipInt:val('bulk-int'),minQty:val('bulk-min')}}; showErr('bulk-err',err[0],err[1]); break; }
+      ui.bulk={vid:id,cond:bc,plan:bulkPlan(bv,bc)}; rerender(); break;
+    case 'bulk-cancel': if(ui.bulk) ui.bulk.plan=null; rerender(); break;
+    case 'bulk-confirm':
+      var bv2=vendor(id); if(!bv2||!ui.bulk||ui.bulk.vid!==id) break;
+      var plan=bulkPlan(bv2,ui.bulk.cond), before={offers:JSON.parse(JSON.stringify(db.offers)),nextId:db.nextId};
+      bulkApply(bv2,plan); logAct('publicó el catálogo de '+bv2.name+': '+plan.n.create+' nuevas, '+plan.n.update+' actualizadas, '+plan.n.pause+' pausadas');
+      try{ save(); }catch(err){ db.offers=before.offers; db.nextId=before.nextId; break; }
+      ui.bulk=null; rerender(); toast('Catálogo publicado: '+(plan.n.create+plan.n.update)+' variantes ya se pueden comprar'); break;
     case 'draft-prepare':
       var dv=vendor(id), draft=dv&&dv.catalogDrafts&&dv.catalogDrafts[Number(t.dataset.index)];
       if(!draft||draft.hidden||draft.price<=0) break;

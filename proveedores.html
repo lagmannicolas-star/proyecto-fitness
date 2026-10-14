@@ -787,7 +787,9 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .btn-accent{font-weight:700}.btn:hover{filter:none;box-shadow:0 0 0 2px var(--line)}.btn-outline:hover{background:var(--accent-soft)}
 .linkbtn{color:var(--ink);text-decoration:underline;text-underline-offset:3px}.btn-danger{border-style:dashed}
 .dark{background:var(--bg);color:var(--ink)}.dark .eyebrow,.dark .display em{color:var(--ink)}.dark .display em{font-style:normal}
-.dark .lead,.dark .muted{color:var(--muted)}.dark .btn-outline{color:var(--ink);border-color:var(--field-line)}
+.dark .lead,.dark .muted{color:var(--muted)}
+/* Etiquetas de la portada: quedaron crema sobre crema cuando la portada pasó a ser clara. */
+.dark .chip{background:var(--accent-soft);color:var(--ink)}.dark .btn-outline{color:var(--ink);border-color:var(--field-line)}
 .hero{padding-block:36px 24px}.hero-in{gap:14px}.hero .eyebrow{display:flex;align-items:center;gap:8px}.hero .eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .section{padding-block:24px}.section-head{margin-bottom:14px;gap:8px 16px}.section-head p{font-size:.92rem;margin-top:4px}
 .choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.category-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -841,6 +843,8 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 <script>
 /* Configuración pública: nunca colocar secret/service_role aquí. */
 var FITNESS_CONFIG={url:'https://ecdaxdqvdwplhovcmnxr.supabase.co',key:'sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-'};
+/* Dirección del Worker de Cloudflare que conecta Mercado Pago. Vacío = mismo sitio. Las claves viven solo en el Worker. */
+var PAYMENTS_API='';
 var FC=(function(){
  'use strict';
  var cfg=FITNESS_CONFIG,state=null,session=null,recovery=false,storageKey='fitness-auth:'+cfg.url;
@@ -871,7 +875,8 @@ var FC=(function(){
  function recoveryForm(){if(!recovery)return;var box=document.createElement('div');box.style.cssText='position:fixed;inset:0;background:rgba(16,23,31,.85);z-index:9999;display:grid;place-items:center';box.innerHTML='<form style="background:#FDFAF5;color:#10171F;padding:24px;max-width:420px;border-radius:12px"><h2>Crear una nueva clave</h2><label>Clave nueva (mínimo 8 caracteres)<input type="password" name="new-password" autocomplete="new-password" minlength="8" required></label><label>Repetir clave<input type="password" name="repeat-password" autocomplete="new-password" minlength="8" required></label><button type="submit">Guardar clave</button><p role="alert"></p></form>';document.body.appendChild(box);box.querySelector('form').addEventListener('submit',async function(ev){ev.preventDefault();ev.stopImmediatePropagation();var p=box.querySelector('[name="new-password"]').value,p2=box.querySelector('[name="repeat-password"]').value;var btn=box.querySelector('button');btn.disabled=true;try{if(p.length<8||p!==p2)throw Error('Las claves deben coincidir y tener al menos 8 caracteres.');await setPassword(p);recovery=false;box.remove();}catch(e){box.querySelector('[role="alert"]').textContent=e.message;}finally{btn.disabled=false;}},true);}
 
  function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#A5CC21;color:#10171F;padding:16px;border-radius:8px';document.body.appendChild(box);}box.textContent=e.message||String(e);setTimeout(function(){box.remove();},12000);}
- return {importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
+ function token(){ensureSession();return session&&session.access_token||null;}
+ return {token:token,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
 })();
 
 
@@ -1337,6 +1342,7 @@ function sumClicks(kind,month){
   return out;
 }
 function monthName(ym){ var n=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'], p=String(ym).split('-'); return n[+p[1]-1]+' '+p[0]; }
+var mpReady=false;
 function toast(msg){
   toastEl.textContent=msg; toastEl.hidden=false;
   clearTimeout(toastTimer); toastTimer=setTimeout(function(){ toastEl.hidden=true; },3200);
@@ -1887,8 +1893,8 @@ function vPanel(){
     body='<div class="card" style="max-width:640px"><h2 class="display h-card">Mercado Pago</h2>'
       +(v.mp?'<div class="alert ok">Cuenta conectada. Cada venta se acredita en tu Mercado Pago.</div>':'<div class="alert">Todavía no conectaste tu cuenta.</div>')
       +'<div class="rows"><div><span class="muted">Recibís</span><b>'+(100-pctOf(v))+'% de los productos + el envío</b></div><div><span class="muted">Comisión del sitio</span><b>'+pctOf(v)+'% de los productos</b></div></div>'
-      +'<p class="note">En el sitio real este botón te lleva a Mercado Pago para autorizar tu cuenta una sola vez. Acá es una simulación.</p>'
-      +'<div><button class="btn '+(v.mp?'btn-outline':'btn-accent')+'" data-act="mp-toggle">'+(v.mp?'Desconectar cuenta':'Conectar Mercado Pago')+'</button></div></div>'
+      +'<p class="note">Cada pago se divide solo en el momento: Mercado Pago acredita tu parte en tu cuenta y separa la comisión del sitio. Mercado Pago descuenta además su propio costo por cobrar.</p>'
+      +(mpReady?'<p class="muted small">El botón te lleva a Mercado Pago para autorizar tu cuenta una sola vez. Podés desconectarla cuando quieras.</p><div><button class="btn '+(v.mp?'btn-outline':'btn-accent')+'" data-act="'+(v.mp?'mp-disconnect':'mp-connect')+'">'+(v.mp?'Desconectar cuenta':'Conectar mi Mercado Pago')+'</button></div>':'<p class="alert">La conexión con Mercado Pago todavía no está activada en el sitio. Te avisamos cuando puedas conectar tu cuenta.</p>')+'</div>'
       +mpPreview(v);
   }
   var all=vUnread(v);
@@ -2015,6 +2021,19 @@ document.addEventListener('click',function(ev){
       var LR=[['Mes','Ventas','Productos $','Envíos $','Comisión del sitio $','Te quedó $','Devoluciones','Monto devuelto $']].concat(settlementRows(me()).map(function(r){ return [monthName(r.m),r.n,r.sub,r.ship,r.com,r.net,r.ref,r.refAmt]; }));
       if(a==='liq-dl') downloadRows(LR,'liquidacion'); else copyRows(LR); break;
     case 'logout': ui.vendorId=null; sset(SKEY,null); go('landing',{applied:false}); toast('Saliste de tu panel'); break;
+    case 'mp-connect':
+      t.disabled=true;
+      fetch(paymentsUrl('/api/pagos/conectar'),{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+FC.token()},body:JSON.stringify({returnUrl:location.href.split('#')[0].split('?')[0]})})
+        .then(function(r){return r.json().then(function(d){if(!r.ok||!d.url)throw Error(d.error||'No pudimos abrir Mercado Pago.');location.href=d.url;});})
+        .catch(function(e){t.disabled=false;toast(e.message);});
+      break;
+    case 'mp-disconnect':
+      if(ui.confirm!=='mp-disconnect'){ui.confirm='mp-disconnect';t.textContent='Confirmar: desconectar';break;}
+      ui.confirm=null;t.disabled=true;
+      fetch(paymentsUrl('/api/pagos/desconectar'),{method:'POST',headers:{Authorization:'Bearer '+FC.token()}})
+        .then(function(r){if(!r.ok)throw Error('No se pudo desconectar.');db=FC.refresh();rerender();toast('Mercado Pago desconectado: tus productos no se pueden pagar hasta que lo vuelvas a conectar.');})
+        .catch(function(e){t.disabled=false;toast(e.message);});
+      break;
     case 'mp-toggle': x=me(); x.mp=!x.mp; notify('mp','vendedores',x.name+(x.mp?' conectó su Mercado Pago: ya puede vender':' desconectó su Mercado Pago: sus productos dejaron de mostrarse'),x.id); vact(x,x.mp?'conectó Mercado Pago':'desconectó Mercado Pago'); save(); rerender(); toast(x.mp?'Mercado Pago conectado':'Mercado Pago desconectado'); break;
     case 'mp-test': x=me(); if(!x.mp) break; x.mpTest=today(); vact(x,'hizo un pago de prueba'); save(); rerender(); toast('Pago de prueba aprobado: la plata llegaría a '+mpName(x)); break;
     case 'stock-filter': ui.pf=JSON.parse(JSON.stringify(PF_DEF)); if(t.dataset.f!=='all') ui.pf.stock=t.dataset.f; ui.bulk=false; if(ui.tab!=='productos'||ui.route!=='panel') go('panel',{tab:'productos'}); else rerender(); break;
@@ -2154,6 +2173,10 @@ document.addEventListener('input',function(ev){
   if(t.id==='sim-range'){ n=digits(t.value); ui.sim=n; p=db.commission; setText('sim-total',money(n)); setText('sim-net',money(n*(100-p)/100)); setText('sim-com',money(n*p/100)); }
   else if(t.id==='p-price'){ n=digits(t.value); p=pctOf(me()); setText('pv-price',money(n)); setText('pv-com',money(n*p/100)); setText('pv-net',money(n*(100-p)/100)); refreshWarn(); }
 });
+/* Conexión con Mercado Pago a través del Worker. */
+function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+path;}
+fetch(paymentsUrl('/api/pagos/estado')).then(function(r){return r.ok?r.json():null;}).then(function(d){var ready=!!(d&&d.mercadoPago);if(ready!==mpReady){mpReady=ready;render();}}).catch(function(){});
+(function(){var back=new URLSearchParams(location.search).get('mp');if(!back)return;ui.tab='mp';try{db=FC.refresh();}catch(e){}var msg={ok:'Listo: tu Mercado Pago quedó conectado. Ya podés recibir pagos.',cancelado:'No se conectó Mercado Pago: cancelaste la autorización.',error:'No pudimos conectar tu Mercado Pago. Probá de nuevo.'}[back];setTimeout(function(){if(msg)toast(msg);},300);try{var clean=new URL(location.href);clean.searchParams.delete('mp');history.replaceState(history.state,'',clean.href);}catch(e){}})();
 render();
 })();
 </script>
