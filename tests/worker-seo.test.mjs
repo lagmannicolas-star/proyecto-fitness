@@ -51,6 +51,7 @@ assert.equal(meta(page, /<meta property="og:url" content="([^"]*)">/), 'https://
 assert.match(meta(page, /<meta property="og:image" content="([^"]*)">/), /^https:\/\/nexofitt\.com\.ar\/assets\/productos\/[\w]+\.webp$/, 'foto propia');
 const desc = meta(page, /<meta name="description" content="([^"]*)">/); assert(desc.length > 50 && desc.length <= 170, desc);
 assert.match(page, /<meta name="nf-routing" content="paths">/);
+assert.match(page, /<meta charset="utf-8"><base href="\/">/, 'base para que assets/… funcione en rutas anidadas');
 assert.equal((page.match(/<title>/g) || []).length, 1, 'un solo título');
 const [g] = ld(page), product = g['@graph'].find(x => x['@type'] === 'Product'), crumbs = g['@graph'].find(x => x['@type'] === 'BreadcrumbList');
 assert.equal(product.name, 'Kit fuerza & tonificación: colchoneta tobillera 3 kg mancuerna 3 kg');

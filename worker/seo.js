@@ -85,7 +85,8 @@ const clip = (s, n) => { s = String(s).replace(/\s+/g, ' ').trim(); return s.len
 const ldJson = data => JSON.stringify(data).replace(/</g, '\\u003c');
 
 function inject(html, meta) {
-  let h = html;
+  // Las rutas /producto/… y /categoria/… están anidadas: la base hace que "assets/…" y "proveedores.html" sigan apuntando a la raíz.
+  let h = html.replace('<meta charset="utf-8">', '<meta charset="utf-8"><base href="/">');
   const rep = (re, val) => { h = re.test(h) ? h.replace(re, val) : h; };
   rep(/<title>[^<]*<\/title>/, '<title>' + esc(meta.title) + '</title>');
   rep(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + esc(meta.description) + '">');

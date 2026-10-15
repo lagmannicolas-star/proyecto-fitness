@@ -47,7 +47,7 @@ assert.equal(w.quoteDecode(w.b64u(JSON.stringify(json))),null,'precio cambiado a
 assert.equal(w.quoteDecode(code.slice(0,-3)+'xyz'),null);assert.equal(w.quoteDecode('abc'),null);
 // La hoja: cliente, ítems por proveedor, totales iguales al carrito
 const doc=d.querySelector('.qdoc');assert(doc.textContent.includes('N° '+num)&&doc.textContent.includes('Colegio San Martín')&&doc.textContent.includes('30-71586238-3'));
-assert.equal(doc.querySelectorAll('.q-items tbody tr:not(.q-vh):not(.q-sub)').length,2);
+assert.equal(doc.querySelectorAll('.q-items tbody tr:not(.q-vh):not(.q-srow)').length,2);
 const C=w.cartGroups(w.getCart(),'1425');assert.equal(w.quoteCalc(q,false).total,C.total,'mismo total que el carrito');
 assert(doc.querySelector('.q-total').textContent.includes(C.total.toLocaleString('es-AR')));
 assert(doc.textContent.includes('A coordinar con el proveedor')&&doc.textContent.includes('Precios con IVA incluido')&&doc.textContent.includes('Válido hasta'));
