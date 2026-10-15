@@ -1308,6 +1308,98 @@ body[data-route="checkout"] .wa-fab{display:none}
 .arma-sum .cprow input{min-width:90px}
 .nf-arma-in > div:first-child{display:flex;flex-direction:column;gap:12px}
 .nf-arma-in .btn-accent{align-self:flex-start}
+/* ===== Etapa 3: reseñas, presupuesto e impresión ===== */
+.stars{display:inline-flex;gap:1px;line-height:1;font-size:1.05rem;letter-spacing:0}
+.stars.sm{font-size:.82rem}
+.stars .st-f{color:var(--ink)}
+.stars .st-h{background:linear-gradient(90deg,var(--ink) 50%,rgba(16,23,31,.2) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stars .st-e{color:rgba(16,23,31,.2)}
+.nf-rate{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);font-weight:600}
+.nf-rate.lg{font-size:.92rem;color:var(--ink);text-decoration:none;min-height:32px}
+.nf-rate.lg:hover span{text-decoration:underline}
+.nf-reviews{margin-top:20px;padding-top:28px;border-top:1px solid var(--soft-line)}
+.nf-rev-sum{display:inline-flex;align-items:center;gap:6px;font-size:.95rem}
+.nf-rev-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.nf-rev{display:flex;flex-direction:column;gap:8px;padding:16px 18px;border:1px solid var(--soft-line);border-radius:14px;background:var(--paper)}
+.nf-rev-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nf-rev p{margin:0;line-height:1.55}
+.nf-rev-by{font-size:.84rem;color:var(--muted)}
+.nf-verified{display:inline-flex;align-items:center;gap:4px;margin-left:4px;padding:2px 8px;border-radius:999px;background:rgba(165,204,33,.25);color:var(--ink);font-weight:700;font-size:.74rem}
+.nf-rev-reply{padding:10px 12px;border-left:3px solid var(--accent);background:rgba(16,23,31,.035);border-radius:0 10px 10px 0;font-size:.92rem}
+@media(max-width:700px){.nf-rev-list{grid-template-columns:1fr}}
+.pc-items li .nf-rate-form{flex:1 1 100%}
+.nf-rate-form{display:flex;flex-direction:column;gap:12px;margin-top:6px;padding:14px;border:1px solid var(--soft-line);border-radius:14px;background:rgba(165,204,33,.08)}
+.nf-star-in{display:inline-flex;flex-direction:row-reverse;justify-content:flex-end;gap:4px;border:0;padding:0}
+.nf-star-in input{position:absolute;opacity:0;width:1px;height:1px}
+.nf-star-in label{font-size:2rem;line-height:1;color:rgba(16,23,31,.2);cursor:pointer;padding:2px;transition:color .1s ease,transform .1s ease}
+.nf-star-in label:hover,.nf-star-in label:hover ~ label,.nf-star-in input:checked ~ label{color:var(--ink)}
+.nf-star-in input:checked + label{transform:scale(1.08)}
+.nf-star-in input:focus-visible + label{outline:3px solid var(--ink);outline-offset:2px;border-radius:6px}
+/* Formulario de presupuesto */
+.nf-qform{max-width:620px}
+.nf-qform .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:560px){.nf-qform .formgrid{grid-template-columns:1fr}.nf-qform{padding:20px}}
+/* Presupuesto A4 */
+.nf-quote{gap:16px;align-items:center}
+.q-actions{width:100%;max-width:820px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.q-banner{width:100%;max-width:820px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.nf-quote .arma-link{max-width:820px}
+.qdoc{width:100%;max-width:820px;padding:44px 48px;background:white;color:var(--ink);border:1px solid var(--soft-line);border-radius:6px;box-shadow:var(--shadow-2);font-size:.92rem;line-height:1.45}
+.q-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:18px;border-bottom:3px solid var(--ink)}
+.q-brand .logo-frame{width:190px}
+.q-brand p{margin-top:6px;line-height:1.35}
+.q-meta{text-align:right}
+.q-meta h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;text-transform:uppercase}
+.q-num{font-weight:700;font-variant-numeric:tabular-nums;margin:4px 0 8px}
+.q-meta dl,.q-client dl{margin:0}
+.q-meta dl div{display:flex;justify-content:flex-end;gap:8px;font-size:.86rem}
+.q-meta dt,.q-client dt{color:var(--muted)}
+.q-meta dd,.q-client dd{margin:0;font-weight:600}
+.q-client{margin:20px 0 6px}
+.q-client h2,.q-cond h2{font-family:var(--display);font-weight:800;font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.q-client dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 18px}
+.q-client dl div{min-width:0;overflow-wrap:anywhere}
+.q-items{width:100%;margin-top:16px;border-collapse:collapse;font-size:.88rem}
+.q-items th,.q-items td{padding:8px 8px;border-bottom:1px solid rgba(16,23,31,.1);text-align:left;vertical-align:middle}
+.q-items thead th{background:rgba(16,23,31,.05);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.q-items .r{text-align:right;white-space:nowrap}
+.q-vh th{padding-top:14px;font-family:var(--display);font-weight:800;font-size:1rem;letter-spacing:.04em;text-transform:uppercase;border-bottom:2px solid var(--ink);background:transparent}
+.q-ph{width:52px}
+.q-img{position:relative;display:block;width:44px;height:44px;border:1px solid rgba(16,23,31,.1);border-radius:6px;overflow:hidden;background:white}
+.q-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.q-var{display:block;color:var(--muted);font-size:.8rem}
+.q-sub td{background:rgba(16,23,31,.025);font-size:.84rem}
+.q-warn{font-weight:700}
+.q-totals{margin:16px 0 0 auto;max-width:340px;display:flex;flex-direction:column;gap:6px}
+.q-totals > div{display:flex;justify-content:space-between;gap:16px}
+.q-total{padding-top:8px;border-top:2px solid var(--ink);font-size:1.15rem}
+.q-total b{font-family:var(--display);font-size:1.5rem}
+.q-note{margin-top:10px;font-size:.84rem;color:var(--muted)}
+.q-cond{margin-top:22px;padding-top:14px;border-top:1px solid rgba(16,23,31,.12)}
+.q-cond ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.86rem}
+.q-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;margin-top:22px;padding-top:12px;border-top:3px solid var(--accent);font-size:.82rem;color:var(--muted)}
+@media(max-width:700px){
+ .qdoc{padding:22px 16px;border-radius:12px}
+ .q-head{flex-direction:column}
+ .q-meta{text-align:left}.q-meta dl div{justify-content:flex-start}
+ .q-client dl{grid-template-columns:1fr 1fr}
+ .q-items{font-size:.8rem}.q-items th,.q-items td{padding:6px 4px}.q-ph{width:40px}.q-img{width:34px;height:34px}
+ .q-items thead th:nth-child(4),.q-items tbody td:nth-child(4){display:none}
+ .q-sub td[colspan="4"]{font-size:.78rem}
+}
+/* Impresión: solo el presupuesto, en A4 */
+@page{size:A4;margin:12mm}
+@media print{
+ html,body{background:white!important}
+ .top,.foot,.wa-fab,.cartfab,.led,.no-print,.toast,#fitness-error,.nf-bar{display:none!important}
+ main,.wrap,.page{padding:0!important;margin:0!important;max-width:none!important}
+ .qdoc{max-width:none;padding:0;border:0;box-shadow:none;border-radius:0;font-size:10pt}
+ .q-items{font-size:9pt}
+ .q-items tr,.q-vendor{break-inside:avoid}
+ .q-cond,.q-totals,.q-foot{break-inside:avoid}
+ .q-items thead th:nth-child(4),.q-items tbody td:nth-child(4){display:table-cell!important}
+ a{color:inherit;text-decoration:none}
+}
 </style></head>
 <body>
 <div id="app"></div>
@@ -1353,7 +1445,7 @@ var FC=(function(){
 
  function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#A5CC21;color:#10171F;padding:16px;border-radius:8px';document.body.appendChild(box);}box.textContent=e.message||String(e);setTimeout(function(){box.remove();},12000);}
  function token(){ensureSession();return session&&session.access_token||null;}
- return {token:token,publicCatalog:publicCatalog,refreshAsync:refreshAsync,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,guest:guest,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
+ return {rpc:function(fn,args,auth){ if(auth) ensureSession(); return request('/rest/v1/rpc/'+fn,args||{},!!auth); },token:token,publicCatalog:publicCatalog,refreshAsync:refreshAsync,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,guest:guest,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
 })();
 
 
@@ -2052,7 +2144,7 @@ function accSummary(b,P,drops){
 function purchaseCard(p,compact){
   var vs=[]; p.orders.forEach(function(o){ var v=vendor(o.vendorId); if(v&&vs.indexOf(v.name)<0) vs.push(v.name); });
   return '<div class="pcard"><div class="pc-h"><div><b>Compra del '+fdate(p.date)+'</b><span class="muted small">'+(p.orders.length===1?'Pedido #'+p.orders[0].id:'Pedidos '+p.orders.map(function(o){ return '#'+o.id; }).join(', '))+' · '+esc(vs.join(', '))+'</span></div><b class="num">'+money(p.total)+'</b></div>'
-    +'<ul class="pc-items">'+p.orders.map(function(o){ return '<li><span>'+esc(o.desc.split(': ').slice(1).join(': ')||o.desc)+' × '+o.qty+'<span class="muted small"> · '+esc((vendor(o.vendorId)||{}).name||'')+'</span></span>'+orderStatus(o)+(o.tracking?'<span class="muted small mono">'+esc(o.carrier||'')+' '+esc(o.tracking)+'</span>':'')+'</li>'; }).join('')+'</ul>'
+    +'<ul class="pc-items">'+p.orders.map(function(o){ return '<li><span>'+esc(o.desc.split(': ').slice(1).join(': ')||o.desc)+' × '+o.qty+'<span class="muted small"> · '+esc((vendor(o.vendorId)||{}).name||'')+'</span></span>'+orderStatus(o)+(o.tracking?'<span class="muted small mono">'+esc(o.carrier||'')+' '+esc(o.tracking)+'</span>':'')+rateHTML(o)+'</li>'; }).join('')+'</ul>'
     +'<div class="actions"><button class="btn btn-primary btn-sm" data-act="rebuy" data-ids="'+p.orders.map(function(o){ return o.id; }).join(',')+'">'+ico('refund',18)+'Volver a comprar</button>'
     +p.orders.map(function(o){ return '<button class="btn btn-outline btn-sm" data-act="track-open" data-id="'+o.id+'">Seguir #'+o.id+'</button>'; }).join('')+'</div></div>';
 }
@@ -2233,7 +2325,7 @@ function legacyCartHTML(items){
  return '<section class="card cgroup nf-legacy" aria-label="Productos guardados no disponibles"><div class="cg-h"><div><span class="muted small">Guardados antes</span><b>No disponibles</b></div><span class="st warn">Sin stock por ahora</span></div>'
   +'<p class="note cg-f">Estos productos no se pueden comprar hoy en el sitio. No se suman al total: quitalos o buscá una alternativa en el catálogo.</p>'
   +items.map(function(i){ var p=productBySlug(i.sourceSlug),name=p?p.name:nfText(i.model),size=nfSize(i.size);
-   return '<div class="citem off">'+(p&&p.photos[0]?'<div class="pimg pimg-sm">'+imgTag(p.photos[0],'',{size:120})+'</div>':'')+'<div class="ci-t">'+(p?'<a class="ci-name" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(name)+'</a>':'<b>'+esc(name)+'</b>')+'<span class="muted small">'+esc([size,'Cantidad: '+i.qty].filter(Boolean).join(' · '))+'</span><span class="st bad">No disponible</span></div><span></span><span></span><button type="button" class="ci-x" data-act="cart-del" data-id="'+esc(i.id)+'" aria-label="Quitar '+esc(name)+'">×</button></div>';
+   return '<div class="citem off">'+(p&&p.photos[0]?'<div class="pimg pimg-sm">'+imgTag(p.photos[0],'',{size:120})+'</div>':'')+'<div class="ci-t">'+(p?'<a class="ci-name" href="'+esc(productHref(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(name)+'</a>':'<b>'+esc(name)+'</b>')+'<span class="muted small">'+esc([size,'Cantidad: '+i.qty].filter(Boolean).join(' · '))+'</span><span class="st bad">No disponible</span></div><span></span><span></span><button type="button" class="ci-x" data-act="cart-del" data-id="'+esc(i.id)+'" aria-label="Quitar '+esc(name)+'">×</button></div>';
   }).join('')+'<div class="cg-f"><button type="button" class="btn btn-outline btn-sm" data-act="to-catalog">Buscar alternativas</button></div></section>';
 }
 /* Variante guardada con la versión anterior: "Nombre: valor · Nombre: valor" → propiedades → misma clave que la importación. */
@@ -2274,7 +2366,7 @@ function vActiveCart(){
           var o=x.o, i=x.i;
           if(!o) return '<div class="citem off"><div class="ci-t"><b>Producto quitado del sitio</b><span class="st bad">Ya no está disponible</span></div><span></span><span></span><button type="button" class="ci-x" data-act="cart-del" data-id="'+esc(i.id)+'" aria-label="Quitar producto no disponible">×</button></div>';
           var p=productOfOffer(o),name=cartItemName(o),size=nfSize(o.size),ph=p&&p.photos[0]?p.photos[0]:((photoFor(o.sourceKey||o.id)||{}).path||'');
-          return '<div class="citem'+(x.warn?' warn':'')+'">'+(ph?'<div class="pimg pimg-sm">'+imgTag(ph,'',{size:120})+'</div>':'')+'<div class="ci-t">'+(p?'<a class="ci-name" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(name)+'</a>':'<b>'+esc(name)+'</b>')
+          return '<div class="citem'+(x.warn?' warn':'')+'">'+(ph?'<div class="pimg pimg-sm">'+imgTag(ph,'',{size:120})+'</div>':'')+'<div class="ci-t">'+(p?'<a class="ci-name" href="'+esc(productHref(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(name)+'</a>':'<b>'+esc(name)+'</b>')
             +'<span class="muted small">'+esc([size,money(o.price)+' c/u','entrega '+days(o.lead)].filter(Boolean).join(' · '))+'</span>'
             +(x.warn?'<span class="st bad">'+esc(x.warn)+'</span>':'')+(x.changed?'<span class="st warn">Cambió el precio: antes '+money(i.price)+'</span>':'')+'</div>'
             +(x.live?'<div class="stepper sm"><button type="button" data-act="cq-dec" data-id="'+o.id+'" aria-label="Restar una unidad de '+esc(name)+'">−</button><input type="number" min="'+o.minQty+'" inputmode="numeric" data-cq="'+o.id+'" value="'+i.qty+'" aria-label="Cantidad de '+esc(name)+'"><button type="button" data-act="cq-inc" data-id="'+o.id+'" aria-label="Sumar una unidad de '+esc(name)+'">+</button></div>':'<span></span>')
@@ -2289,7 +2381,7 @@ function vActiveCart(){
     +'<div class="total"><span>Total</span><span>'+(C.ok?money(C.total):money(C.groups.reduce(function(a,g){ return a+g.sub; },0)))+'</span></div></div>'+(C.ok?'':'<p class="muted small">Sin envío. Falta el código postal para calcularlo.</p>')
     +(C.short?'<p class="alert warn small">Todavía no llegás a la compra mínima del proveedor.</p>':(C.bad?'<p class="alert bad small">Revisá los productos marcados antes de pagar.</p>':''))
     +'<button class="btn btn-accent btn-lg" data-act="cart-pay"'+(C.bad||!C.ok?' disabled':'')+'>'+(n>1?'Pagar en '+n+' pasos':'Continuar con la compra')+'</button>':'<p class="muted">No hay productos disponibles para pagar.</p>')
-    +'<button class="btn btn-outline" data-act="to-catalog">Seguir comprando</button></aside></div></div>';
+    +(n?'<button class="btn btn-outline" data-act="quote-open" data-src="cart">'+ico('pages',18)+'Descargar presupuesto</button>':'')+'<button class="btn btn-outline" data-act="to-catalog">Seguir comprando</button></aside></div></div>';
 }
 /* Confirmar datos una sola vez y pagar proveedor por proveedor */
 function vCheckoutCart(){
@@ -2354,8 +2446,8 @@ var ui={cq:'',ccat:'',csort:'destacados',cavail:true,climit:24,cspace:null,catsA
         fCat:'Mancuernas',fModel:'Plástica PVC rellena',fSize:'2 kg',q:'',vTab:null,space:null,scrollId:null,focusModel:null,plates:[25,20,15,10,5],tryQty:20};
 var PLATES=[25,20,15,10,5], MAX_PLATES=6;
 
-function snap(){ return {pslug:ui.pslug,armaStep:ui.armaStep,cat:ui.cat,model:ui.model,size:ui.size,unit:ui.unit,qty:ui.qty,cp:ui.cp,sort:ui.sort,offerId:ui.offerId,orderId:ui.orderId}; }
-function routeUrl(route){ var base=location.pathname+location.search; if(route==='producto'&&ui.pslug) return base+'#producto/'+encodeURIComponent(ui.pslug); if(route==='carrito') return base+'#carrito'; if(route==='arma') return base+'#arma'+(ui.armaStep===2?'/paso-2':ui.armaStep===3?'/lista':''); return base; }
+function snap(){ return {quoteCode:ui.quoteCode,pslug:ui.pslug,armaStep:ui.armaStep,cat:ui.cat,model:ui.model,size:ui.size,unit:ui.unit,qty:ui.qty,cp:ui.cp,sort:ui.sort,offerId:ui.offerId,orderId:ui.orderId}; }
+function routeUrl(route){ if(PATHS) return pathUrl(route); var base=location.pathname+location.search; if(route==='presupuesto'&&ui.quoteCode) return base+'#presupuesto/'+ui.quoteCode; if(route==='producto'&&ui.pslug) return base+'#producto/'+encodeURIComponent(ui.pslug); if(route==='carrito') return base+'#carrito'; if(route==='arma') return base+'#arma'+(ui.armaStep===2?'/paso-2':ui.armaStep===3?'/lista':''); return base; }
 function go(route,patch,noHist){
   if(route==='ab-product'){ route='producto'; ui.pslug=(patch&&patch.abSlug)||ui.abSlug||ui.pslug; }
   if(ui.route==='home'&&route!=='home'){ try{ ui.homeY=window.pageYOffset||0; }catch(e){} }
@@ -2776,10 +2868,10 @@ function catalogList(){
 }
 function productCard(p){
  var n=p.variants.length,badge=!p.available?'<span class="nf-badge out">Sin stock</span>':(p.few?'<span class="nf-badge few">Últimas unidades</span>':'');
- return '<a class="nf-card'+(p.available?'':' is-out')+'" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'
+ return '<a class="nf-card'+(p.available?'':' is-out')+'" href="'+esc(productHref(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'
   +'<span class="nf-img">'+(p.photos[0]?imgTag(p.photos[0],''):'')+badge+'</span>'
   +'<span class="nf-body"><span class="nf-vendor">'+esc(p.vendor)+'</span><span class="nf-name">'+esc(p.name)+'</span>'
-  +(n>1?'<span class="nf-opts">'+n+' opciones</span>':'')+priceHTML(p)+cardShip(p)+'</span></a>';
+  +(n>1?'<span class="nf-opts">'+n+' opciones</span>':'')+priceHTML(p)+cardStars(p)+cardShip(p)+'</span></a>';
 }
 function catChipsHTML(r){
  var d=productsData(),cats=d.cats.filter(function(c){ return r.counts[c.name]||c.name===ui.ccat; });
@@ -2955,7 +3047,7 @@ function groupProgressHTML(g){
  if(g.short) gap=g.short; else if(free&&g.sub<free) gap=amount(free-g.sub);
  var sug=gapSuggestions(g,gap,4);
  if(sug.length) out+='<div class="nf-sug"><p class="nf-sug-h"><b>Completá tu pedido</b> <span class="muted small">con productos de '+esc(g.v.name)+'</span></p><div class="nf-sug-list">'+sug.map(function(c){ var o=c.v.offer,size=c.v.props.map(function(pr){ return pr.value; }).join(' · ');
-   return '<div class="nf-sug-i"><span class="nf-sug-img">'+(c.p.photos[0]?imgTag(c.v.image||c.p.photos[0],'',{size:120}):'')+'</span><span class="nf-sug-t"><a class="ci-name" href="#producto/'+esc(encodeURIComponent(c.p.slug))+'" data-act="open-product" data-slug="'+esc(c.p.slug)+'">'+esc(c.p.name)+'</a><span class="muted small">'+esc(size?size+' · ':'')+money(o.price*(o.minQty||1))+'</span></span><button type="button" class="btn btn-outline btn-sm" data-act="sug-add" data-id="'+esc(o.id)+'" aria-label="Agregar '+esc(c.p.name)+'">Agregar</button></div>'; }).join('')+'</div></div>';
+   return '<div class="nf-sug-i"><span class="nf-sug-img">'+(c.p.photos[0]?imgTag(c.v.image||c.p.photos[0],'',{size:120}):'')+'</span><span class="nf-sug-t"><a class="ci-name" href="'+esc(productHref(c.p.slug))+'" data-act="open-product" data-slug="'+esc(c.p.slug)+'">'+esc(c.p.name)+'</a><span class="muted small">'+esc(size?size+' · ':'')+money(o.price*(o.minQty||1))+'</span></span><button type="button" class="btn btn-outline btn-sm" data-act="sug-add" data-id="'+esc(o.id)+'" aria-label="Agregar '+esc(c.p.name)+'">Agregar</button></div>'; }).join('')+'</div></div>';
  return out?'<div class="cg-prog">'+out+'</div>':'';
 }
 /* ---------- Armá tu espacio: plantillas por espacio y lista generada con productos reales del catálogo ----------
@@ -3168,7 +3260,7 @@ function armaLineHTML(x,a){
  var o=x.o,p=productOfOffer(o),v=p?p.variants.filter(function(y){ return y.offer===o; })[0]:null,size=v&&v.props.length?v.props.map(function(pr){ return pr.value; }).join(' · '):'',open=a.open===x.l.key,max=o.units!=null?o.units:9999;
  var head='<div class="arma-line'+(open?' open':'')+'"><div class="arma-li-img">'+(p&&p.photos[0]?imgTag((v&&v.image)||p.photos[0],'',{size:160}):'')+'</div>'
   +'<div class="arma-li-t"><span class="arma-li-slot">'+esc(x.r?x.r.label:'Agregado')+(x.r&&x.r.slot.pair?' <span class="muted">· '+(armaIsPair(p||{name:''})?x.l.q+(x.l.q===1?' par':' pares'):(x.l.q/2)+(x.l.q===2?' par':' pares')+' ('+x.l.q+' u.)')+'</span>':'')+'</span>'
-  +(p?'<a class="ci-name" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(p.name)+'</a>':'<b>'+esc(nfText(o.model))+'</b>')
+  +(p?'<a class="ci-name" href="'+esc(productHref(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'">'+esc(p.name)+'</a>':'<b>'+esc(nfText(o.model))+'</b>')
   +'<span class="muted small">'+esc([size,money(o.price)+' c/u'].filter(Boolean).join(' · '))+'</span>'+(x.r?'<span class="arma-why">'+esc(x.r.slot.w)+'</span>':'')+'</div>'
   +'<div class="arma-li-q"><div class="stepper sm"><button type="button" data-act="arma-dec" data-i="'+x.i+'" aria-label="Restar uno"'+(x.l.q<=(o.minQty||1)?' disabled':'')+'>−</button><input type="number" inputmode="numeric" min="'+(o.minQty||1)+'" data-armaq="'+x.i+'" value="'+x.l.q+'" aria-label="Cantidad de '+esc(p?p.name:o.model)+'"><button type="button" data-act="arma-inc" data-i="'+x.i+'" aria-label="Sumar uno"'+(x.l.q>=max?' disabled':'')+'>+</button></div><b class="num arma-li-p">'+money(armaLineTotal(x.l))+'</b></div>'
   +'<div class="arma-li-a"><button type="button" class="linkbtn" data-act="arma-alt" data-i="'+x.i+'" aria-expanded="'+open+'">Cambiar</button><button type="button" class="linkbtn" data-act="arma-del" data-i="'+x.i+'">Quitar</button></div>';
@@ -3193,7 +3285,7 @@ function armaSummary(a){
   +'<p class="muted small">'+(vs.length===1?'1 proveedor':vs.length+' proveedores')+(vs.length>1?': pagás en '+vs.length+' pasos.':'.')+'</p>'
   +vs.map(function(x){ return x.q.min?'<p class="small arma-min'+(x.q.short?' short':'')+'">'+(x.q.short?'Compra mínima de '+esc(x.v.name)+': te faltan '+money(x.q.short)+'.':'✓ Llegás a la compra mínima de '+esc(x.v.name)+'.')+'</p>':''; }).join('')
   +'<button type="button" class="btn btn-accent btn-lg" data-act="arma-cart"'+(lines?'':' disabled')+'>'+ico('ventas',20)+'Agregar todo al carrito</button>'
-  +'<div class="arma-share"><button type="button" class="btn btn-outline" data-act="arma-share"'+(lines?'':' disabled')+'>'+ico('link',18)+'Compartir lista</button>'
+  +'<div class="arma-share">'+(lines?'<button type="button" class="btn btn-outline" data-act="quote-open" data-src="arma">'+ico('pages',18)+'Descargar presupuesto</button>':'')+'<button type="button" class="btn btn-outline" data-act="arma-share"'+(lines?'':' disabled')+'>'+ico('link',18)+'Compartir lista</button>'
   +(waBuyerUrl('')&&lines?'<a class="btn btn-outline" href="'+esc(armaWaUrl(a))+'" target="_blank" rel="noopener">Consultar por WhatsApp</a>':'')+'</div>'
   +'<input id="arma-link" class="arma-link" type="text" readonly aria-label="Enlace para compartir" value="'+esc(lines?armaShareUrl(a):'')+'" hidden></aside>';
 }
@@ -3219,6 +3311,215 @@ function armaAddAll(){
  if(window.nfTrack) window.nfTrack('AddToCart',{value:armaTotal(a.lines||[]),name:'Armá tu espacio'});
  return n;
 }
+/* ---------- Direcciones reales (/producto/slug, /categoria/slug) cuando el Worker sirve la página ---------- */
+var PATHS=(function(){ try{ return !!document.querySelector('meta[name="nf-routing"][content="paths"]')&&/^https?:$/.test(location.protocol); }catch(e){ return false; } })();
+function catSlug(name){ return plain(name).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+function catBySlug(slug){ var c=productsData().cats.filter(function(x){ return catSlug(x.name)===slug; })[0]; return c?c.name:''; }
+function productHref(slug){ return (PATHS?'/producto/':'#producto/')+encodeURIComponent(slug); }
+function appHome(){ return PATHS?location.origin+'/':location.href.split('#')[0]; }
+/* Al abrir la página en una dirección real, se toma la ruta de ahí. */
+function fromPath(){
+ try{ var q=new URLSearchParams(location.search).get('q'); if(q){ ui.cq=String(q).slice(0,80); ui.scrollId='catalogo'; } }catch(e){}
+ if(!PATHS) return false;
+ var path=location.pathname,m;
+ if((m=/^\/producto\/([^\/]+)\/?$/.exec(path))){ ui.route='producto'; try{ ui.pslug=decodeURIComponent(m[1]); }catch(e){ ui.pslug=m[1]; } return true; }
+ if((m=/^\/categoria\/([^\/]+)\/?$/.exec(path))){ ui.route='home'; ui.ccat=catBySlug(m[1]); ui.catPath=m[1]; ui.scrollId='catalogo'; return true; }
+ if((m=/^\/arma(?:\/(.*))?$/.exec(path))){ var seg=m[1]||''; ui.route='arma';
+  if(!seg) ui.armaStep=1; else if(seg==='paso-2') ui.armaStep=2; else if(seg==='lista') ui.armaStep=3;
+  else { var sh=armaFromCode(seg); if(sh){ ui.arma=sh; armaSave(); ui.armaStep=3; ui.armaShared=true; } else { ui.armaStep=1; ui.armaBadLink=true; } }
+  return true; }
+ return false;
+}
+function pathUrl(route){
+ if(route==='producto'&&ui.pslug) return '/producto/'+encodeURIComponent(ui.pslug);
+ if(route==='home') return ui.ccat?'/categoria/'+catSlug(ui.ccat):'/';
+ if(route==='arma') return '/arma'+(ui.armaStep===2?'/paso-2':ui.armaStep===3?'/lista':'');
+ if(route==='carrito') return '/#carrito';
+ if(route==='presupuesto'&&ui.quoteCode) return '/#presupuesto/'+ui.quoteCode;
+ return '/';
+}
+/* Títulos y datos estructurados por página (el Worker ya los manda en la primera carga). */
+var ROUTE_TITLES={home:'Nexo Fit · Equipamiento deportivo de distintas empresas en un solo carrito',arma:'Armá tu espacio · Lista de equipamiento con precios · Nexo Fit',carrito:'Tu carrito · Nexo Fit',checkout:'Confirmá tu compra · Nexo Fit',buscar:'Compará productos entre empresas · Nexo Fit',cuenta:'Mi cuenta · Nexo Fit',ingresar:'Ingresá · Nexo Fit',pedido:'Seguí tu pedido · Nexo Fit',presupuesto:'Presupuesto · Nexo Fit'};
+function pageTitle(){
+ if(ui.route==='producto'){ var p=productBySlug(ui.pslug); if(p) return p.name+' · '+p.category+' · Nexo Fit'; }
+ if(ui.route==='home'&&ui.ccat) return ui.ccat+' · Equipamiento deportivo · Nexo Fit';
+ if(ui.route==='presupuesto'&&ui.quote) return 'Presupuesto '+quoteNumber(ui.quote)+' · Nexo Fit';
+ return ROUTE_TITLES[ui.route]||BASE_TITLE;
+}
+function productLd(p){
+ var site='https://nexofitt.com.ar',av=p.variants.filter(function(v){ return v.available; }),prices=(av.length?av:p.variants).map(function(v){ return v.price; }).filter(function(n){ return n>0; }),st=reviewStats(p.slug);
+ var img=p.photos.slice(0,6).map(function(ph){ return PHOTO_MAP&&PHOTO_MAP[ph]?site+'/'+PHOTO_MAP[ph]:ph; }),url=site+'/producto/'+encodeURIComponent(p.slug);
+ var ld={'@context':'https://schema.org','@type':'Product',name:p.name,image:img,description:p.detail||p.name,category:p.category,brand:{'@type':'Brand',name:p.vendor},url:url,
+  offers:prices.length>1&&Math.min.apply(null,prices)!==Math.max.apply(null,prices)?{'@type':'AggregateOffer',priceCurrency:'ARS',lowPrice:Math.min.apply(null,prices),highPrice:Math.max.apply(null,prices),offerCount:av.length||p.variants.length,availability:p.available?'https://schema.org/InStock':'https://schema.org/OutOfStock',url:url}
+   :{'@type':'Offer',priceCurrency:'ARS',price:prices[0]||0,availability:p.available?'https://schema.org/InStock':'https://schema.org/OutOfStock',url:url,seller:{'@type':'Organization',name:p.vendor}}};
+ if(st) ld.aggregateRating={'@type':'AggregateRating',ratingValue:st.avg,reviewCount:st.count,bestRating:5,worstRating:1};
+ return ld;
+}
+function updateLd(){
+ try{
+  var el=document.getElementById('nf-ld'),p=ui.route==='producto'?productBySlug(ui.pslug):null;
+  if(!p){ if(el&&el.getAttribute('data-spa')) el.remove(); return; }
+  if(!el){ el=document.createElement('script'); el.type='application/ld+json'; el.id='nf-ld'; document.head.appendChild(el); }
+  el.setAttribute('data-spa','1'); el.textContent=JSON.stringify(productLd(p));
+ }catch(e){}
+}
+
+/* ---------- Reseñas verificadas (si las funciones de la base todavía no existen, todo queda oculto) ---------- */
+var REVIEWS={state:'loading',bySlug:{},stats:{}};
+function loadReviews(){
+ if(!FC.rpc){ REVIEWS.state='off'; return; }
+ FC.rpc('fitness_reviews_public',{},false).then(function(d){
+  if(!d||!Array.isArray(d.reviews)||typeof d.stats!=='object'){ REVIEWS.state='off'; return; }
+  var by={},stats={};
+  d.reviews.forEach(function(r){ if(!r||typeof r.slug!=='string'||!(r.rating>=1&&r.rating<=5)) return; (by[r.slug]=by[r.slug]||[]).push(r); });
+  Object.keys(by).forEach(function(s){ var l=by[s]; l.sort(function(a,b){ return String(b.createdAt).localeCompare(String(a.createdAt)); }); stats[s]={avg:Math.round(l.reduce(function(a,r){ return a+Number(r.rating); },0)/l.length*10)/10,count:l.length}; });
+  REVIEWS={state:'on',bySlug:by,stats:stats};
+  if(['producto','home','cuenta'].indexOf(ui.route)>=0&&!document.querySelector('#app input:focus,#app textarea:focus,#app select:focus')) render();
+  loadMyReviews();
+ }).catch(function(){ REVIEWS.state='off'; });
+}
+function loadMyReviews(){
+ if(REVIEWS.state!=='on'||!FC.identity()||!FC.rpc) return;
+ FC.rpc('fitness_reviews_mine',{},true).then(function(l){ if(Array.isArray(l)){ ui.myReviews=l.map(function(r){ return r.slug; }); if(ui.route==='cuenta') render(); } }).catch(function(){});
+}
+function reviewStats(slug){ return REVIEWS.state==='on'?REVIEWS.stats[slug]||null:null; }
+function starsHTML(avg,cls){
+ var r=Math.round(avg*2)/2,out='';
+ for(var i=1;i<=5;i++) out+='<span class="st-'+(r>=i?'f':r>=i-0.5?'h':'e')+'" aria-hidden="true">★</span>';
+ return '<span class="stars'+(cls?' '+cls:'')+'" role="img" aria-label="'+String(avg).replace('.',',')+' de 5 estrellas">'+out+'</span>';
+}
+function cardStars(p){ var s=reviewStats(p.slug); return s?'<span class="nf-rate">'+starsHTML(s.avg,'sm')+'<span>'+String(s.avg).replace('.',',')+' ('+s.count+')</span></span>':''; }
+function titleStars(p){ var s=reviewStats(p.slug); return s?'<a class="nf-rate lg" href="#resenas" data-act="to-reviews">'+starsHTML(s.avg)+'<span><b>'+String(s.avg).replace('.',',')+'</b> · '+s.count+(s.count===1?' reseña':' reseñas')+'</span></a>':''; }
+function reviewsHTML(p){
+ if(REVIEWS.state!=='on') return '';
+ var list=REVIEWS.bySlug[p.slug]||[],s=reviewStats(p.slug),ven=vendor(p.vendorId);
+ return '<section class="nf-reviews" id="resenas" aria-labelledby="rev-t"><div class="section-head"><h2 class="display" id="rev-t">Reseñas</h2>'+(s?'<span class="nf-rev-sum">'+starsHTML(s.avg)+' <b>'+String(s.avg).replace('.',',')+'</b> de 5 · '+s.count+(s.count===1?' reseña':' reseñas')+'</span>':'')+'</div>'
+  +(list.length?'<ol class="nf-rev-list">'+list.slice(0,30).map(function(r){
+    return '<li class="nf-rev"><div class="nf-rev-h">'+starsHTML(Number(r.rating),'sm')+(r.title?'<b>'+esc(r.title)+'</b>':'')+'</div><p>'+esc(r.text)+'</p><p class="nf-rev-by"><span>'+esc(r.name||'Comprador verificado')+'</span> · <span>'+esc(revDate(r.createdAt))+'</span> <span class="nf-verified">'+ico('check',14)+'Compra verificada</span></p>'
+     +(r.reply?'<div class="nf-rev-reply"><b>Respuesta de '+esc(ven?ven.name:'el proveedor')+'</b><p>'+esc(r.reply)+'</p></div>':'')+'</li>'; }).join('')+'</ol>'
+   :'<p class="muted">Todavía no hay reseñas de este producto. Si lo compraste, calificalo desde <button type="button" class="linkbtn" data-act="acc-tab" data-t="compras">Mis compras</button>.</p>')+'</section>';
+}
+function revDate(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'}); }
+/* Mi cuenta: calificar productos de compras pagadas. */
+function orderSlug(o){ var x=o.offerId?offer(o.offerId):orderOffer(o); return x&&x.sourceKey?String(x.sourceKey).split('#')[0]:''; }
+function rateHTML(o){
+ if(REVIEWS.state!=='on'||o.status!=='approved') return '';
+ var slug=orderSlug(o); if(!slug) return '';
+ if((ui.myReviews||[]).indexOf(slug)>=0) return '<span class="st ok">Ya calificaste</span>';
+ var key=o.id+'|'+slug;
+ if(ui.rateOpen!==key) return '<button type="button" class="btn btn-outline btn-sm" data-act="rate-open" data-k="'+esc(key)+'">'+ico('check',16)+'Calificar</button>';
+ var p=productBySlug(slug),r=ui.rateDraft||{};
+ return '<form id="f-rate" class="nf-rate-form" data-order="'+o.id+'" data-slug="'+esc(slug)+'" novalidate><p><b>¿Qué te pareció '+esc(p?p.name:'este producto')+'?</b></p>'
+  +'<fieldset class="nf-star-in"><legend class="sr">Puntaje</legend>'+[5,4,3,2,1].map(function(n){ return '<input type="radio" id="rate-'+n+'" name="rate" value="'+n+'"'+(r.rating===n?' checked':'')+'><label for="rate-'+n+'" title="'+n+(n===1?' estrella':' estrellas')+'"><span class="sr">'+n+(n===1?' estrella':' estrellas')+'</span>★</label>'; }).join('')+'</fieldset>'
+  +'<div class="field"><label for="rate-title">Título <span class="muted">(opcional)</span></label><input id="rate-title" type="text" maxlength="80" value="'+esc(r.title||'')+'"></div>'
+  +'<div class="field"><label for="rate-text">Tu experiencia</label><textarea id="rate-text" rows="4" maxlength="1000" placeholder="Calidad, medidas, entrega…">'+esc(r.text||'')+'</textarea><span class="hint">Entre 10 y 1000 caracteres. Se publica después de revisarla, con tu nombre de pila.</span></div>'
+  +'<div id="rate-err" class="alert bad" role="alert"'+(ui.rateErr?'':' hidden')+'>'+esc(ui.rateErr||'')+'</div>'
+  +'<div class="actions"><button type="submit" class="btn btn-accent btn-sm">Publicar reseña</button><button type="button" class="btn btn-outline btn-sm" data-act="rate-cancel">Cancelar</button></div></form>';
+}
+function submitReview(f){
+ var rt=f.querySelector('[name="rate"]:checked'),rating=rt?Number(rt.value):0,title=val('rate-title').trim(),text=val('rate-text').trim();
+ ui.rateDraft={rating:rating,title:title,text:text};
+ var err=!rating?'Elegí de 1 a 5 estrellas.':(text.length<10?'Contanos tu experiencia en al menos 10 caracteres.':(text.length>1000?'El texto puede tener hasta 1000 caracteres.':(title.length>80?'El título puede tener hasta 80 caracteres.':'')));
+ if(err){ ui.rateErr=err; rerender(!rating?'rate-5':'rate-text'); return; }
+ var b=f.querySelector('[type="submit"]'); if(b) b.disabled=true;
+ FC.rpc('fitness_review_submit',{p_order_id:Number(f.getAttribute('data-order')),p_slug:f.getAttribute('data-slug'),p_rating:rating,p_title:title,p_text:text},true).then(function(){
+  ui.myReviews=(ui.myReviews||[]).concat([f.getAttribute('data-slug')]); ui.rateOpen=null; ui.rateDraft=null; ui.rateErr=''; rerender(); toast('¡Gracias! Publicamos tu reseña cuando la revisemos.');
+ }).catch(function(e){ var m=String(e&&e.message||''); ui.rateErr=/could not find|function|404/i.test(m)?'Las reseñas todavía no están habilitadas. Probá más adelante.':m||'No pudimos guardar la reseña.'; rerender('rate-text'); });
+}
+
+/* ---------- Presupuesto formal ---------- */
+var QKEY='nf-quote-client';
+function cuitOk(c){ c=String(c||'').replace(/\D/g,''); if(c.length!==11) return false; var w=[5,4,3,2,7,6,5,4,3,2],s=0; for(var i=0;i<10;i++) s+=w[i]*Number(c[i]); var v=11-s%11; v=v===11?0:v===10?9:v; return v===Number(c[10]); }
+function hash32(str){ var h=2166136261>>>0; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; }
+function quoteBody(q){ return JSON.stringify({v:1,d:q.d,c:q.c,l:q.l}); }
+function quoteNumber(q){ return 'NF-'+q.d.slice(2,4)+q.d.slice(5,7)+q.d.slice(8,10)+'-'+('000'+(hash32(quoteBody(q))%1679616).toString(36).toUpperCase()).slice(-4); }
+function quoteEncode(q){ var body=quoteBody(q); return b64u(JSON.stringify({v:1,d:q.d,c:q.c,l:q.l,h:hash32(body).toString(36)})); }
+function quoteDecode(code){
+ try{
+  if(!/^[A-Za-z0-9_-]{10,12000}$/.test(String(code||''))) return null;
+  var j=JSON.parse(unb64u(code)); if(!j||j.v!==1||!/^\d{4}-\d{2}-\d{2}$/.test(j.d)||!j.c||typeof j.c!=='object'||!Array.isArray(j.l)||!j.l.length||j.l.length>200) return null;
+  var str=function(x,n){ return typeof x==='string'&&x.length<=n; };
+  var c=j.c; if(!str(c.n,120)||c.n.length<2||!str(c.e||'',160)||!str(c.t||'',40)||!str(c.ct||'',80)||!str(c.l||'',80)||!str(c.cp||'',4)||!str(c.cuit||'',13)) return null;
+  if(!j.l.every(function(x){ return Array.isArray(x)&&x.length===3&&str(x[0],60)&&Number.isInteger(x[1])&&x[1]>0&&x[1]<100000&&typeof x[2]==='number'&&x[2]>=0&&x[2]<1e10; })) return null;
+  var q={d:j.d,c:{n:c.n,cuit:c.cuit||'',ct:c.ct||'',e:c.e||'',t:c.t||'',l:c.l||'',cp:c.cp||''},l:j.l.map(function(x){ return [x[0],x[1],x[2]]; })};
+  if(hash32(quoteBody(q)).toString(36)!==j.h) return null;
+  return q;
+ }catch(e){ return null; }
+}
+function todayIso(){ return today(); }
+function quoteLinesFrom(src){
+ if(src==='arma') return (armaState().lines||[]).map(function(l){ var o=offer(l.o); return o&&isLive(o)?[o.id,l.q,o.price]:null; }).filter(Boolean);
+ return cart.filter(function(i){ return !isABCartItem(i); }).map(function(i){ var o=offer(i.id); return o&&isLive(o)?[o.id,i.qty,o.price]:null; }).filter(Boolean);
+}
+function quoteClientDefaults(){
+ var saved=null; try{ saved=JSON.parse(localStorage.getItem(QKEY)||'null'); }catch(e){}
+ var b=acct()||{},bill=ui.bill||{};
+ return Object.assign({n:ui.buyer||b.name||'',cuit:bill.cuit||b.cuit||'',ct:b.contact||'',e:ui.ship.email||b.email||'',t:ui.ship.phone||b.phone||'',l:ui.ship.city||'',cp:cpOk(ui.cp)?ui.cp:''},saved||{});
+}
+function quoteFormHTML(){
+ var c=ui.quoteDraft||quoteClientDefaults(),f=function(id,label,v,attrs,hint){ return '<div class="field"><label for="'+id+'">'+label+'</label><input id="'+id+'" value="'+esc(v||'')+'" '+(attrs||'')+'>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</div>'; };
+ return '<div class="scrim"><form id="f-quote" class="modal nf-qform" role="dialog" aria-modal="true" aria-labelledby="q-title" novalidate>'
+  +'<h2 id="q-title" class="display" style="font-size:1.9rem">Descargar presupuesto</h2><p class="muted">Para presentar en tu institución. Lo podés imprimir, guardar en PDF o compartir con un link.</p>'
+  +'<div id="q-err" class="alert bad" role="alert"'+(ui.quoteErr?'':' hidden')+'>'+esc(ui.quoteErr||'')+'</div>'
+  +f('q-n','Institución o razón social',c.n,'type="text" maxlength="120" autocomplete="organization"')
+  +'<div class="formgrid">'+f('q-cuit','CUIT <span class="muted">(opcional)</span>',c.cuit,'type="text" inputmode="numeric" maxlength="13" placeholder="30-12345678-9"')+f('q-ct','Contacto',c.ct,'type="text" maxlength="80" autocomplete="name"')+'</div>'
+  +'<div class="formgrid">'+f('q-e','Email',c.e,'type="email" maxlength="160" autocomplete="email"')+f('q-t','Teléfono',c.t,'type="tel" maxlength="40" autocomplete="tel"')+'</div>'
+  +'<div class="formgrid">'+f('q-l','Localidad',c.l,'type="text" maxlength="80" autocomplete="address-level2"')+f('q-cp','Código postal',c.cp,'type="text" inputmode="numeric" maxlength="4" autocomplete="postal-code"','Para calcular el envío.')+'</div>'
+  +'<div class="actions"><button type="submit" class="btn btn-accent btn-lg">'+ico('pages',20)+'Ver presupuesto</button><button type="button" class="btn btn-outline btn-lg" data-act="quote-cancel">Cancelar</button></div></form></div>';
+}
+function submitQuote(){
+ var c={n:val('q-n').trim(),cuit:val('q-cuit').trim(),ct:val('q-ct').trim(),e:val('q-e').trim(),t:val('q-t').trim(),l:val('q-l').trim(),cp:val('q-cp').trim()};
+ ui.quoteDraft=c;
+ var cd=c.cuit.replace(/\D/g,'');
+ var err=c.n.length<2?['Escribí el nombre de la institución o la razón social.','q-n']:(cd&&!cuitOk(cd)?['Revisá el CUIT: tiene que tener 11 números válidos (o dejalo vacío).','q-cuit']:(c.e&&!emailOk(c.e)?['Escribí un email válido.','q-e']:(c.cp&&!cpOk(c.cp)?['El código postal tiene 4 números.','q-cp']:null)));
+ if(err){ ui.quoteErr=err[0]; rerender(err[1]); return; }
+ if(cd) c.cuit=cuitFmt(cd);
+ var lines=quoteLinesFrom(ui.quoteForm&&ui.quoteForm.src); if(!lines.length){ ui.quoteErr='No hay productos disponibles para presupuestar.'; rerender(); return; }
+ try{ localStorage.setItem(QKEY,JSON.stringify(c)); }catch(e){}
+ if(cpOk(c.cp)) setCp(c.cp);
+ var q={d:todayIso(),c:c,l:lines},code=quoteEncode(q);
+ ui.quoteForm=null; ui.quoteErr=''; ui.quoteDraft=null;
+ go('presupuesto',{quoteCode:code,quote:q});
+}
+function addDaysIso(iso,n){ var d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function longDate(iso){ try{ return new Date(iso+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return iso; } }
+/* Cuentas del presupuesto con los precios de la emisión (o los de hoy), con las mismas reglas que el carrito. */
+function quoteCalc(q,current){
+ var by={},order=[],missing=[];
+ q.l.forEach(function(x){ var o=offer(x[0]); if(!o||!isLive(o)){ missing.push(x); return; } var oo=current?o:Object.assign({},o,{price:x[2]}); if(!by[o.vendorId]){ by[o.vendorId]=[]; order.push(o.vendorId); } by[o.vendorId].push({o:oo,real:o,qty:x[1]}); });
+ var groups=order.map(function(vid){ var v=vendor(vid),items=by[vid]; return {v:v,items:items,q:vendorQuote(v,items,q.c.cp,'card')}; });
+ return {groups:groups,missing:missing,sub:groups.reduce(function(a,g){ return amount(a+g.q.sub); },0),ship:groups.reduce(function(a,g){ return amount(a+g.q.ship); },0),total:groups.reduce(function(a,g){ return amount(a+g.q.total); },0),coord:groups.some(function(g){ return g.q.coord||!g.q.ok; })};
+}
+function quoteText(q){ var c=quoteCalc(q,false); return 'Presupuesto '+quoteNumber(q)+' para '+q.c.n+': '+q.l.length+(q.l.length===1?' producto':' productos')+', total '+money(c.total)+(c.coord?' + envío a coordinar':'')+'.'; }
+function quoteUrl(code){ return appHome()+'#presupuesto/'+code; }
+function waNumberPretty(){ var n=String((db.contact||{}).wa||'').replace(/\D/g,''); return n?(n.length===10?n.slice(0,2)+' '+n.slice(2,6)+'-'+n.slice(6):n):''; }
+function vQuote(){
+ var q=ui.quote&&ui.quoteCode&&quoteEncode(ui.quote)===ui.quoteCode?ui.quote:quoteDecode(ui.quoteCode); ui.quote=q;
+ if(!q) return '<div class="wrap page"><div class="nf-empty"><p><b>No pudimos abrir este presupuesto.</b></p><p class="muted">El link está incompleto o fue modificado. Pedí uno nuevo desde el carrito o desde Armá tu espacio.</p><div class="actions" style="justify-content:center"><button class="btn btn-accent" data-go="carrito">Ir al carrito</button><button class="btn btn-outline" data-act="arma-start">Armá tu espacio</button></div></div></div>';
+ var num=quoteNumber(q),calc=quoteCalc(q,false),now=quoteCalc(q,true),changed=calc.missing.length||Math.abs(now.total-calc.total)>0.5,cp=q.c.cp,zoneTxt=cpOk(cp)?'CP '+esc(cp)+' ('+cpZoneLabel(cp)+')':'';
+ var leads=[],warr=[],pays=[],iva=calc.groups.some(function(g){ return g.v&&g.v.pricesIncludeVat; }),ivaAll=calc.groups.length&&calc.groups.every(function(g){ return g.v&&g.v.pricesIncludeVat; });
+ calc.groups.forEach(function(g){ var b=payBenefits(g.v),m=['tarjeta en un pago'].concat(b.transfer?['transferencia ('+b.transfer+'% de descuento)']:[]).concat(b.cash?['efectivo ('+b.cash+'% de descuento)']:[]).concat((b.installments||[]).length?[b.installments.join(', ')+' cuotas sin interés']:[]); pays.push('<b>'+esc(g.v.name)+':</b> '+m.join(', ')); var L=Math.max.apply(null,g.items.map(function(x){ return x.real.lead||0; })),W=Math.min.apply(null,g.items.map(function(x){ return x.real.warranty||0; })); leads.push(esc(g.v.name)+': hasta '+days(L)); if(W) warr.push(esc(g.v.name)+': '+months(W)); });
+ var rows=calc.groups.map(function(g){
+  return '<tbody class="q-vendor"><tr class="q-vh"><th colspan="5">'+esc(g.v.name)+'</th></tr>'+g.items.map(function(x){ var p=productOfOffer(x.real),v=p?p.variants.filter(function(y){ return y.offer===x.real; })[0]:null,size=v&&v.props.length?v.props.map(function(pr){ return pr.name+': '+pr.value; }).join(' · '):'';
+    return '<tr><td class="q-ph">'+(p&&p.photos[0]?'<span class="q-img">'+imgTag((v&&v.image)||p.photos[0],'',{size:80,eager:true})+'</span>':'')+'</td><td><b>'+esc(p?p.name:nfText(x.real.model))+'</b>'+(size?'<span class="q-var">'+esc(size)+'</span>':'')+'</td><td class="r num">'+x.qty+'</td><td class="r num">'+money(x.o.price)+'</td><td class="r num">'+money(amount(x.o.price*x.qty))+'</td></tr>'; }).join('')
+   +'<tr class="q-sub"><td colspan="4">Subtotal '+esc(g.v.name)+(g.q.min?(g.q.short?' · <span class="q-warn">compra mínima '+money(g.q.min)+': faltan '+money(g.q.short)+'</span>':' · compra mínima '+money(g.q.min)+' cumplida'):'')+'</td><td class="r num">'+money(g.q.sub)+'</td></tr>'
+   +'<tr class="q-sub"><td colspan="4">Envío'+(zoneTxt?' a '+zoneTxt:'')+'</td><td class="r">'+(!g.q.ok?'A coordinar con el proveedor':g.q.coord?'A coordinar con el proveedor':g.q.free?'Sin cargo':money(g.q.ship))+'</td></tr></tbody>';
+ }).join('');
+ return '<div class="wrap page nf-quote">'
+  +'<div class="q-actions no-print"><button type="button" class="linkbtn" data-act="quote-back">← Volver</button><div class="actions"><button type="button" class="btn btn-accent" data-act="q-print">'+ico('download',18)+'Descargar PDF</button><button type="button" class="btn btn-outline" data-act="q-copy">'+ico('link',18)+'Copiar link del presupuesto</button>'+(waBuyerUrl('')?'<a class="btn btn-outline" href="'+esc(waBuyerUrl(quoteText(q)+'\n'+quoteUrl(ui.quoteCode||quoteEncode(q))))+'" target="_blank" rel="noopener">Enviar por WhatsApp</a>':'')+'<button type="button" class="btn btn-primary" data-act="q-cart">'+ico('ventas',18)+'Pasar al carrito</button></div></div>'
+  +(changed?'<div class="alert warn q-banner no-print" role="status"><p><b>Los precios cambiaron desde la emisión.</b> Total del '+esc(longDate(q.d))+': '+money(calc.total)+' · Total con precios de hoy: '+money(now.total)+(calc.missing.length?' · '+calc.missing.length+(calc.missing.length===1?' producto ya no está disponible':' productos ya no están disponibles'):'')+'.</p><button type="button" class="btn btn-primary btn-sm" data-act="q-update">Actualizar a precios de hoy</button></div>':'')
+  +'<input id="q-link" class="arma-link no-print" type="text" readonly aria-label="Link del presupuesto" value="'+esc(quoteUrl(ui.quoteCode||quoteEncode(q)))+'" hidden>'
+  +'<article class="qdoc" aria-label="Presupuesto '+esc(num)+'">'
+  +'<header class="q-head"><div class="q-brand">'+LOGO+'<p class="muted small">Distintas empresas. Un solo carrito.<br>nexofitt.com.ar</p></div><div class="q-meta"><h1>Presupuesto</h1><p class="q-num">N° '+esc(num)+'</p><dl><div><dt>Emisión</dt><dd>'+esc(longDate(q.d))+'</dd></div><div><dt>Válido hasta</dt><dd>'+esc(longDate(addDaysIso(q.d,7)))+'</dd></div></dl></div></header>'
+  +'<section class="q-client"><h2>Cliente</h2><dl><div><dt>Institución</dt><dd>'+esc(q.c.n)+'</dd></div>'+(q.c.cuit?'<div><dt>CUIT</dt><dd>'+esc(q.c.cuit)+'</dd></div>':'')+(q.c.ct?'<div><dt>Contacto</dt><dd>'+esc(q.c.ct)+'</dd></div>':'')+(q.c.e?'<div><dt>Email</dt><dd>'+esc(q.c.e)+'</dd></div>':'')+(q.c.t?'<div><dt>Teléfono</dt><dd>'+esc(q.c.t)+'</dd></div>':'')+((q.c.l||cp)?'<div><dt>Entrega</dt><dd>'+esc([q.c.l,cp?'CP '+cp:''].filter(Boolean).join(' · '))+'</dd></div>':'')+'</dl></section>'
+  +'<table class="q-items"><thead><tr><th class="q-ph"><span class="sr">Foto</span></th><th>Producto</th><th class="r">Cant.</th><th class="r">Precio unit.</th><th class="r">Subtotal</th></tr></thead>'+rows+'</table>'
+  +(calc.missing.length?'<p class="q-note">'+calc.missing.length+(calc.missing.length===1?' producto del presupuesto ya no está disponible y no se suma al total.':' productos del presupuesto ya no están disponibles y no se suman al total.')+'</p>':'')
+  +'<div class="q-totals"><div><span>Productos</span><b class="num">'+money(calc.sub)+'</b></div><div><span>Envío</span><b>'+(calc.ship?money(calc.ship):'')+(calc.coord?(calc.ship?' + ':'')+'a coordinar':(calc.ship?'':'Sin cargo'))+'</b></div><div class="q-total"><span>Total'+(calc.coord?' (sin envío a coordinar)':'')+'</span><b class="num">'+money(calc.total)+'</b></div>'+(iva?'<p class="small">'+(ivaAll?'Precios con IVA incluido.':'Precios con IVA incluido para '+calc.groups.filter(function(g){ return g.v&&g.v.pricesIncludeVat; }).map(function(g){ return esc(g.v.name); }).join(', ')+'.')+'</p>':'')+'</div>'
+  +'<section class="q-cond"><h2>Condiciones</h2><ul><li><b>Validez:</b> 7 días desde la emisión. Los precios pueden cambiar: el precio final se confirma en el carrito al momento de comprar.</li><li><b>Medios de pago:</b> '+pays.join(' · ')+'.</li><li><b>Entrega estimada:</b> '+leads.join(' · ')+' desde la compra.'+(calc.coord?' El envío de los proveedores con envío a coordinar se cotiza después de la compra.':'')+'</li>'+(warr.length?'<li><b>Garantía:</b> '+warr.join(' · ')+', otorgada por cada proveedor.</li>':'')+'<li>Cada proveedor factura, envía y garantiza sus productos. Nexo Fit reúne las ofertas en un solo carrito.</li></ul></section>'
+  +'<footer class="q-foot"><span>Nexo Fit · nexofitt.com.ar</span>'+(waNumberPretty()?'<span>WhatsApp '+esc(waNumberPretty())+'</span>':'')+'<span>lagmannicolas@gmail.com</span></footer>'
+  +'</article></div>';
+}
+function quoteToCart(){ var q=ui.quote,n=0; if(!q) return 0; q.l.forEach(function(x){ var o=offer(x[0]); if(!o||!isLive(o)) return; var it=cartFind(o.id); cartAdd(o,(it?it.qty:0)+x[1]); n++; }); return n; }
 function vFront(){
  var d=productsData(),picks=heroPicks(),avail=d.list.filter(function(p){ return p.available; }).length,vendors=[];
  d.list.forEach(function(p){ if(p.available&&vendors.indexOf(p.vendorId)<0) vendors.push(p.vendorId); });
@@ -3228,7 +3529,7 @@ function vFront(){
   +'<p class="hero-alt">¿Ya sabés qué necesitás? <button type="button" class="linkbtn" data-go="buscar">Compará productos entre empresas</button></p>'
   +(avail?'<p class="nf-hero-facts"><b class="num">'+avail.toLocaleString('es-AR')+'</b> productos disponibles'+(vendors.length>1?' · <b class="num">'+vendors.length+'</b> proveedores':'')+' · Pagás todo en un solo carrito</p>':'')+'</div>'
   +(picks.length?'<aside class="hero-demo nf-picks" aria-label="Productos disponibles hoy"><div class="demo-heading"><b>Disponibles hoy</b><button type="button" class="linkbtn small" data-act="to-catalog">Ver todo</button></div>'
-   +picks.map(function(p){ return '<a class="nf-pick" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'"><span class="nf-pick-img">'+imgTag(p.photos[0],'',{size:160,eager:true})+'</span><span class="nf-pick-t"><b>'+esc(p.name)+'</b><span class="muted small">'+esc(p.vendor)+'</span></span>'+priceHTML(p)+'</a>'; }).join('')+'</aside>':'')
+   +picks.map(function(p){ return '<a class="nf-pick" href="'+esc(productHref(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'"><span class="nf-pick-img">'+imgTag(p.photos[0],'',{size:160,eager:true})+'</span><span class="nf-pick-t"><b>'+esc(p.name)+'</b><span class="muted small">'+esc(p.vendor)+'</span></span>'+priceHTML(p)+'</a>'; }).join('')+'</aside>':'')
   +'</div></section>'
   +catSectionHome()+armaBand()+catalogSection()+spaceSectionHome()
   +'<section class="section"><div class="wrap"><details class="tool-details"><summary>Calculá el peso de tu barra</summary>'+liftHTML()+'</details></div></section>'
@@ -3304,7 +3605,7 @@ function vProduct(){
  var specs=[['Categoría',esc(p.category)],['Vendido por',esc(p.vendor)]].concat(p.opts.map(function(g){ return [esc(g.name),esc(g.values.join(', '))]; }));
  return '<div class="wrap page nf-pdp"><nav class="crumbs nf-crumbs" aria-label="Ruta"><button class="linkbtn" data-go="home">Inicio</button><span aria-hidden="true">›</span><button class="linkbtn" data-act="cat-tile" data-cat="'+esc(p.category)+'">'+esc(p.category)+'</button></nav>'
   +'<div class="nf-pdp-grid">'+gallery
-  +'<div class="nf-info"><p class="nf-seller">Vendido por <b>'+esc(p.vendor)+'</b></p><h1 class="nf-title">'+esc(p.name)+'</h1>'
+  +'<div class="nf-info"><p class="nf-seller">Vendido por <b>'+esc(p.vendor)+'</b></p><h1 class="nf-title">'+esc(p.name)+'</h1>'+titleStars(p)
   +'<div class="nf-pricebox"><span class="nf-bigprice num" id="p-price">'+price+'</span>'+(ven&&ven.pricesIncludeVat?'<span class="muted small">IVA incluido</span>':'')+'</div>'+stockLine(v)+vendorCompareHTML(p,v)
   +optionsHTML(p,v)
   +(canBuy?'<div class="nf-buy"><div class="field nf-qty"><label for="p-qty">Unidades</label><div class="stepper"><button type="button" data-act="p-dec" aria-label="Restar uno"'+(ui.pqty<=min?' disabled':'')+'>−</button><input id="p-qty" type="number" inputmode="numeric" min="'+min+'" max="'+(max<9999?max:'')+'" value="'+ui.pqty+'"><button type="button" data-act="p-inc" aria-label="Sumar uno"'+(ui.pqty>=max?' disabled':'')+'>+</button></div>'+(min>1?'<span class="hint">Mínimo '+min+'</span>':'')+'</div>'
@@ -3315,7 +3616,7 @@ function vProduct(){
   +'<ul class="nf-facts">'+info.map(function(x){ return '<li>'+ico(x[0],22)+'<span><b>'+x[1]+'</b><span>'+x[2]+'</span></span></li>'; }).join('')+'</ul>'
   +(waBuyerUrl('')?'<p class="nf-help muted small">¿Dudas con este producto? <a href="'+esc(waBuyerUrl('Tengo una consulta sobre: '+p.name+'.'))+'" target="_blank" rel="noopener">Escribinos por WhatsApp</a></p>':'')
   +'</div></div>'
-  +'<section class="nf-desc" aria-labelledby="desc-t"><h2 class="display" id="desc-t">Descripción</h2><div class="nf-desc-grid">'+(p.detail?'<p class="nf-desc-text">'+esc(p.detail)+'</p>':'<p class="nf-desc-text muted">'+esc(p.name)+'. Elegí la opción que necesitás y agregala al carrito.</p>')
+  +reviewsHTML(p)+'<section class="nf-desc" aria-labelledby="desc-t"><h2 class="display" id="desc-t">Descripción</h2><div class="nf-desc-grid">'+(p.detail?'<p class="nf-desc-text">'+esc(p.detail)+'</p>':'<p class="nf-desc-text muted">'+esc(p.name)+'. Elegí la opción que necesitás y agregala al carrito.</p>')
   +'<dl class="nf-specs">'+specs.map(function(s){ return '<div><dt>'+s[0]+'</dt><dd>'+s[1]+'</dd></div>'; }).join('')+'</dl></div></section>'
   +relatedHTML(p)+'</div>'
   +(canBuy?'<div class="nf-bar" aria-label="Compra rápida"><div><span class="muted small">'+esc(p.name)+'</span><b class="num">'+price+'</b></div><button type="button" class="btn btn-accent" data-act="p-add">Agregar</button></div>':'');
@@ -3578,13 +3879,14 @@ function vTrack(){
     +'<div><button class="btn btn-outline" data-act="track-other">Buscar otro pedido</button></div></div>';
 }
 function favBtn(d){ var b=acct(), on=b&&d.unit&&favIndex(b,d.c.n,d.m[0],ui.size,d.unit)>=0; return '<button type="button" class="favbtn'+(on?' on':'')+'" data-act="fav-toggle" aria-pressed="'+!!on+'">'+(on?'♥ Guardado':'♡ Guardar')+'</button>'; }
-var VIEWS={arma:vArma,ingresar:vLoginB,cuenta:vAccount,home:vFront,producto:vProduct,'ab-product':function(){ ui.route='producto'; ui.pslug=ui.abSlug||ui.pslug; return vProduct(); },buscar:vSearch,cat:vCat,compare:vCompare,checkout:function(){ return ui.cartMode?vCheckoutCart():vCheckout(); },done:function(){ return ui.doneOrders?vDoneMany():vDone(); },pedido:vTrack,carrito:vCart};
+var VIEWS={presupuesto:vQuote,arma:vArma,ingresar:vLoginB,cuenta:vAccount,home:vFront,producto:vProduct,'ab-product':function(){ ui.route='producto'; ui.pslug=ui.abSlug||ui.pslug; return vProduct(); },buscar:vSearch,cat:vCat,compare:vCompare,checkout:function(){ return ui.cartMode?vCheckoutCart():vCheckout(); },done:function(){ return ui.doneOrders?vDoneMany():vDone(); },pedido:vTrack,carrito:vCart};
 function render(){
   if(!VIEWS[ui.route]) ui.route='home';
   try{ if(cpOk(ui.cp)&&localStorage.getItem('nf-cp')!==ui.cp) localStorage.setItem('nf-cp',ui.cp); }catch(e){}
-  try{ document.body.setAttribute('data-route',ui.route); var tp=ui.route==='producto'?productBySlug(ui.pslug):null; document.title=tp?tp.name+' · Nexo Fit':BASE_TITLE; }catch(e){}
+  try{ document.body.setAttribute('data-route',ui.route); document.title=pageTitle(); }catch(e){}
   var fab=cart.length&&['carrito','checkout','done','producto'].indexOf(ui.route)<0?'<button type="button" class="cartfab" data-go="carrito">'+ico('ventas',20)+'Ver carrito · '+cart.length+'</button>':'';
-  app.innerHTML=FX+adBanner(ui.route==='home'?'home':'buy')+header()+'<main>'+VIEWS[ui.route]()+'</main>'+footer()+fab+(ui.pay?(ui.cartMode?cartPayModal():payModal()):'');
+  app.innerHTML=FX+adBanner(ui.route==='home'?'home':'buy')+header()+'<main>'+VIEWS[ui.route]()+'</main>'+footer()+fab+(ui.pay?(ui.cartMode?cartPayModal():payModal()):'')+(ui.quoteForm?quoteFormHTML():'');
+  updateLd();
   if(ui.pay){ var b=app.querySelector('[data-act="pay-ok"],[data-act="cpay-ok"]'); if(b){ try{ b.focus(); }catch(e){} } }
 }
 /* Invitado: si no hay sesión, se crea una anónima en Supabase y se sigue al pago. Si no se puede, se ofrece crear la cuenta ahí mismo. */
@@ -3631,9 +3933,22 @@ document.addEventListener('click',function(ev){
     go(t.getAttribute('data-go'),patch); return;
   }
   var a=t.getAttribute('data-act'), x;
+  if(t.tagName==='A'&&a==='to-reviews') ev.preventDefault();
   if(t.tagName==='A'&&a==='open-product'){ if(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey||ev.button) return; ev.preventDefault(); }
   if(['addr-del','acc-del','cart-clear'].indexOf(a)<0) ui.confirm=null;
   switch(a){
+    case 'quote-open': ui.quoteForm={src:t.dataset.src||'cart'}; ui.quoteErr=''; ui.quoteDraft=null; rerender('q-n'); break;
+    case 'quote-cancel': ui.quoteForm=null; ui.quoteErr=''; rerender(); break;
+    case 'quote-back': if(history.length>1) history.back(); else go('carrito'); break;
+    case 'q-print': try{ window.print(); }catch(e){} break;
+    case 'q-copy': x=quoteUrl(ui.quoteCode); var ql=document.getElementById('q-link'); if(ql) ql.value=x;
+      var qshow=function(){ if(ql){ ql.hidden=false; try{ ql.focus(); ql.select(); }catch(e){} } toast('Copiá el link del presupuesto.'); };
+      try{ navigator.clipboard.writeText(x).then(function(){ toast('Copiamos el link del presupuesto.'); },qshow); }catch(e){ qshow(); } break;
+    case 'q-cart': x=quoteToCart(); if(!x){ toast('Los productos del presupuesto ya no están disponibles.'); break; } go('carrito'); toast('Pasamos '+x+(x===1?' producto':' productos')+' del presupuesto al carrito.'); break;
+    case 'q-update': x=ui.quote; if(x){ var nl=x.l.map(function(l2){ var o2=offer(l2[0]); return o2&&isLive(o2)?[o2.id,l2[1],o2.price]:null; }).filter(Boolean); if(!nl.length){ toast('Ningún producto del presupuesto sigue disponible.'); break; } var nq={d:today(),c:x.c,l:nl}; go('presupuesto',{quoteCode:quoteEncode(nq),quote:nq}); toast('Actualizamos el presupuesto a los precios de hoy.'); } break;
+    case 'rate-open': ui.rateOpen=t.dataset.k; ui.rateErr=''; ui.rateDraft=null; rerender('rate-5'); break;
+    case 'rate-cancel': ui.rateOpen=null; ui.rateErr=''; rerender(); break;
+    case 'to-reviews': x=document.getElementById('resenas'); if(x){ try{ x.scrollIntoView({block:'start'}); }catch(e){} } break;
     case 'cp-open': ui.cpOpen=!ui.cpOpen; rerender(ui.cpOpen?'cp-h':null); break;
     case 'cp-edit': ui.cpEdit=true; rerender('cp-p'); break;
     case 'open-variant': x=productBySlug(t.dataset.slug); if(x){ var ov=x.variants.filter(function(v2){ return v2.key===t.dataset.key; })[0]; if(ov){ ui.pselSlug=x.slug; ui.psel=selOf(ov); ui.pqty=null; ui.pimg=null; ui.padded=null; } go('producto',{pslug:x.slug}); } break;
@@ -3760,6 +4075,8 @@ document.addEventListener('click',function(ev){
 });
 document.addEventListener('submit',function(ev){
   var f=ev.target; ev.preventDefault();
+  if(f.id==='f-quote'){ submitQuote(); return; }
+  if(f.id==='f-rate'){ submitReview(f); return; }
   if(f.classList&&f.classList.contains('cpform')){ var cin=f.querySelector('[name="cp"]'),cer=f.querySelector('[data-cperr]');
     if(cin&&setCp(cin.value)){ ui.cpOpen=false; ui.cpEdit=false; rerender(); toast('Listo: te mostramos precios con envío a CP '+ui.cp+' ('+cpZoneLabel(ui.cp)+').'); }
     else if(cin){ cin.setAttribute('aria-invalid','true'); if(cer){ cer.textContent='Escribí los 4 números del código postal, por ejemplo 1425.'; cer.classList.add('err'); } try{ cin.focus(); }catch(e){} }
@@ -3898,7 +4215,7 @@ document.addEventListener('input',function(ev){
   }
   else if(t.id==='q'){ ui.q=t.value; var box=document.getElementById('q-res'); if(box) box.innerHTML=searchHTML(ui.q); clearTimeout(searchTimer); var qq=ui.q; searchTimer=setTimeout(function(){ trackSearch(qq,!!(box&&box.querySelector('.q-item,.q-prod'))); if(window.nfTrack&&qq.trim()) window.nfTrack('Search',{search:qq.trim()}); },1500); }
 });
-document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'&&ui.cpOpen){ ui.cpOpen=false; rerender(); var cc=document.querySelector('.cpchip'); if(cc) try{ cc.focus(); }catch(e){} return; } if(ev.key==='Escape'&&ui.pay){ ui.pay=false; rerender(); } else if(ev.key==='Escape'&&ui.gModal){ ui.gModal=false; rerender(); } });
+document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'&&ui.quoteForm){ ui.quoteForm=null; rerender(); return; } if(ev.key==='Escape'&&ui.cpOpen){ ui.cpOpen=false; rerender(); var cc=document.querySelector('.cpchip'); if(cc) try{ cc.focus(); }catch(e){} return; } if(ev.key==='Escape'&&ui.pay){ ui.pay=false; rerender(); } else if(ev.key==='Escape'&&ui.gModal){ ui.gModal=false; rerender(); } });
 window.addEventListener('popstate',function(ev){
   var st=ev.state; if(!st||!st.r) return;
   for(var k in st.p){ ui[k]=st.p[k]; }
@@ -3907,6 +4224,7 @@ window.addEventListener('popstate',function(ev){
 /* Link de pago: index.html#pagar-<id> abre directo el pago de esa oferta. */
 function fromHash(){
   if(location.hash==='#carrito'){ui.route='carrito';ui.cartMode=false;return true;}
+  var qm=/^#presupuesto\/([A-Za-z0-9_-]+)$/.exec(location.hash||''); if(qm){ ui.route='presupuesto'; ui.quoteCode=qm[1]; ui.quote=null; ui.pay=false; return true; }
   var pm=/^#producto\/(.+)$/.exec(location.hash||''); if(pm){ var ps=pm[1]; try{ ps=decodeURIComponent(ps); }catch(e){} ui.route='producto'; ui.pslug=ps; ui.pay=false; return true; }
   if(location.hash==='#catalogo'){ ui.route='home'; ui.scrollId='catalogo'; return true; }
   var am=/^#arma(?:\/(.*))?$/.exec(location.hash||''); if(am){ var seg=am[1]||''; ui.route='arma'; ui.pay=false;
@@ -3919,8 +4237,10 @@ function fromHash(){
   return true;
 }
 window.addEventListener('hashchange',function(){ if(fromHash()){ render(); try{ window.scrollTo(0,0); }catch(e){} } });
+fromPath();
+var oldHashProduct=/^#producto\//.test(location.hash||'');
 fromHash();
-try{ history.replaceState({r:ui.route,p:snap()},''); }catch(e){}
+try{ history.replaceState({r:ui.route,p:snap()},'',PATHS&&(oldHashProduct||/^\/(producto|categoria|arma)\b/.test(location.pathname)||(ui.route==='arma'&&/^#arma/.test(location.hash||'')))?pathUrl(ui.route):undefined); }catch(e){}
 trackView(ui.route);
 /* WhatsApp siempre visible para consultas de compra. */
 (function(){var u=waBuyerUrl('');if(!u)return;
@@ -3932,6 +4252,7 @@ render();
 if(ui.scrollId){ var x0=document.getElementById(ui.scrollId); ui.scrollId=null; if(x0){ try{ x0.scrollIntoView({block:'start'}); }catch(e){} } }
 if(ui.armaBadLink){ ui.armaBadLink=false; toast('Ese enlace de lista no es válido o sus productos ya no están disponibles. Armá una nueva.'); } else if(ui.armaShared){ ui.armaShared=false; toast('Abriste una lista compartida. Podés ajustarla y agregarla al carrito.'); }
 checkPayments();
+loadReviews();
 (function(){var back=new URLSearchParams(location.search).get('pago');if(back==='ok'&&window.nfTrack){var pt=null;try{pt=Number(sessionStorage.getItem('nf-pay-total'))||null;sessionStorage.removeItem('nf-pay-total');}catch(e){}window.nfTrack('Purchase',{value:pt});}var msg={ok:'Recibimos tu pago. Cuando Mercado Pago confirma el cobro, el pedido pasa a “Pagado”.',pendiente:'Tu pago quedó pendiente en Mercado Pago. Te avisamos cuando se acredite.',error:'El pago no se completó y no se cobró nada. La reserva vence a los 30 minutos.'}[back];if(!msg)return;toast(msg);try{var clean=new URL(location.href);clean.searchParams.delete('pago');history.replaceState(history.state,'',clean.href);}catch(e){}})();
 
 var refreshingCatalog=false;
