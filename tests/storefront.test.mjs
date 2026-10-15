@@ -106,9 +106,7 @@ assert.equal(w.ui.cq,'soga');assert.equal(d.getElementById('cat-q').value,'soga'
 // ---------- Categorías y espacios ----------
 input(w,q,'');
 d.querySelector('.nf-cat[data-cat="Natación"]').click();assert.equal(w.ui.ccat,'Natación');assert(w.catalogList().list.every(p=>p.category==='Natación'));
-d.querySelector('[data-act="space-home"]').click();assert(w.ui.cspace);assert.equal(w.ui.ccat,'');
-assert(w.catalogList().list.every(p=>['Mancuernas','Discos','Pesas rusas','Colchonetas','Combos y kits','Body pump','Topes para barras','Soportes y racks','Bancos','Accesorios de entrenamiento'].includes(p.category)));
-d.querySelector('[data-act="space-off"]').click();assert.equal(w.ui.cspace,null);
+d.querySelector('[data-act="arma-from-space"][data-s="gym"]').click();assert.equal(w.ui.route,'arma');assert.equal(w.ui.armaStep,2);assert.equal(w.ui.arma.space,'gym');w.go('home');
 
 // ---------- Ficha de producto ----------
 d.querySelector('#cat-results .nf-card').click();await wait(20);
@@ -134,7 +132,7 @@ assert(d.querySelector('.nf-added'));
 d.querySelector('[data-act="p-buy"]').click();
 assert.equal(w.ui.route,'carrito');assert.equal(w.getCart().find(i=>i.id===sel.offer.id).qty,2,'comprar ahora suma y va al carrito');
 // Compra mínima del proveedor visible y bloqueante.
-assert(sel.price*2>=40000?!d.querySelector('.cg-min'):d.querySelector('.cg-min').textContent.includes('40.000'));
+assert(d.querySelector('.cg-prog').textContent.includes(sel.price*2>=40000?'Llegaste a la compra mínima':'Te faltan'));
 assert(!/referencia|pendiente de activar/i.test(d.querySelector('main').textContent));
 // Volver atrás
 w.history.back();await wait(60);assert.equal(w.ui.route,'producto');
@@ -151,7 +149,7 @@ dom.window.close();
 // Carrito por debajo de la compra mínima: aviso y pago bloqueado.
 const cheap=JSON.parse(snap).offers.find(o=>o.stock==='stock'&&o.price<20000&&(o.units==null||o.units>0));
 dom=open('#carrito',JSON.stringify([{id:cheap.id,qty:1,price:cheap.price}]));await wait();w=dom.window;d=w.document;
-assert(d.querySelector('.cg-min'));assert(d.querySelector('[data-act="cart-pay"]').disabled);
+assert(d.querySelector('.cg-prog .nf-prog').textContent.includes('Te faltan'));assert(d.querySelector('[data-act="cart-pay"]').disabled);
 assert(d.querySelector('.ci-name').textContent===w.nfText(cheap.model)||d.querySelector('.ci-name').textContent.length>3);
 assert.equal(errors.length,0,errors.join('; '));
 dom.window.close();

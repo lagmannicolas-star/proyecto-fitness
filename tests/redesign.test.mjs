@@ -7,7 +7,9 @@ const raw=fs.readFileSync('nicolas.html','utf8');const end=raw.lastIndexOf('})()
 const dom=new JSDOM(source,{url:'https://fitness.test/nicolas.html',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.fetch=async()=>({ok:true,json:async()=>structuredClone(fixture)});class XHR{open(){}setRequestHeader(){}send(){this.status=200;this.responseText=JSON.stringify(fixture);}}w.XMLHttpRequest=XHR;}});
 await new Promise(r=>setTimeout(r,100));const w=dom.window,d=w.document;
 assert.equal(d.querySelector('.brand img').getAttribute('src'),'assets/nexofit-logo.png');
-assert.equal(d.querySelectorAll('.space-card').length,w.spaces().length);
+assert.equal(d.querySelectorAll('.space-card').length,w.spaces().length+1,'spaces plus Casa');
+assert(d.querySelector('.hero [data-act="arma-start"]'),'hero opens the space builder');
+assert(d.querySelector('.nf-arma-band [data-act="arma-start"]'),'builder band on the home');
 assert(d.querySelector('.hero h1').textContent.includes('Un solo carrito'));
 assert(d.querySelector('.hero [data-act="to-catalog"]'),'primary CTA to the catalog');
 assert(d.querySelector('.hero [data-go="buscar"]'),'secondary CTA to the comparison');
