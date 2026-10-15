@@ -838,6 +838,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .cat-card[aria-pressed="true"] .category-photo{background:var(--accent)}
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
+.legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
 </head>
@@ -1366,7 +1367,7 @@ function contactMessage(company,product,text){
  lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
  return lines.join('\n');
 }
-function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
+function waUrl(text,company,product){return 'https://wa.me/5491159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
 function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
 function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
 function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
@@ -1757,7 +1758,7 @@ function header(){
     +'<nav class="nav" aria-label="Principal"><button class="navlink" data-go="landing"'+(r==='landing'?' aria-current="page"':'')+'>Cómo funciona</button>'+right+'</nav></div></header>';
 }
 function footer(){
-  return '<footer class="foot"><div class="wrap foot-in"><span>Nexo Fit · Sitio de proveedores. Pagar comisión no mejora la posición en los resultados.</span>'+demoLinks('sell')+'</div></footer>';
+  return '<footer class="foot"><div class="wrap foot-in"><span>Nexo Fit · Sitio de proveedores. Pagar comisión no mejora la posición en los resultados.</span>'+demoLinks('sell')+'</div><div class="wrap">'+'<nav class="legal-links" aria-label="Información legal"><a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Privacidad</a> · <a class="arrepentimiento" href="arrepentimiento.html">Botón de arrepentimiento</a> · <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a></nav>'+'</div></footer>';
 }
 
 /* Presentación y alta */

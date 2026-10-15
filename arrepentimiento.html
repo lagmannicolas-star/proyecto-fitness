@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botón de arrepentimiento · Nexo Fit</title>
+<meta name="description" content="Pedí la revocación de tu compra en Nexo Fit dentro de los 10 días corridos. Recibís un código de seguimiento.">
+<link rel="canonical" href="https://nexofitt.com.ar/arrepentimiento">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+</head>
+<body>
+<header class="top" id="top"></header>
+<main class="wrap">
+  <p class="eyebrow">Botón de arrepentimiento</p>
+  <h1>Revocar una compra</h1>
+  <p>Si compraste en Nexo Fit, tenés <b>10 días corridos</b> para arrepentirte, sin dar explicaciones y sin costo. El plazo se cuenta desde que recibiste el producto o desde que hiciste la compra, lo que ocurra último.</p>
+  <div class="note"><p>Completá el formulario. Te damos un <b>código de seguimiento</b> en el momento y gestionamos la devolución con el proveedor que te vendió. El producto tiene que devolverse en las mismas condiciones en que lo recibiste. El costo de la devolución no queda a tu cargo.</p></div>
+  <h2>Tus datos</h2>
+  <form id="arrepentimiento" novalidate>
+    <div id="error" class="alert" role="alert" hidden></div>
+    <div><label for="a-nombre">Nombre y apellido o razón social</label><input id="a-nombre" autocomplete="name" required maxlength="120"></div>
+    <div><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email" required maxlength="160"></div>
+    <div><label for="a-tel">Teléfono (opcional)</label><input id="a-tel" type="tel" autocomplete="tel" maxlength="40"></div>
+    <div><label for="a-pedido">Número de compra</label><input id="a-pedido" required maxlength="40" placeholder="Por ejemplo #128"><span class="hint">Lo encontrás en Mi cuenta → Mis compras o en el mensaje de confirmación.</span></div>
+    <div><label for="a-detalle">Comentario (opcional)</label><textarea id="a-detalle" maxlength="1000" placeholder="Si querés, contanos qué productos querés devolver."></textarea></div>
+    <div><button class="btn btn-dark" type="submit">Enviar pedido de arrepentimiento</button></div>
+  </form>
+  <section id="listo" hidden>
+    <div class="alert ok" role="status"><p>Recibimos tu pedido de arrepentimiento.</p><p>Tu código de seguimiento es:</p><p class="code" id="codigo"></p><p class="small">Guardalo: te lo vamos a pedir para cualquier consulta. Te contactamos al email que nos dejaste para coordinar la devolución.</p></div>
+  </section>
+  <p class="small muted">También podés hacer un reclamo ante <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a>.</p>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script>
+(function(){
+ 'use strict';
+ var DB={url:'https://ecdaxdqvdwplhovcmnxr.supabase.co',key:'sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-'};
+ var f=document.getElementById('arrepentimiento'),err=document.getElementById('error'),val=function(id){return document.getElementById(id).value.trim();};
+ f.addEventListener('submit',async function(ev){
+  ev.preventDefault();err.hidden=true;var b=f.querySelector('button');b.disabled=true;
+  try{
+   var r=await fetch(DB.url+'/rest/v1/rpc/fitness_request_withdrawal',{method:'POST',headers:{apikey:DB.key,'Content-Type':'application/json'},body:JSON.stringify({details:{name:val('a-nombre'),email:val('a-email'),phone:val('a-tel'),order:val('a-pedido'),details:val('a-detalle')}})});
+   var d=await r.json().catch(function(){return {};});
+   if(!r.ok||!d.code)throw Error(d.message||'No pudimos registrar el pedido. Probá de nuevo o escribinos por WhatsApp.');
+   document.getElementById('codigo').textContent=d.code;f.hidden=true;document.getElementById('listo').hidden=false;
+  }catch(e){err.textContent=e.message;err.hidden=false;b.disabled=false;}
+ });
+})();
+</script>
+</body>
+</html>
