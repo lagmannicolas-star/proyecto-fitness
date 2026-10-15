@@ -50,7 +50,7 @@ assert.equal(P.list.reduce((n,p)=>n+p.variants.length,0),724);
 assert.equal(P.list.filter(p=>p.available).length,417);
 const kit=w.productBySlug('kit-fuerza-tonificacion-colchoneta-tobillera-3k-mancuerna-3k-4dhms');
 assert.equal(kit.category,'Combos y kits');assert.equal(kit.vendor,'AB Fitness');
-assert.deepEqual(kit.opts.map(o=>o.name),['Color','Cantidad']);
+assert.deepEqual(Array.from(kit.opts,o=>o.name),['Color','Cantidad']);
 assert(kit.photos.length>1&&new Set(kit.photos).size===kit.photos.length,'fotos distintas');
 assert(kit.variants.every(v=>v.offer&&v.offer.sourceKey===v.key),'cada variante con su oferta');
 assert.equal(P.cats.reduce((n,c)=>n+c.count,0),466);
@@ -78,7 +78,7 @@ const manc=w.catalogList().list;assert(manc.length>0&&manc.every(p=>p.category==
 assert.equal(d.querySelectorAll('#cat-results .nf-card').length,Math.min(24,manc.length));
 // Orden por precio
 const sort=d.getElementById('cat-sort');sort.value='precio-asc';sort.dispatchEvent(new w.Event('change',{bubbles:true}));
-const pr=w.catalogList().list.map(p=>p.minPrice);assert.deepEqual(pr,[...pr].sort((a,b)=>a-b));
+const pr=Array.from(w.catalogList().list,p=>p.minPrice);assert.deepEqual(pr,[...pr].sort((a,b)=>a-b));
 sort.value='destacados';sort.dispatchEvent(new w.Event('change',{bubbles:true}));
 d.querySelector('.nf-chip[data-cat=""]').click();
 
