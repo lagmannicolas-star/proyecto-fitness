@@ -7,8 +7,9 @@
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none",
-    // Solo /api/* y /fotos/* pasan por el código del Worker; el resto se sirve como archivos.
-    "run_worker_first": ["/api/*", "/fotos/*"]
+    // Pasan por el código del Worker: /api/*, /fotos/* y las páginas para buscadores (portada, producto,
+    // categoría, Armá tu espacio y sitemap). El resto se sirve como archivos.
+    "run_worker_first": ["/api/*", "/fotos/*", "/", "/nicolas", "/nicolas.html", "/producto/*", "/categoria/*", "/arma", "/arma/*", "/sitemap.xml"]
   },
   // Dominios del sitio. Las páginas llevan www a nexofitt.com.ar (assets/sitio.js).
   "routes": [
