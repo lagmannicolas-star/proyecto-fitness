@@ -936,7 +936,7 @@ h2.display{font-size:clamp(1.9rem,3.6vw,2.7rem)}
 .nf-cat-t span{font-size:.8rem;color:var(--muted)}
 @media(max-width:1000px){.nf-cats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:700px){
- .nf-cats,.nf-cats.all{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-16px;padding:2px 16px 10px;scrollbar-width:none}
+ .nf-cats,.nf-cats.all{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-inline:16px;margin-inline:-16px;padding:2px 16px 10px;scrollbar-width:none}
  .nf-cats::-webkit-scrollbar{display:none}
  .nf-cats .nf-cat,.nf-cats:not(.all) .nf-cat.extra{display:flex;flex:none;width:132px;scroll-snap-align:start}
  .nf-cats-toggle{display:none}
@@ -975,7 +975,7 @@ h2.display{font-size:clamp(1.9rem,3.6vw,2.7rem)}
  .nf-tools{grid-template-columns:minmax(0,1fr) auto;gap:10px 12px}
  .nf-search{grid-column:1 / -1}
  .nf-sort label{display:none}
- .nf-chips{margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
+ .nf-chips{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px;scrollbar-width:none}
  .nf-chips::-webkit-scrollbar{display:none}
 }
 .nf-card{position:relative;display:flex;flex-direction:column;min-width:0;background:var(--paper);border:1px solid var(--soft-line);border-radius:16px;overflow:hidden;color:var(--ink);text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
@@ -1045,11 +1045,12 @@ h2.display{font-size:clamp(1.9rem,3.6vw,2.7rem)}
 .nf-buy{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;padding-top:4px}
 .nf-qty{flex:none}
 .nf-qty .stepper{display:inline-flex}
+.nf-qty .stepper input{border-radius:0!important;border-left:0!important;border-right:0!important;text-align:center;font-weight:700}
 .nf-qty .stepper input,.field.nf-qty .stepper input{flex:none;width:72px;height:52px}
 .nf-qty .stepper button{height:52px;background:var(--paper)}
 .nf-qty .stepper button:disabled{opacity:.4;cursor:not-allowed}
 .nf-ctas{display:flex;flex:1 1 280px;flex-wrap:wrap;gap:10px}
-.nf-ctas .btn{flex:1 1 180px}
+.nf-ctas .btn{flex:1 1 150px}
 .nf-added{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 14px;border-radius:12px;background:rgba(165,204,33,.2);font-weight:600}
 .nf-added .linkbtn{min-height:32px}
 .nf-facts{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--soft-line)}
@@ -3083,7 +3084,9 @@ document.addEventListener('click',function(ev){
   if(t.tagName==='A'&&a==='open-product'){ if(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey||ev.button) return; ev.preventDefault(); }
   if(['addr-del','acc-del','cart-clear'].indexOf(a)<0) ui.confirm=null;
   switch(a){
-    case 'open-product': go('producto',{pslug:t.dataset.slug}); break;
+    case 'open-product': x=productBySlug(t.dataset.slug); var oq=ui.route==='home'&&ui.cq?searchQuery(ui.cq):null;
+      if(x&&oq){ var mv=x.variants.filter(function(v){ var h=' '+searchNorm(v.props.map(function(pr){ return pr.value; }).join(' '))+' '; return v.available&&oq.toks.some(function(k){ return k.exact&&h.indexOf(' '+k.t+' ')>=0; }); })[0]; if(mv){ ui.pselSlug=x.slug; ui.psel=selOf(mv); ui.pqty=null; ui.pimg=null; ui.padded=null; } }
+      go('producto',{pslug:t.dataset.slug}); break;
     case 'to-catalog': toCatalog(); break;
     case 'catalog-retry': refreshBuyerCatalog(); break;
     case 'search-to-catalog': ui.cq=t.dataset.q||''; ui.ccat=''; ui.cspace=null; ui.climit=24; toCatalog(); break;

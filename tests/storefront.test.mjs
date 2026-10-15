@@ -156,3 +156,12 @@ assert(d.querySelector('.ci-name').textContent===w.nfText(cheap.model)||d.queryS
 assert.equal(errors.length,0,errors.join('; '));
 dom.window.close();
 console.log('OK: tienda con datos reales: 466 productos/724 variantes, catálogo único (filtros, orden, ver más), búsqueda con sinónimos y medidas, ficha con variantes, carrito, compra mínima y textos prolijos.');
+
+// Desde una búsqueda con medida, la ficha abre con esa variante elegida.
+dom=open();await wait();w=dom.window;d=w.document;
+input(w,d.getElementById('cat-q'),'pesa rusa 10 kg');
+const byWeight=[...d.querySelectorAll('#cat-results .nf-card')].find(a=>w.productBySlug(a.dataset.slug).variants.some(v=>v.available&&v.props.some(pr=>pr.value==='10 kg')));
+assert(byWeight,'hay un producto con variante de 10 kg');
+if(byWeight){byWeight.click();assert(/10 kg/.test(Object.values(w.ui.psel).join(' ')),'variante de 10 kg elegida');}
+dom.window.close();
+console.log('OK: la búsqueda con medida abre la ficha con esa variante.');
