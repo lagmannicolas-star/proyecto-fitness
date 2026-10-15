@@ -1,2 +1,26 @@
-import {JSDOM} from 'jsdom';import fs from 'node:fs';import assert from 'node:assert/strict';
-const source=fs.readFileSync('catalogo-ab.html','utf8');const dom=new JSDOM(source,{url:'https://fitness.test/catalogo-ab.html',runScripts:'dangerously',beforeParse(w){w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};w.HTMLElement.prototype.scrollIntoView=()=>{};}});const d=dom.window.document;const data=JSON.parse(d.getElementById('catalog-data').textContent);assert.equal(data.length,466);assert.equal(data.reduce((n,p)=>n+p.variants.length,0),724);assert.equal(new Set(data.map(p=>p.id)).size,466);assert.equal(d.querySelectorAll('.product').length,24);assert(d.getElementById('status').textContent.includes('466'));let seen=new Set();for(let page=1;page<=20;page++){for(const b of d.querySelectorAll('[data-id]'))seen.add(b.dataset.id);if(page<20)d.getElementById('next').click()}assert.equal(seen.size,466);assert(d.getElementById('next').disabled);const input=d.getElementById('search');input.value='MANCUERNAS';input.dispatchEvent(new dom.window.Event('input'));assert(d.querySelectorAll('.product').length>0);d.querySelector('[data-id]').click();assert(d.getElementById('detail').open);assert(d.querySelector('.variant'));assert(d.getElementById('detail-body').textContent.includes('precio del archivo'));d.getElementById('detail-close').click();assert(!d.getElementById('detail').open);input.value='producto-inexistente';input.dispatchEvent(new dom.window.Event('input'));assert(d.querySelector('.empty'));input.value='';input.dispatchEvent(new dom.window.Event('input'));const category=d.getElementById('category');category.value='Natación';category.dispatchEvent(new dom.window.Event('change'));assert([...d.querySelectorAll('.tag')].every(n=>n.textContent==='Natación'));assert(!source.includes('catalogDrafts'));assert(!source.includes('Costo'));console.log('OK: catálogo AB, 466 productos/724 variantes, paginación completa, búsqueda, filtro y detalle; sin ocultos ni costos internos.');dom.window.close();
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+// La dirección vieja del catálogo de AB Fitness lleva al catálogo único de la tienda.
+const page = fs.readFileSync('catalogo-ab.html', 'utf8');
+assert.match(page, /new URL\('nicolas\.html',location\.href\)/, 'redirige a la tienda');
+assert.match(page, /t\.hash='catalogo'/, 'abre directamente el catálogo');
+assert.match(page, /href="nicolas\.html#catalogo"/, 'enlace visible si el navegador no redirige');
+assert.match(page, /noindex/, 'no compite con la tienda en buscadores');
+assert(!page.includes('catalog-data') && page.length < 3000, 'ya no copia el catálogo en otra página');
+assert(!/precio del archivo|referencia/i.test(page));
+
+// El catálogo de la tienda reemplaza al JSON embebido de 158 KB por un mapa compacto producto → categoría.
+const store = fs.readFileSync('nicolas.html', 'utf8');
+assert(!store.includes('ab-home-data'));
+const cats = JSON.parse(store.match(/<script id="ab-cats" type="application\/json">([^<]*)<\/script>/)[1]);
+const slugs = Object.values(cats).flat();
+assert.equal(slugs.length, 466);
+assert.equal(new Set(slugs).size, 466);
+assert(JSON.stringify(cats).length < 40000, 'mapa compacto');
+const catalog = JSON.parse(fs.readFileSync('tests/fixtures/live-catalog.json', 'utf8'));
+const live = new Set(catalog.map(p => p.key.split('#')[0]));
+assert(slugs.every(s => live.has(s)), 'cada producto curado existe en el catálogo público');
+for (const link of store.match(/href="[^"]*catalogo-ab[^"]*"/g) || []) assert.fail('la tienda no enlaza a catalogo-ab: ' + link);
+assert(!fs.readFileSync('sitemap.xml', 'utf8').includes('catalogo-ab'));
+console.log('OK: catalogo-ab.html redirige al catálogo único; 466 productos con categoría curada en un mapa compacto.');
