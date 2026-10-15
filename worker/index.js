@@ -7,8 +7,10 @@
 //   MP_WEBHOOK_SECRET          Clave secreta de las notificaciones (Webhooks) de Mercado Pago
 //   SUPABASE_SERVICE_ROLE_KEY  Clave secret/service_role de Supabase (guardar conexiones y confirmar pagos)
 //   TOKEN_KEY                  32 bytes al azar en base64: cifra las llaves de los proveedores y firma los enlaces
+//   IG_TOKEN                   Llave de larga duración de la cuenta de Instagram (publicaciones programadas)
 // Valores públicos en wrangler.jsonc: MP_CLIENT_ID, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ALLOWED_ORIGINS.
 // Fotos de productos: solo fotos reales, guardadas en R2 (binding FOTOS).
+// Instagram: cada 5 minutos (cron) publica las piezas programadas en la tabla fitness_social_queue.
 
 const MP_API = 'https://api.mercadopago.com';
 const MP_AUTH = 'https://auth.mercadopago.com.ar/authorization';
@@ -28,6 +30,9 @@ export default {
       return json({ error: 'Error interno. Probá de nuevo en unos minutos.' }, 500, cors(request, env));
     }
   },
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runSocial(env, event.scheduledTime || Date.now()).catch(e => console.error('instagram', e && e.stack || e)));
+  },
 };
 
 async function api(request, env, url) {
@@ -36,6 +41,7 @@ async function api(request, env, url) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (route === 'GET /api/pagos/estado') return json({ mercadoPago: configured(env) }, 200, headers);
   if (url.pathname.startsWith('/api/fotos')) return photosApi(request, env, url, route, headers);
+  if (route === 'POST /api/redes/probar') return socialTest(request, env, headers);
   if (!configured(env)) return json({ error: 'Mercado Pago todavía no está configurado.' }, 503, headers);
   if (route === 'POST /api/pagos/conectar') return connectStart(request, env, headers);
   if (route === 'GET /api/pagos/conectado') return connectFinish(request, env, url);
@@ -455,4 +461,161 @@ async function storeShopPhotos(env, vendor, product) {
     extra++;
   }
   return true;
+}
+
+// ---------- Instagram: publicaciones programadas ----------
+// Usa la API oficial de Instagram (inicio de sesión con Instagram). Las imágenes se toman del propio sitio (SITE_URL),
+// porque Instagram las descarga desde un enlace público. Las historias se publican sin stickers (la API no los admite).
+const IG_API = 'https://graph.instagram.com';
+const igApi = env => env.IG_API_URL || IG_API; // IG_API_URL solo para pruebas con un Instagram simulado
+const LATE_LIMIT = 3 * 3600e3; // si algo quedó más atrasado que esto (por ejemplo, la cuenta sin conectar), no se publica
+const MAX_ATTEMPTS = 3;
+
+export function socialConfigured(env) {
+  return !!(env.IG_TOKEN && env.TOKEN_KEY && env.SUPABASE_SERVICE_ROLE_KEY && env.SUPABASE_URL && env.SITE_URL);
+}
+
+async function rest(env, method, path, body, prefer) {
+  const key = env.SUPABASE_SERVICE_ROLE_KEY;
+  const headers = { apikey: key, 'Content-Type': 'application/json' };
+  if (key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + key;
+  if (prefer) headers.Prefer = prefer;
+  const r = await fetch(env.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/' + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* respuesta vacía */ }
+  if (!r.ok) throw Error('Supabase ' + r.status + (data && data.message ? ': ' + data.message : ''));
+  return data;
+}
+
+async function ig(env, method, path, params) {
+  const url = new URL(igApi(env).replace(/\/$/, '') + '/' + path);
+  const init = { method };
+  if (method === 'GET') for (const [k, v] of Object.entries(params || {})) url.searchParams.set(k, v);
+  else { init.headers = { 'Content-Type': 'application/x-www-form-urlencoded' }; init.body = new URLSearchParams(params).toString(); }
+  const r = await fetch(url, init);
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* respuesta vacía */ }
+  if (!r.ok || !data || data.error) throw Error('Instagram: ' + ((data && data.error && data.error.message) || 'error ' + r.status));
+  return data;
+}
+
+const pause = (env, ms) => new Promise(r => setTimeout(r, env.IG_WAIT_MS != null ? Number(env.IG_WAIT_MS) : ms));
+async function fingerprint(text) {
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(String(text))))].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Llave vigente: la renovada (guardada cifrada) o la cargada como secreto. Si se carga un secreto nuevo, manda el nuevo.
+async function igAccount(env, s, now) {
+  const src = await fingerprint(env.IG_TOKEN);
+  let token = env.IG_TOKEN, exp = 0, stored = false;
+  if (s.token_sealed) {
+    try {
+      const t = await unseal(env, s.token_sealed);
+      if (t.src === src) { token = t.token; exp = s.token_expires_at ? Date.parse(s.token_expires_at) : 0; stored = true; }
+    } catch (e) { /* llave guardada ilegible: se usa la del secreto */ }
+  }
+  const patch = {};
+  // Las llaves duran 60 días: se renuevan una vez por hora cuando faltan menos de 15 días (o si no se sabe cuándo vencen).
+  if ((!exp || exp - now < 15 * 864e5) && new Date(now).getUTCMinutes() < 5) {
+    try {
+      const r = await ig(env, 'GET', 'refresh_access_token', { grant_type: 'ig_refresh_token', access_token: token });
+      if (r.access_token) {
+        token = r.access_token;
+        patch.token_sealed = await seal(env, { src, token });
+        patch.token_expires_at = new Date(now + Number(r.expires_in || 0) * 1000).toISOString();
+      }
+    } catch (e) { /* una llave con menos de 24 horas todavía no se puede renovar */ }
+  }
+  let id = s.ig_user_id;
+  if (!id || !stored) {
+    const me = await ig(env, 'GET', 'me', { fields: 'user_id,username', access_token: token });
+    id = String(me.user_id || me.id);
+    Object.assign(patch, { ig_user_id: id, ig_username: me.username || null });
+    if (!patch.token_sealed) Object.assign(patch, { token_sealed: await seal(env, { src, token }), token_expires_at: null });
+  }
+  if (Object.keys(patch).length) await rest(env, 'PATCH', 'fitness_social_settings?id=eq.true', { ...patch, updated_at: new Date(now).toISOString() });
+  return { id, token, username: patch.ig_username || s.ig_username || null };
+}
+
+async function waitReady(env, acct, id) {
+  for (let i = 0; i < 10; i++) {
+    const s = await ig(env, 'GET', id, { fields: 'status_code', access_token: acct.token });
+    if (!s.status_code || s.status_code === 'FINISHED' || s.status_code === 'PUBLISHED') return;
+    if (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') throw Error('Instagram no pudo procesar la imagen (' + s.status_code + ')');
+    await pause(env, 3000);
+  }
+  throw Error('Instagram tardó demasiado en procesar la imagen');
+}
+
+async function publishItem(env, acct, item) {
+  const site = env.SITE_URL.replace(/\/$/, '');
+  const urls = (item.media || []).map(p => /^https:\/\//.test(p) ? p : site + '/' + String(p).replace(/^\/+/, ''));
+  if (!urls.length) throw Error('La publicación no tiene imágenes');
+  const T = { access_token: acct.token }, media = acct.id + '/media';
+  let creation;
+  if (item.kind === 'carrusel') {
+    const children = [];
+    for (const u of urls) children.push((await ig(env, 'POST', media, { ...T, image_url: u, is_carousel_item: 'true' })).id);
+    for (const c of children) await waitReady(env, acct, c);
+    creation = (await ig(env, 'POST', media, { ...T, media_type: 'CAROUSEL', children: children.join(','), caption: item.caption || '' })).id;
+  } else if (item.kind === 'historia') {
+    creation = (await ig(env, 'POST', media, { ...T, media_type: 'STORIES', image_url: urls[0] })).id;
+  } else {
+    creation = (await ig(env, 'POST', media, { ...T, image_url: urls[0], caption: item.caption || '' })).id;
+  }
+  await waitReady(env, acct, creation);
+  const pub = await ig(env, 'POST', acct.id + '/media_publish', { ...T, creation_id: creation });
+  let permalink = null;
+  try { permalink = (await ig(env, 'GET', pub.id, { fields: 'permalink', access_token: acct.token })).permalink || null; } catch (e) { /* opcional */ }
+  return { id: String(pub.id), permalink };
+}
+
+export async function runSocial(env, now = Date.now()) {
+  if (!socialConfigured(env)) return { skipped: 'Instagram todavía no está conectado' };
+  const iso = new Date(now).toISOString();
+  const [settings] = await rest(env, 'GET', 'fitness_social_settings?id=eq.true&select=*');
+  if (!settings) return { skipped: 'Falta la configuración' };
+  if (settings.paused) {
+    await rest(env, 'PATCH', 'fitness_social_settings?id=eq.true', { last_run_at: iso });
+    return { skipped: 'Publicaciones en pausa' };
+  }
+  await rest(env, 'PATCH', 'fitness_social_queue?status=eq.pendiente&scheduled_at=lt.' + encodeURIComponent(new Date(now - LATE_LIMIT).toISOString()), { status: 'vencido', error: 'No se publicó a tiempo (más de 3 horas de atraso)' });
+  const due = await rest(env, 'GET', 'fitness_social_queue?status=eq.pendiente&scheduled_at=lte.' + encodeURIComponent(iso) + '&order=scheduled_at.asc&limit=3&select=*');
+  const out = { published: [], errors: [] };
+  if (due.length) {
+    let acct;
+    try { acct = await igAccount(env, settings, now); } catch (e) {
+      await rest(env, 'PATCH', 'fitness_social_settings?id=eq.true', { last_run_at: iso, last_error: String(e.message).slice(0, 500) });
+      return { error: e.message };
+    }
+    for (const item of due) {
+      // Se "toma" la publicación antes de enviarla, así dos ejecuciones nunca publican lo mismo.
+      const lock = await rest(env, 'PATCH', 'fitness_social_queue?id=eq.' + item.id + '&status=eq.pendiente', { status: 'publicando', attempts: item.attempts + 1 }, 'return=representation');
+      if (!lock || !lock.length) continue;
+      try {
+        const r = await publishItem(env, acct, item);
+        await rest(env, 'PATCH', 'fitness_social_queue?id=eq.' + item.id, { status: 'publicado', ig_media_id: r.id, permalink: r.permalink, published_at: new Date().toISOString(), error: null });
+        out.published.push(item.id);
+      } catch (e) {
+        await rest(env, 'PATCH', 'fitness_social_queue?id=eq.' + item.id, { status: item.attempts + 1 >= MAX_ATTEMPTS ? 'error' : 'pendiente', error: String(e.message).slice(0, 500) });
+        out.errors.push(item.id);
+      }
+    }
+  }
+  await rest(env, 'PATCH', 'fitness_social_settings?id=eq.true', { last_run_at: iso, last_error: out.errors.length ? 'Hubo errores al publicar. Revisá la lista.' : null });
+  return out;
+}
+
+// El administrador prueba la conexión desde el panel: devuelve la cuenta conectada, nunca la llave.
+async function socialTest(request, env, headers) {
+  if (!socialConfigured(env)) return json({ connected: false, error: 'Faltan los secretos de Instagram en el Worker.' }, 200, headers);
+  const who = await whoAmI(request, env);
+  if (!who || who.identity.role !== 'admin') return json({ error: 'Solo el administrador.' }, 401, headers);
+  try {
+    const [settings] = await rest(env, 'GET', 'fitness_social_settings?id=eq.true&select=*');
+    const acct = await igAccount(env, settings || {}, Date.now());
+    return json({ connected: true, username: acct.username }, 200, headers);
+  } catch (e) {
+    return json({ connected: false, error: e.message }, 200, headers);
+  }
 }

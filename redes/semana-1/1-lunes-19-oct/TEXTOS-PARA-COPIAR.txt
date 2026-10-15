@@ -45,8 +45,8 @@ Arrancamos con el catálogo de AB Fitness y cada semana sumamos más proveedores
 #NexoFit #EquipamientoDeportivo #Gimnasio #Fitness #EquipamientoFitness #Argentina #Entrenamiento #EmprendedoresFitness
 
 === HISTORIAS ===
-08:30 hs · historia-0830-producto.png · Sticker: Link a la tienda
-11:00 hs · historia-1100-encuesta.png · Sticker: Encuesta: Step / Cajón
-15:00 hs · historia-1500-tip.png · Sticker: —
-18:00 hs · historia-1800-producto.png · Sticker: Link a la tienda
-21:30 hs · historia-2130-cta.png · Sticker: Link a nexofitt.com.ar
+08:30 hs · historia-0830-producto.png
+11:00 hs · historia-1100-encuesta.png
+15:00 hs · historia-1500-tip.png
+18:00 hs · historia-1800-producto.png
+21:30 hs · historia-2130-cta.png

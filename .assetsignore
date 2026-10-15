@@ -16,4 +16,8 @@
 !sitemap.xml
 !assets/
 !assets/**
+!redes/
+!redes/publicar/
+!redes/publicar/**
+redes/publicar/**/*.json
 assets/**/*.md
