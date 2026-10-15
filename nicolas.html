@@ -2510,7 +2510,7 @@ function productsData(){
  catNames.forEach(function(c){ cats[c].sort(function(a,b){ return (b.available-a.available)||((b.photos.length?1:0)-(a.photos.length?1:0))||a.order-b.order; }); });
  var rank=0,round=0,left=true;
  while(left){ left=false; catNames.forEach(function(c){ var p=cats[c][round]; if(p){ left=true; p.rank=(p.available?0:100000)+rank++; } }); round++; }
- var catList=catNames.map(function(c){ var ps=cats[c],ph=ps.filter(function(p){ return p.photos.length; })[0]; return {name:c,count:ps.length,avail:ps.filter(function(p){ return p.available; }).length,photo:ph?ph.photos[0]:''}; }).sort(function(a,b){ return b.count-a.count||a.name.localeCompare(b.name,'es'); });
+ var catList=catNames.map(function(c){ var ps=cats[c],stem=plain(c).split(/\s+/)[0].replace(/(es|s)$/,''),withPh=ps.filter(function(p){ return p.photos.length; }),ph=withPh.filter(function(p){ return p.available&&plain(p.name).indexOf(stem)===0; })[0]||withPh.filter(function(p){ return p.available&&plain(p.name).indexOf(stem)>=0; })[0]||withPh.filter(function(p){ return p.available; })[0]||withPh[0]; return {name:c,count:ps.length,avail:ps.filter(function(p){ return p.available; }).length,photo:ph?ph.photos[0]:''}; }).sort(function(a,b){ return b.count-a.count||a.name.localeCompare(b.name,'es'); });
  PD={src:supplierCatalog,db:db,data:{list:list,bySlug:bySlug,cats:catList}};
  return PD.data;
 }
@@ -2678,7 +2678,7 @@ function vFront(){
  return '<section class="hero nf-hero"><div class="wrap hero-layout"><div class="hero-copy"><p class="eyebrow">Gimnasios · Clubes · Colegios · Casa</p>'
   +'<h1 class="display">Distintas empresas.<br><em>Un solo carrito.</em></h1><p class="lead">Equipamiento deportivo y de fitness de proveedores de todo el país. Elegí, compará y comprá todo junto.</p>'
   +'<div class="actions"><button type="button" class="btn btn-accent btn-lg" data-act="to-catalog">Ver catálogo</button><button type="button" class="btn btn-outline btn-lg" data-go="buscar">Comparar productos</button></div>'
-  +(avail?'<p class="nf-hero-facts"><b class="num">'+avail.toLocaleString('es-AR')+'</b> productos disponibles · <b class="num">'+vendors.length+'</b> '+(vendors.length===1?'proveedor':'proveedores')+' · Pagás en un solo carrito</p>':'')+'</div>'
+  +(avail?'<p class="nf-hero-facts"><b class="num">'+avail.toLocaleString('es-AR')+'</b> productos disponibles'+(vendors.length>1?' · <b class="num">'+vendors.length+'</b> proveedores':'')+' · Pagás todo en un solo carrito</p>':'')+'</div>'
   +(picks.length?'<aside class="hero-demo nf-picks" aria-label="Productos disponibles hoy"><div class="demo-heading"><b>Disponibles hoy</b><button type="button" class="linkbtn small" data-act="to-catalog">Ver todo</button></div>'
    +picks.map(function(p){ return '<a class="nf-pick" href="#producto/'+esc(encodeURIComponent(p.slug))+'" data-act="open-product" data-slug="'+esc(p.slug)+'"><span class="nf-pick-img">'+imgTag(p.photos[0],'',{size:160,eager:true})+'</span><span class="nf-pick-t"><b>'+esc(p.name)+'</b><span class="muted small">'+esc(p.vendor)+'</span></span>'+priceHTML(p)+'</a>'; }).join('')+'</aside>':'')
   +'</div></section>'
