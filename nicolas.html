@@ -1238,7 +1238,7 @@ body[data-route="checkout"] .wa-fab{display:none}
 .arma-chip input:focus-visible + span{outline:3px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 6px rgba(165,204,33,.55)}
 .arma-money{position:relative;display:flex;align-items:center;max-width:320px}
 .arma-money span{position:absolute;left:14px;font-weight:700;color:var(--muted)}
-.field .arma-money input{padding-left:30px;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.field .arma-money input{padding-left:30px!important;font-size:1.1rem;font-variant-numeric:tabular-nums}
 .arma-top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
 .arma-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
 .arma-list{display:flex;flex-direction:column;gap:18px;min-width:0}
@@ -1306,6 +1306,8 @@ body[data-route="checkout"] .wa-fab{display:none}
 @media(max-width:760px){.cp-long{display:none}.cp-short{display:inline}}
 .arma-sum .cprow .btn{width:auto;flex:none;padding-inline:16px}
 .arma-sum .cprow input{min-width:90px}
+.nf-arma-in > div:first-child{display:flex;flex-direction:column;gap:12px}
+.nf-arma-in .btn-accent{align-self:flex-start}
 </style></head>
 <body>
 <div id="app"></div>
