@@ -10,6 +10,11 @@
     // Solo /api/* y /fotos/* pasan por el código del Worker; el resto se sirve como archivos.
     "run_worker_first": ["/api/*", "/fotos/*"]
   },
+  // Dominios del sitio. Las páginas llevan www a nexofitt.com.ar (assets/sitio.js).
+  "routes": [
+    { "pattern": "nexofitt.com.ar", "custom_domain": true },
+    { "pattern": "www.nexofitt.com.ar", "custom_domain": true }
+  ],
   // Fotos reales de productos (Cloudflare R2, espacio "nexofit-fotos").
   "r2_buckets": [{ "binding": "FOTOS", "bucket_name": "nexofit-fotos" }],
   // Valores públicos. Las claves secretas (MP_CLIENT_SECRET, MP_WEBHOOK_SECRET,

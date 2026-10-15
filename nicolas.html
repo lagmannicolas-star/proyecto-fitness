@@ -1224,6 +1224,9 @@ function zoneName(cp){ return zone(cp)==='amba'?'AMBA':'resto del país'; }
 /* Beneficios comerciales: sin mínimo, volumen por producto y envío por proveedor. */
 function amount(n){ return Math.round((n+Number.EPSILON)*100)/100; }
 function volumePct(o,qty){ return (o.volumeTiers||[]).reduce(function(p,t){ return qty>=t.qty?Math.max(p,t.pct):p; },0); }
+function shipCoord(v){ return !!v&&v.shipMode==='coordinar'; }
+// Texto del envío: importe, sin cargo, o a coordinar con el proveedor después de la compra.
+function shipLbl(v,amt,sub,cp){ return amt?money(amt):(shipCoord(v)&&!freeShipping(v,sub,cp)?'A coordinar':'Sin cargo'); }
 function freeShipping(v,sub,cp){
   var f=(v||{}).freeShipping||{};
   return shippingZoneEligible(f,cp)&&(f.mode==='always'||(f.mode==='from'&&sub>=f.threshold));
@@ -1291,7 +1294,7 @@ function readPaymentBenefits(){var t=Number(val('pay-transfer')),c=Number(val('p
 function paymentChoice(v,total){if(!v)return '';var b=payBenefits(v),method=selectedMethod(v),opts=[['card','Tarjeta · un pago']];if(b.transfer)opts.push(['transfer','Transferencia · '+b.transfer+'% de descuento']);if(b.cash)opts.push(['cash','Efectivo · '+b.cash+'% de descuento']);(b.installments||[]).forEach(function(n){opts.push(['installments-'+n,n+' cuotas sin interés']);});
  return '<div class="card sub" style="margin:12px 0"><div class="field"><label for="payment-'+esc(v.id)+'">Cómo pagás a '+esc(v.name)+'</label><select id="payment-'+esc(v.id)+'" data-payment-vendor="'+esc(v.id)+'">'+opts.map(function(x){return '<option value="'+x[0]+'"'+(method===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div><p class="note">'+(b.transfer?'Transferencia: '+b.transfer+'% de descuento. ':'')+(b.cash?'Efectivo: '+b.cash+'% de descuento. ':'')+((b.installments||[]).length?'Cuotas sin interés: '+b.installments.join(', ')+'. ':'')+(b.transfer||b.cash?(b.stackVolume?'Acumula con volumen; se calcula sobre los productos ya descontados.':'No acumula con volumen.'):'Sin descuentos adicionales por medio de pago.')+'</p>'+(method.indexOf('installments-')===0?'<p class="note">'+method.split('-')[1]+' cuotas sin interés · total '+money(total)+'. La última cuota ajusta cualquier diferencia de redondeo.</p>':'')+'</div>';
 }
-function shippingBenefitNote(v,sub,cp){var f=(v||{}).freeShipping||{};if(f.mode!=='always'&&f.mode!=='from')return '<p class="note">Este proveedor no tiene una promoción adicional de envío gratis.</p>';
+function shippingBenefitNote(v,sub,cp){var f=(v||{}).freeShipping||{};if(shipCoord(v)&&!freeShipping(v,sub,cp))return '<p class="note">El envío no está incluido en este pago. Después de la compra, '+esc(v.name)+' te contacta para cotizarlo y coordinar la entrega, y lo pagás directamente al proveedor.</p>';if(f.mode!=='always'&&f.mode!=='from')return '<p class="note">Este proveedor no tiene una promoción adicional de envío gratis.</p>';
  var scope=f.zone==='amba'?'CABA y alrededores':f.zone==='interior'?'resto del país':'todo el país';
  var title='Envío gratis '+(f.mode==='from'?'desde '+money(f.threshold)+' en productos después de descuentos, ':'')+'únicamente en '+scope+'.';
  if(!cpOk(cp))return '<p class="note">'+title+' Ingresá el código postal para verificar la cobertura.</p>';
@@ -1303,7 +1306,7 @@ function shippingZoneEligible(f,cp){return !(f.zone==='amba'&&!(f.postalCodes||[
 
 function quote(o,qty,cp){
   var base=amount(o.price*qty),pct=volumePct(o,qty),discount=amount(base*pct/100),sub=amount(base-discount);
-  var ship=zone(cp)==='amba'?o.shipAmba:o.shipInt;
+  var ship=shipCoord(vendor(o.vendorId))?0:(zone(cp)==='amba'?o.shipAmba:o.shipInt);
   return {baseSubtotal:base,discount:discount,discountPct:pct,subtotal:sub,baseShipping:ship,shipping:freeShipping(vendor(o.vendorId),sub,cp)?0:ship,total:amount(sub+(freeShipping(vendor(o.vendorId),sub,cp)?0:ship))};
 }
 
@@ -1808,7 +1811,7 @@ function vActiveCart(){
             +(x.q.discount?'<span class="small accent">Volumen: '+x.q.discountPct+'% · ahorrás '+money(x.q.discount)+'</span>':'')+'<b class="num ci-p">'+(x.live?money(x.q.subtotal):'—')+'</b>'
             +'<button type="button" class="ci-x" data-act="cart-del" data-id="'+o.id+'" aria-label="Quitar '+esc(o.model+' '+o.size)+'">×</button></div>';
         }).join('')
-        +(g.discount?'<p class="note">Ahorro por volumen incluido: '+money(g.discount)+'</p>':'')+paymentChoice(g.v,g.total)+shippingBenefitNote(g.v,g.sub,ui.cp)+(g.paymentDiscount?'<p class="note">Descuento por '+payLabel(g.method).toLowerCase()+': −'+money(g.paymentDiscount)+'</p>':'')+'<div class="rows num cg-f"><div><span class="muted">Productos</span><span>'+money(g.sub)+'</span></div><div><span class="muted">Envío</span><span>'+(!C.ok?'A calcular':(g.ship?money(g.ship):'Sin cargo'))+'</span></div><div class="total"><span>Total '+esc(g.v?g.v.name:'')+'</span><span>'+(C.ok?money(g.total):money(g.sub))+'</span></div></div></section>';
+        +(g.discount?'<p class="note">Ahorro por volumen incluido: '+money(g.discount)+'</p>':'')+paymentChoice(g.v,g.total)+shippingBenefitNote(g.v,g.sub,ui.cp)+(g.paymentDiscount?'<p class="note">Descuento por '+payLabel(g.method).toLowerCase()+': −'+money(g.paymentDiscount)+'</p>':'')+'<div class="rows num cg-f"><div><span class="muted">Productos</span><span>'+money(g.sub)+'</span></div><div><span class="muted">Envío</span><span>'+(!C.ok?'A calcular':shipLbl(g.v,g.ship,g.sub,ui.cp))+'</span></div><div class="total"><span>Total '+esc(g.v?g.v.name:'')+'</span><span>'+(C.ok?money(g.total):money(g.sub))+'</span></div></div></section>';
     }).join('')+'</div>'
     +'<aside class="card side cart-sum"><h2 class="display h-card">Resumen</h2><div class="rows num">'
     +C.groups.map(function(g){ return '<div><span class="muted">'+esc(g.v?g.v.name:'')+'</span><span>'+(C.ok?money(g.total):money(g.sub))+'</span></div>'; }).join('')
@@ -1834,7 +1837,7 @@ function vCheckoutCart(){
     +'<ul>'+C.groups.map(function(g){ return '<li><b>'+esc(g.v.name)+'</b> · '+esc(payLabel(g.method))+' · '+money(g.total)+(g.method==='transfer'||g.method==='cash'?' · requiere confirmación del cobro.':': en el cobro figura '+esc(mpName(g.v))+'.')+'</li>'; }).join('')+'</ul>'
     +'<p class="small">Factura, envío, garantía y cambios los resuelve cada proveedor.</p></div>'
     +'<button class="btn btn-accent btn-lg" type="submit">'+(C.groups.length>1?'Empezar a pagar (1 de '+C.groups.length+')':'Confirmar y pagar')+'</button></form>'
-    +'<aside class="card side"><h2 class="display h-card">Tu compra</h2>'+C.groups.map(function(g){ return '<div class="co-g"><b>'+esc(g.v.name)+'</b>'+g.items.map(function(x){ return '<span class="muted small">'+esc(x.o.model+' '+x.o.size)+' × '+x.i.qty+'</span>'; }).join('')+paymentChoice(g.v,g.total)+shippingBenefitNote(g.v,g.sub,ui.cp)+(g.paymentDiscount?'<p class="note">Descuento por pago aplicado: −'+money(g.paymentDiscount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(g.sub)+'</span></div><div><span>Envío a '+zoneName(ui.cp)+'</span><span>'+(g.ship?money(g.ship):'Sin cargo')+'</span></div></div></div>'; }).join('')
+    +'<aside class="card side"><h2 class="display h-card">Tu compra</h2>'+C.groups.map(function(g){ return '<div class="co-g"><b>'+esc(g.v.name)+'</b>'+g.items.map(function(x){ return '<span class="muted small">'+esc(x.o.model+' '+x.o.size)+' × '+x.i.qty+'</span>'; }).join('')+paymentChoice(g.v,g.total)+shippingBenefitNote(g.v,g.sub,ui.cp)+(g.paymentDiscount?'<p class="note">Descuento por pago aplicado: −'+money(g.paymentDiscount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(g.sub)+'</span></div><div><span>Envío a '+zoneName(ui.cp)+'</span><span>'+shipLbl(g.v,g.ship,g.sub,ui.cp)+'</span></div></div></div>'; }).join('')
     +'<div class="rows num"><div class="total"><span>Total</span><span>'+money(C.total)+'</span></div></div></aside></div></div>';
 }
 function cartPayModal(){
@@ -2201,7 +2204,7 @@ function cmpResults(d){
     if(r===cheap) tags+='<span class="tag">Menor precio final</span>';
     if(r===fast&&rows.length>1) tags+='<span class="tag alt">Entrega más rápida</span>';
     if(r===warr&&rows.length>1) tags+='<span class="tag alt">Mayor garantía</span>';
-    var ship=!ok?'A calcular':(r.q.shipping===0?'Sin cargo':money(r.q.shipping));
+    var ship=!ok?'A calcular':shipLbl(vendor(o.vendorId),r.q.shipping,r.q.subtotal,ui.cp);
     var btn=!r.can?'<button class="btn btn-outline" disabled>'+(r.few?(o.units<o.minQty?'Sin stock suficiente':'Quedan '+o.units+' u.'):'Mínimo '+o.minQty+' u.')+'</button>'
       :(!ok?'<button class="btn btn-outline" disabled>Falta el código postal</button>'
       :'<button class="btn '+(r===cheap?'btn-accent':'btn-primary')+'" data-act="add-cart" data-id="'+o.id+'">'+(cartFind(o.id)?ico('check',18)+'En el carrito · actualizar':'Agregar al carrito')+'</button><button class="linkbtn small" data-act="buy" data-id="'+o.id+'">o comprar ahora</button>');
@@ -2251,7 +2254,7 @@ function coSummary(o){
   var v=vendor(o.vendorId), qty=Math.max(1,ui.qty|0), q=paymentQuote(o,qty,ui.cp,selectedMethod(v)), ok=cpOk(ui.cp);
   return '<h2 class="display h-card">Tu compra</h2>'
     +'<div><span class="muted small">Proveedor</span><div><b>'+esc(v.name)+'</b>'+(o.brand?' · Marca: '+esc(o.brand):'')+'</div><p class="muted">'+esc(offerDesc(o))+' × '+qty+' ('+perUnit(o.unit)+')</p></div>'
-    +paymentChoice(v,q.total)+shippingBenefitNote(v,q.subtotal,ui.cp)+(q.paymentDiscount?'<p class="note">Descuento por pago aplicado: −'+money(q.paymentDiscount)+'</p>':'')+benefitText(o)+(q.discount?'<p class="note">Descuento por volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(q.subtotal)+'</span></div><div><span>Envío'+(ok?' a '+zoneName(ui.cp):'')+'</span><span>'+(!ok?'A calcular':(q.shipping===0?'Sin cargo':money(q.shipping)))+'</span></div><div class="total"><span>Total</span><span>'+(ok?money(q.total):'—')+'</span></div></div>';
+    +paymentChoice(v,q.total)+shippingBenefitNote(v,q.subtotal,ui.cp)+(q.paymentDiscount?'<p class="note">Descuento por pago aplicado: −'+money(q.paymentDiscount)+'</p>':'')+benefitText(o)+(q.discount?'<p class="note">Descuento por volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(q.subtotal)+'</span></div><div><span>Envío'+(ok?' a '+zoneName(ui.cp):'')+'</span><span>'+(!ok?'A calcular':shipLbl(v,q.shipping,q.subtotal,ui.cp))+'</span></div><div class="total"><span>Total</span><span>'+(ok?money(q.total):'—')+'</span></div></div>';
 }
 function buyerFields(){ return buyerFieldsAcct(); }
 function vCheckout(){
@@ -2308,10 +2311,10 @@ function vsHTML(){
   function cell(o,best){
     if(!o) return '<td class="vs-c none"><span class="muted small">Sin oferta publicada para esta variante</span></td>';
     var q=comparisonQuote(o,qty,cp),few=o.units!=null&&qty>o.units,win=!few&&best!=null&&(ok?q.total:q.subtotal)===best;
-    return '<td class="vs-c'+(win?' win':'')+'"><b class="num">'+money(ok?q.total:q.subtotal)+'</b><span class="muted small">'+(ok?'Total con envío':'Productos · envío a calcular')+' · '+qty+' '+(o.unit==='Par'?'pares':o.unit==='Kit'?'kits':'unidades')+'</span>'
+    return '<td class="vs-c'+(win?' win':'')+'"><b class="num">'+money(ok?q.total:q.subtotal)+'</b><span class="muted small">'+(ok?(shipCoord(vendor(o.vendorId))&&!q.shipping?'Productos · envío a coordinar':'Total con envío'):'Productos · envío a calcular')+' · '+qty+' '+(o.unit==='Par'?'pares':o.unit==='Kit'?'kits':'unidades')+'</span>'
       +'<span class="small">Precio '+perUnit(o.unit)+': '+money(o.price)+'</span>'
       +(q.discount?'<span class="small accent">Volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</span>':'')+(q.paymentDiscount?'<span class="small accent">'+esc(payLabel(q.paymentMethod))+': −'+money(q.paymentDiscount)+'</span>':'')
-      +'<span class="small">Envío: '+(!ok?'A calcular':q.shipping?money(q.shipping):'Gratis')+'</span>'
+      +'<span class="small">Envío: '+(!ok?'A calcular':q.shipping?money(q.shipping):shipCoord(vendor(o.vendorId))&&!freeShipping(vendor(o.vendorId),q.subtotal,cp)?'a coordinar con el proveedor':'Gratis')+'</span>'
       +'<span class="small">'+ico('truck',14)+' '+days(o.lead)+' · llega aprox. '+arrival(o.lead)+'</span><span class="muted small">Garantía '+months(o.warranty)+'</span>'+benefitText(o)
       +(win?'<span class="tag">'+(ok?'Menor precio final':'Menor precio de productos')+'</span>':'')
       +(few?'<button class="btn btn-outline btn-sm" disabled>Quedan '+o.units+' · no alcanza para '+qty+'</button>':'<button class="btn '+(win?'btn-accent':'btn-primary')+' btn-sm" data-act="add-cart" data-id="'+o.id+'" data-qty="'+qty+'">'+(cartFind(o.id)?'En el carrito · actualizar':'Agregar al carrito')+'</button>')+'</td>';
@@ -2342,8 +2345,8 @@ function vDone(){
   return '<div class="wrap page"><div class="alert ok">Pedido registrado sin cobro. Tu compra quedó registrada con el número #'+o.id+'.</div>'
     +'<h1 class="display h-page">Pedido registrado</h1>'
     +'<div class="split"><div class="card main"><div><b>'+esc(v?v.name:'')+'</b><p class="muted">'+esc(o.desc)+' × '+o.qty+'</p></div>'
-    +(o.paymentDiscount?'<p class="note">'+esc(payLabel(o.paymentMethod))+': ahorraste '+money(o.paymentDiscount)+'</p>':'')+(o.discount?'<p class="note">Descuento por volumen aplicado: '+o.discountPct+'% · ahorraste '+money(o.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(o.subtotal)+'</span></div><div><span>Envío</span><span>'+(o.shipping===0?'Sin cargo':money(o.shipping))+'</span></div><div class="total"><span>Total del pedido</span><span>'+money(o.subtotal+o.shipping)+'</span></div></div>'
-    +'<p class="muted">El proveedor ya recibió el pedido y lo va a despachar. Cuando lo envíe, podrás consultar el seguimiento desde Mi cuenta.</p><div class="actions"><button class="btn btn-primary" data-act="track-open" data-id="'+o.id+'">Seguir mi pedido</button><button class="btn btn-outline" data-go="buscar">Seguir comparando</button></div></div>'
+    +(o.paymentDiscount?'<p class="note">'+esc(payLabel(o.paymentMethod))+': ahorraste '+money(o.paymentDiscount)+'</p>':'')+(o.discount?'<p class="note">Descuento por volumen aplicado: '+o.discountPct+'% · ahorraste '+money(o.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(o.subtotal)+'</span></div><div><span>Envío</span><span>'+(o.shipping?money(o.shipping):o.shipQuote?'A coordinar':'Sin cargo')+'</span></div><div class="total"><span>Total del pedido</span><span>'+money(o.subtotal+o.shipping)+'</span></div></div>'
+    +'<p class="muted">El proveedor ya recibió el pedido y lo va a despachar.'+(o.shipQuote?' Te va a contactar para cotizar el envío y coordinar la entrega.':'')+' Cuando lo envíe, podrás consultar el seguimiento desde Mi cuenta.</p><div class="actions"><button class="btn btn-primary" data-act="track-open" data-id="'+o.id+'">Seguir mi pedido</button><button class="btn btn-outline" data-go="buscar">Seguir comparando</button></div></div>'
     +'<aside class="side" style="display:flex;flex-direction:column;gap:16px">'+quickAccountCard((o.ship||{}).email)+'</aside></div></div>';
 }
 

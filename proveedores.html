@@ -1210,6 +1210,9 @@ function zoneName(cp){ return zone(cp)==='amba'?'AMBA':'resto del país'; }
 /* Beneficios comerciales: sin mínimo, volumen por producto y envío por proveedor. */
 function amount(n){ return Math.round((n+Number.EPSILON)*100)/100; }
 function volumePct(o,qty){ return (o.volumeTiers||[]).reduce(function(p,t){ return qty>=t.qty?Math.max(p,t.pct):p; },0); }
+function shipCoord(v){ return !!v&&v.shipMode==='coordinar'; }
+// Texto del envío: importe, sin cargo, o a coordinar con el proveedor después de la compra.
+function shipLbl(v,amt,sub,cp){ return amt?money(amt):(shipCoord(v)&&!freeShipping(v,sub,cp)?'A coordinar':'Sin cargo'); }
 function freeShipping(v,sub,cp){
   var f=(v||{}).freeShipping||{};
   return shippingZoneEligible(f,cp)&&(f.mode==='always'||(f.mode==='from'&&sub>=f.threshold));
@@ -1238,7 +1241,7 @@ function readVolume(){
 function promotionForm(v){
   var f=v.freeShipping||{mode:'none',zone:'all',threshold:0};
   function options(list,value){return list.map(function(x){return '<option value="'+x[0]+'"'+(value===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');}
-  return '<form id="promotion-form" data-vendor="'+esc(v.id)+'" class="card" novalidate style="margin-top:20px"><h2 class="display h-card">Envío gratis y beneficios</h2><div id="promo-err" class="alert bad" hidden role="alert"></div><p class="note">Cada producto respeta la compra mínima configurada. El proveedor decide si ofrece envío gratis y asume su costo. Los descuentos por volumen se configuran al editar cada producto.</p><div class="formgrid"><div class="field"><label for="promo-mode">Envío gratis</label><select id="promo-mode">'+options([['none','Sin promoción adicional'],['always','En todas las compras'],['from','Desde un importe']],f.mode)+'</select></div><div class="field"><label for="promo-zone">Zona de la promoción</label><select id="promo-zone">'+options([['all','Todo el país'],['amba','CABA y alrededores'],['interior','Resto del país']],f.zone)+'</select></div><div class="field"><label for="promo-threshold">Importe para envío gratis ($)</label><input id="promo-threshold" type="number" min="0" step="0.01" value="'+(f.threshold||'')+'"><span class="hint">Solo para “Desde un importe”. Suma los productos de este proveedor después de los descuentos, sin incluir envío.</span></div><div class="field"><label for="promo-postal">Códigos postales cubiertos (opcional)</label><input id="promo-postal" type="text" placeholder="1425, 1602, 1636" value="'+esc((f.postalCodes||[]).join(', '))+'"><span class="hint">Para limitar la cobertura exacta, cargá los códigos de 4 dígitos separados por comas. Vacío usa una zona aproximada según código postal; confirmar cobertura con la dirección antes del despacho.</span></div></div>'+paymentFields(v)+'<p class="note">Comisión del sitio: '+pctOf(v)+'% sobre los productos ya descontados. El envío cobrado se acredita al proveedor. Los costos del cobro se calculan aparte en la integración real.</p><button class="btn btn-accent" type="submit">Guardar beneficios</button></form>';
+  return '<form id="promotion-form" data-vendor="'+esc(v.id)+'" class="card" novalidate style="margin-top:20px"><h2 class="display h-card">Envío y beneficios</h2><div id="promo-err" class="alert bad" hidden role="alert"></div><p class="note">Cada producto respeta la compra mínima configurada. El proveedor decide si ofrece envío gratis y asume su costo. Los descuentos por volumen se configuran al editar cada producto.</p><div class="formgrid"><div class="field" style="grid-column:1 / -1"><label for="ship-mode">Cómo se cobra el envío</label><select id="ship-mode">'+options([['coordinar','Lo cotizo y coordino con el cliente después de la compra'],['fijo','Precio fijo por zona, se cobra junto con los productos']],v.shipMode==='coordinar'?'coordinar':'fijo')+'</select><span class="hint">“Después de la compra”: el cliente paga solo los productos y vos lo contactás para cotizar y cobrar el envío. “Precio fijo”: se cobra el costo de envío cargado en cada producto.</span></div><div class="field"><label for="promo-mode">Envío gratis</label><select id="promo-mode">'+options([['none','Sin promoción adicional'],['always','En todas las compras'],['from','Desde un importe']],f.mode)+'</select></div><div class="field"><label for="promo-zone">Zona de la promoción</label><select id="promo-zone">'+options([['all','Todo el país'],['amba','CABA y alrededores'],['interior','Resto del país']],f.zone)+'</select></div><div class="field"><label for="promo-threshold">Importe para envío gratis ($)</label><input id="promo-threshold" type="number" min="0" step="0.01" value="'+(f.threshold||'')+'"><span class="hint">Solo para “Desde un importe”. Suma los productos de este proveedor después de los descuentos, sin incluir envío.</span></div><div class="field"><label for="promo-postal">Códigos postales cubiertos (opcional)</label><input id="promo-postal" type="text" placeholder="1425, 1602, 1636" value="'+esc((f.postalCodes||[]).join(', '))+'"><span class="hint">Para limitar la cobertura exacta, cargá los códigos de 4 dígitos separados por comas. Vacío usa una zona aproximada según código postal; confirmar cobertura con la dirección antes del despacho.</span></div></div>'+paymentFields(v)+'<p class="note">Comisión del sitio: '+pctOf(v)+'% sobre los productos ya descontados. El envío cobrado se acredita al proveedor. Los costos del cobro se calculan aparte en la integración real.</p><button class="btn btn-accent" type="submit">Guardar beneficios</button></form>';
 }
 function submitPromotion(ev){
   if(ev.target.id!=='promotion-form') return false;
@@ -1250,7 +1253,7 @@ function submitPromotion(ev){
   }
   var benefits,codes=val('promo-postal').trim()?val('promo-postal').split(',').map(function(x){return x.trim();}):[];
   try{ benefits=readPaymentBenefits();if(codes.some(function(x){return !/^\d{4}$/.test(x);}))throw Error('Los códigos postales deben tener cuatro dígitos, separados por comas.'); }catch(err){var eb=document.getElementById('promo-err');eb.textContent=err.message;eb.hidden=false;return true;}
-  v.paymentBenefits=benefits;v.freeShipping={mode:mode,zone:z,threshold:mode==='from'?amount(th):0,postalCodes:codes};
+  v.shipMode=val('ship-mode')==='coordinar'?'coordinar':'fijo';v.paymentBenefits=benefits;v.freeShipping={mode:mode,zone:z,threshold:mode==='from'?amount(th):0,postalCodes:codes};
   if(typeof AKEY!=='undefined') logAct('actualizó el envío gratis de '+v.name); else vact(v,'actualizó su beneficio de envío gratis');
   save(); rerender(); toast('Beneficios guardados'); return true;
 }
@@ -1283,7 +1286,7 @@ function paymentChoice(v,total){if(!v)return '';var b=payBenefits(v),method=sele
  return '<div class="card sub" style="margin:12px 0"><div class="field"><label for="payment-'+esc(v.id)+'">Cómo pagás a '+esc(v.name)+'</label><select id="payment-'+esc(v.id)+'" data-payment-vendor="'+esc(v.id)+'">'+opts.map(function(x){return '<option value="'+x[0]+'"'+(method===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div><p class="note">'+(b.transfer?'Transferencia: '+b.transfer+'% de descuento. ':'')+(b.cash?'Efectivo: '+b.cash+'% de descuento. ':'')+((b.installments||[]).length?'Cuotas sin interés: '+b.installments.join(', ')+'. ':'')+(b.transfer||b.cash?(b.stackVolume?'Acumula con volumen; se calcula sobre los productos ya descontados.':'No acumula con volumen.'):'Sin descuentos adicionales por medio de pago.')+'</p>'+(method.indexOf('installments-')===0?'<p class="note">'+method.split('-')[1]+' cuotas sin interés · total '+money(total)+'. La última cuota ajusta cualquier diferencia de redondeo.</p>':'')+'</div>';
 }
 
-function shippingBenefitNote(v,sub,cp){var f=(v||{}).freeShipping||{};if(f.mode!=='always'&&f.mode!=='from')return '<p class="note">Este proveedor no tiene una promoción adicional de envío gratis.</p>';
+function shippingBenefitNote(v,sub,cp){var f=(v||{}).freeShipping||{};if(shipCoord(v)&&!freeShipping(v,sub,cp))return '<p class="note">El envío no está incluido en este pago. Después de la compra, '+esc(v.name)+' te contacta para cotizarlo y coordinar la entrega, y lo pagás directamente al proveedor.</p>';if(f.mode!=='always'&&f.mode!=='from')return '<p class="note">Este proveedor no tiene una promoción adicional de envío gratis.</p>';
  var scope=f.zone==='amba'?'CABA y alrededores':f.zone==='interior'?'resto del país':'todo el país';
  var title='Envío gratis '+(f.mode==='from'?'desde '+money(f.threshold)+' en productos después de descuentos, ':'')+'únicamente en '+scope+'.';
  if(!cpOk(cp))return '<p class="note">'+title+' Ingresá el código postal para verificar la cobertura.</p>';
@@ -1295,7 +1298,7 @@ function shippingZoneEligible(f,cp){return !(f.zone==='amba'&&!(f.postalCodes||[
 
 function quote(o,qty,cp){
   var base=amount(o.price*qty),pct=volumePct(o,qty),discount=amount(base*pct/100),sub=amount(base-discount);
-  var ship=zone(cp)==='amba'?o.shipAmba:o.shipInt;
+  var ship=shipCoord(vendor(o.vendorId))?0:(zone(cp)==='amba'?o.shipAmba:o.shipInt);
   return {baseSubtotal:base,discount:discount,discountPct:pct,subtotal:sub,baseShipping:ship,shipping:freeShipping(vendor(o.vendorId),sub,cp)?0:ship,total:amount(sub+(freeShipping(vendor(o.vendorId),sub,cp)?0:ship))};
 }
 
@@ -1824,7 +1827,7 @@ function salesTable(sales){
   return '<div class="tablewrap"><table style="min-width:1080px"><thead><tr><th>Venta</th><th>Comprador</th><th>Detalle</th><th class="r">Productos</th><th class="r">Envío</th><th class="r">Comisión</th><th class="r">Recibís</th><th>Estado</th><th></th></tr></thead><tbody>'
     +sales.map(function(o){
       var ref=o.status==='refunded';
-      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(o.desc)+' × '+o.qty+'</td><td class="r num">'+money(o.subtotal)+'</td><td class="r num">'+(o.shipping?money(o.shipping):'Sin cargo')+'</td>'
+      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(o.desc)+' × '+o.qty+'</td><td class="r num">'+money(o.subtotal)+'</td><td class="r num">'+(o.shipping?money(o.shipping):o.shipQuote?'A cotizar con el cliente':'Sin cargo')+'</td>'
         +'<td class="r num">'+(ref?'—':money(o.commission))+'</td><td class="r num"><b>'+(ref?'—':money(net(o)))+'</b></td><td>'+orderStatus(o)+'</td>'
         +'<td><div class="actions nw"><button class="btn '+(!ref&&!o.shipped?'btn-primary':'btn-outline')+' btn-sm" data-act="order-go" data-id="'+o.id+'">'+(!ref&&!o.shipped?'Cargar envío':'Ver pedido')+'</button></div></td></tr>';
     }).join('')+'</tbody></table></div>';
