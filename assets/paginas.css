@@ -30,7 +30,7 @@ input,textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid rgb
 textarea{min-height:110px;resize:vertical}
 .hint{font-size:.85rem;color:var(--muted)}
 .code{font-family:ui-monospace,Menlo,monospace;font-size:1.5rem;font-weight:700;letter-spacing:.06em}
-.foot{border-top:1px solid var(--line);padding-block:20px;font-size:.9rem}
+.foot{border-top:1px solid var(--line);padding-block:20px 84px;font-size:.9rem}
 .foot-in{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between}
 .foot nav{display:flex;flex-wrap:wrap;gap:6px 14px}
 .arrepentimiento{font-weight:700}
