@@ -1704,7 +1704,7 @@ function exportBar(kind){
 }
 function exportData(kind){
   var st=function(o){ return o.status==='refunded'?'Devuelto':(lateDays(o)>0?'Demorado':(o.shipped?'Enviado':'Por enviar')); }, vn=function(id){ var v=vendor(id); return v?v.name:''; };
-  if(kind==='ventas') return [['Venta','Fecha','Comprador','Proveedor','Producto','Cantidad','Productos $','Envío $','Total $','Comisión %','Comisión $','Al proveedor $','Estado']].concat(salesRows().map(function(o){ var r=o.status==='refunded'; return [o.id,o.date,o.buyer,vn(o.vendorId),o.desc,o.qty,o.subtotal,o.shipping,o.subtotal+o.shipping,o.pct,r?0:o.commission,r?0:net(o),st(o)]; }));
+  if(kind==='ventas') return [['Venta','Fecha','Comprador','Código referido','Proveedor','Producto','Cantidad','Productos $','Envío $','Total $','Comisión %','Comisión $','Al proveedor $','Estado']].concat(salesRows().map(function(o){ var r=o.status==='refunded'; return [o.id,o.date,o.buyer,orderReferral(o),vn(o.vendorId),o.desc,o.qty,o.subtotal,o.shipping,o.subtotal+o.shipping,o.pct,r?0:o.commission,r?0:net(o),st(o)]; }));
   if(kind==='comisiones'){ var c=commissionRows(); return [['Mes','Proveedor','CUIT','Ventas','Productos vendidos $','Comisión $','Devoluciones','Factura']].concat(c.rows.map(function(r){ return [monthName(c.m),r.name,r.cuit,r.n,r.sub,r.com,r.ref,r.inv?'Facturada':'A facturar']; })); }
   if(kind==='compradores') return [['Comprador','Cuenta','Email','CUIT','Compras','Unidades','Total comprado $','Primera compra','Última compra','Proveedores']].concat(buyerRows().map(function(b){ return [b.name,b.acc?'Sí':'No',b.acc?b.acc.email:'',b.acc?b.acc.cuit||'':'',b.n,b.units,b.total,b.first,b.last,b.vendors.join(', ')]; }));
   if(kind==='stock') return [['Proveedor','Categoría','Modelo','Variante','Se vende por','Marca','Precio $','Unidades','Stock','Estado','Precio actualizado']].concat(db.offers.filter(function(o){ return o.vendorId===ui.stockVendor; }).map(function(o){ return [vn(o.vendorId),o.category,o.model,o.size,o.unit,o.brand||'',o.price,o.units==null?'':o.units,{none:'Sin stock',low:'Bajo stock',order:'A pedido',ok:'En stock'}[stockState(o)],{published:'Publicado',review:'En revisión',paused:'Pausado',rejected:'Rechazado'}[o.status]||o.status,o.updated||'']; }));
@@ -2261,12 +2261,13 @@ function vLogin(){
     +'<button class="btn btn-accent btn-lg" type="submit">Entrar</button>'
     +'<p class="note">Ingresá con tu email y clave de Supabase.</p>'+demoLinks('admin')+'</form></div>';
 }
+function orderReferral(o){ return String(o&&o.ship&&o.ship.referralCode||'').trim().toUpperCase(); }
 function salesTable(rows){
   if(!rows.length) return '<div class="empty">No hay ventas para mostrar.</div>';
-  return '<div class="tablewrap"><table style="min-width:1000px"><thead><tr><th>Venta</th><th>Comprador</th><th>Proveedor</th><th>Detalle</th><th class="r">Total</th><th class="r">Tu comisión</th><th class="r">Al proveedor</th><th>Estado</th><th></th></tr></thead><tbody>'
+  return '<div class="tablewrap"><table style="min-width:1120px"><thead><tr><th>Venta</th><th>Comprador</th><th>Código</th><th>Proveedor</th><th>Detalle</th><th class="r">Total</th><th class="r">Tu comisión</th><th class="r">Al proveedor</th><th>Estado</th><th></th></tr></thead><tbody>'
     +rows.map(function(o){
       var v=vendor(o.vendorId), ref=o.status==='refunded', c=ui.confirm==='r'+o.id;
-      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(v?v.name:'')+'</td><td>'+esc(o.desc)+' × '+o.qty+orderOrigin(o)+'</td>'
+      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+(orderReferral(o)?'<span class="st ok mono">'+esc(orderReferral(o))+'</span>':'<span class="muted">Directa</span>')+'</td><td>'+esc(v?v.name:'')+'</td><td>'+esc(o.desc)+' × '+o.qty+orderOrigin(o)+'</td>'
         +'<td class="r num">'+money(o.subtotal+o.shipping)+'</td><td class="r num"><b>'+(ref?'—':money(o.commission))+'</b><span class="sub">'+(ref?'':o.pct+'%')+'</span></td><td class="r num">'+(ref?'—':money(net(o)))+'</td><td>'+orderStatus(o)+'</td>'
         +'<td><div class="actions nw">'+(!ref&&!o.shipped?'<button class="btn btn-primary btn-sm" data-act="ship" data-id="'+o.id+'">Marcar enviado</button>':'')+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
@@ -2511,6 +2512,7 @@ function vAdmin(){
       var stt={'':'Todos los estados',approved:'Aprobadas',toship:'Pagadas, por enviar',late:'Demoradas',refunded:'Devueltas'};
       var rows=salesRows(), okr=rows.filter(function(o){ return o.status==='approved'; });
       var tt=okr.reduce(function(s2,o){ return s2+o.subtotal+o.shipping; },0), tc=okr.reduce(function(s2,o){ return s2+o.commission; },0);
+      var nico=okr.filter(function(o){ return orderReferral(o)==='NICO'; }), nicoCom=nico.reduce(function(s2,o){ return s2+o.commission; },0);
       body+=alerts()
         +'<div class="section-head" style="margin:8px 0 0"><div class="ch"><span class="ic">'+ico('ventas')+'</span><h2 class="display h-card">Todas las ventas</h2></div>'+exportBar('ventas')+'</div>'
         +'<div class="filters">'
@@ -2518,7 +2520,7 @@ function vAdmin(){
         +'<div class="field"><label for="s-vendor">Proveedor</label><select id="s-vendor"><option value="">Todos</option>'+db.vendors.filter(function(v){ return v.status!=='pending'&&v.status!=='rejected'; }).map(function(v){ return '<option value="'+v.id+'"'+(v.id===fv?' selected':'')+'>'+esc(v.name)+'</option>'; }).join('')+'</select></div>'
         +'<div class="field"><label for="s-status">Estado</label><select id="s-status">'+Object.keys(stt).map(function(k){ return '<option value="'+k+'"'+(k===fs?' selected':'')+'>'+stt[k]+'</option>'; }).join('')+'</select></div>'
         +'</div>'
-        +'<p class="sumline"><b>'+rows.length+(rows.length===1?' venta':' ventas')+'</b>'+(okr.length?' · Vendido <b class="num">'+money(tt)+'</b> · Tu comisión <b class="num">'+money(tc)+'</b>':'')+(okr.length!==rows.length&&okr.length?' <span class="muted">(los montos cuentan solo las aprobadas)</span>':'')+'</p>'
+        +'<p class="sumline"><b>'+rows.length+(rows.length===1?' venta':' ventas')+'</b>'+(okr.length?' · Vendido <b class="num">'+money(tt)+'</b> · Tu comisión <b class="num">'+money(tc)+'</b>':'')+' · Código NICO: <b>'+nico.length+(nico.length===1?' venta':' ventas')+'</b> · Comisión atribuida <b class="num">'+money(nicoCom)+'</b>'+(okr.length!==rows.length&&okr.length?' <span class="muted">(los montos cuentan solo las aprobadas)</span>':'')+'</p>'
         +salesTable(rows);
     }
   } else if(ui.tab==='usuarios'){
