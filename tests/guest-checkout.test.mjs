@@ -14,7 +14,7 @@ function shop(anonymousEnabled){
  let reserved=false;
  const snapFor=auth=>{const s=structuredClone(base);if(auth==='Bearer anon-jwt'){s._identity={id:'g1',role:'buyer',vendorId:null,email:null};if(reserved)s.orders=[{id:7,buyerId:'g1',vendorId:'v2',desc:'Accesorios: Soga de saltar, Única',qty:2,subtotal:10000,shipping:2500,status:'pending_payment',ship:{email:'compras@club.test'},date:'2026-10-15'}];}return s;};
  const dom=new JSDOM(source,{url:'https://fitness.test/nicolas.html#carrito',runScripts:'dangerously',virtualConsole:vc,beforeParse(w){
-  w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.localStorage.setItem('cf-cart',JSON.stringify([{id:'o1',qty:2,price:5000}]));
+  w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.localStorage.setItem('cf-cart',JSON.stringify([{id:'o1',qty:2,price:5000}]));w.localStorage.setItem('nf-cp','1425');
   w.fetch=async(url,opts={})=>{url=String(url);const h=opts.headers||{};calls.push({url,method:opts.method,body:opts.body,apikey:h.apikey,auth:h.Authorization});
    if(url.endsWith('/auth/v1/signup'))return anonymousEnabled?{ok:true,json:async()=>({access_token:'anon-jwt',refresh_token:'r1',expires_at:Date.now()/1000+3600,user:{id:'g1',is_anonymous:true}})}:{ok:false,status:422,json:async()=>({code:'anonymous_provider_disabled',msg:'Anonymous sign-ins are disabled'})};
    if(url.includes('fitness_public_catalog'))return {ok:true,json:async()=>[]};
