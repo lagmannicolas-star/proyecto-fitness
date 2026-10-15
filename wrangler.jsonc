@@ -15,19 +15,15 @@
     { "pattern": "nexofitt.com.ar", "custom_domain": true },
     { "pattern": "www.nexofitt.com.ar", "custom_domain": true }
   ],
-  // Cada 5 minutos: publica en Instagram lo que ya está programado (worker/index.js, runSocial).
-  "triggers": { "crons": ["*/5 * * * *"] },
   // Fotos reales de productos (Cloudflare R2, espacio "nexofit-fotos").
   "r2_buckets": [{ "binding": "FOTOS", "bucket_name": "nexofit-fotos" }],
   // Valores públicos. Las claves secretas (MP_CLIENT_SECRET, MP_WEBHOOK_SECRET,
-  // SUPABASE_SERVICE_ROLE_KEY, TOKEN_KEY, IG_TOKEN) se cargan como secretos del Worker, nunca acá.
+  // SUPABASE_SERVICE_ROLE_KEY, TOKEN_KEY) se cargan como secretos del Worker, nunca acá.
   "vars": {
     // Número de aplicación (Client ID) de Mercado Pago. Es público; completarlo al crear la aplicación.
     "MP_CLIENT_ID": "",
     "SUPABASE_URL": "https://ecdaxdqvdwplhovcmnxr.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-",
-    "ALLOWED_ORIGINS": "https://nexofitt.com.ar,https://www.nexofitt.com.ar,https://lagmannicolas-star.github.io",
-    // Dirección pública del sitio: de acá toma Instagram las imágenes programadas (redes/publicar/).
-    "SITE_URL": "https://nexofitt.com.ar"
+    "ALLOWED_ORIGINS": "https://nexofitt.com.ar,https://www.nexofitt.com.ar,https://lagmannicolas-star.github.io"
   }
 }
