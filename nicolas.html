@@ -1664,6 +1664,7 @@ function syncBuyerForm(){
   var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():null; };
   var n=g('b-name'); if(n!=null) ui.buyer=n;
   ['email','phone','address','city','prov','notes'].forEach(function(k){ var x=g('b-'+k); if(x!=null) ui.ship[k]=x; });
+  var rc=g('b-referral'); if(rc!=null) ui.ship.referralCode=normalizeReferral(rc);
   var cu=g('b-cuit'), iv=g('b-iva'); ui.bill=ui.bill||{}; if(cu!=null) ui.bill.cuit=cu; if(iv!=null) ui.bill.iva=iv;
   var q=g('b-qty'); if(q!=null) ui.qty=Math.max(1,digits(q)||1);
   var cp=g('b-cp'); if(cp!=null) ui.cp=cp;
@@ -2256,7 +2257,13 @@ function coSummary(o){
     +'<div><span class="muted small">Proveedor</span><div><b>'+esc(v.name)+'</b>'+(o.brand?' · Marca: '+esc(o.brand):'')+'</div><p class="muted">'+esc(offerDesc(o))+' × '+qty+' ('+perUnit(o.unit)+')</p></div>'
     +paymentChoice(v,q.total)+shippingBenefitNote(v,q.subtotal,ui.cp)+(q.paymentDiscount?'<p class="note">Descuento por pago aplicado: −'+money(q.paymentDiscount)+'</p>':'')+benefitText(o)+(q.discount?'<p class="note">Descuento por volumen: '+q.discountPct+'% · ahorrás '+money(q.discount)+'</p>':'')+'<div class="rows num"><div><span>Productos</span><span>'+money(q.subtotal)+'</span></div><div><span>Envío'+(ok?' a '+zoneName(ui.cp):'')+'</span><span>'+(!ok?'A calcular':shipLbl(v,q.shipping,q.subtotal,ui.cp))+'</span></div><div class="total"><span>Total</span><span>'+(ok?money(q.total):'—')+'</span></div></div>';
 }
-function buyerFields(){ return buyerFieldsAcct(); }
+function normalizeReferral(v){ return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,24); }
+function referralField(){
+  var q=''; try{ var p=new URLSearchParams(location.search); q=normalizeReferral(p.get('ref')||p.get('codigo')); }catch(e){}
+  if(q&&!ui.ship.referralCode) ui.ship.referralCode=q;
+  return '<div class="field"><label for="b-referral">Código de referido <span class="muted">(opcional)</span></label><input id="b-referral" type="text" maxlength="24" autocapitalize="characters" autocomplete="off" placeholder="Ej.: NICO" value="'+esc(ui.ship.referralCode||'')+'"><span class="hint">Si llegaste por una recomendación, ingresá el código. No modifica el precio publicado.</span></div>';
+}
+function buyerFields(){ return buyerFieldsAcct()+referralField(); }
 function vCheckout(){
   var o=offer(ui.offerId); if(!o||!isLive(o)) return '<div class="wrap page"><div class="empty">Esta oferta ya no está disponible.</div><div><button class="btn btn-primary" data-go="buscar">Ver otros productos</button></div></div>';
   prefillFromAcct();
@@ -2581,6 +2588,7 @@ document.addEventListener('submit',function(ev){
   } else if(f.id==='checkout'&&ui.cartMode){
     ui.buyer=val('b-name').trim();
     ['email','phone','address','city','prov','notes'].forEach(function(k){ ui.ship[k]=val('b-'+k).trim(); });
+    ui.ship.referralCode=normalizeReferral(val('b-referral'));
     var cc=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email de contacto válido.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],[!ui.ship.address,'Escribí la dirección de entrega.','b-address'],[!ui.ship.city,'Escribí la ciudad.','b-city']];
     var bad2=cc.filter(function(c){ return c[0]; })[0];
     if(bad2){ var bx=document.getElementById('co-err'); if(bx){ bx.textContent=bad2[1]; bx.hidden=false; } var fe2=document.getElementById(bad2[2]); if(fe2) fe2.focus(); return; }
@@ -2591,6 +2599,7 @@ document.addEventListener('submit',function(ev){
     var o=offer(ui.offerId); if(!o) return;
     ui.buyer=val('b-name').trim(); ui.qty=Math.max(1,digits(val('b-qty'))||1); ui.cp=val('b-cp').trim();
     ['email','phone','address','city','prov','notes'].forEach(function(k){ ui.ship[k]=val('b-'+k).trim(); });
+    ui.ship.referralCode=normalizeReferral(val('b-referral'));
     var checks=[[!ui.buyer,'Escribí tu nombre o razón social para continuar.','b-name'],[ui.qty<o.minQty,'La compra mínima de este proveedor es de '+o.minQty+'.','b-qty'],
       [o.units!=null&&ui.qty>o.units,'Este proveedor tiene '+o.units+(o.units===1?' unidad disponible.':' unidades disponibles.'),'b-qty'],[!cpOk(ui.cp),'Ingresá los 4 dígitos del código postal.','b-cp'],
       [!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ui.ship.email),'Escribí un email de contacto válido.','b-email'],[digits(ui.ship.phone)<1000000,'Escribí un teléfono de contacto.','b-phone'],
