@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nexo Fit</title>
+<title>Nexo Fit · Compará y comprá equipamiento deportivo</title>
+<meta name="description" content="Compará y comprá equipamiento deportivo y de fitness de distintas empresas en un solo carrito. Para gimnasios, clubes y colegios de todo el país.">
+<link rel="canonical" href="https://nexofitt.com.ar/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/">
+<meta property="og:title" content="Nexo Fit · Compará y comprá equipamiento deportivo"><meta property="og:description" content="Distintas empresas, un solo carrito. Mancuernas, colchonetas, pesas, kits y más para gimnasios, clubes y colegios.">
+<meta property="og:image" content="https://nexofitt.com.ar/assets/nexofit-logo.png"><meta name="twitter:card" content="summary_large_image">
+<script src="assets/sitio.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
 <style>
@@ -842,6 +848,8 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 <style>
 .pimg{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}.pimg img{display:block;width:100%;height:100%;object-fit:contain}.pimg-lg{max-width:360px;margin:12px 0}.pimg-sm{width:64px;flex:none}@media(min-width:641px){.citem:has(.pimg-sm){grid-template-columns:64px minmax(0,1fr) auto minmax(96px,auto) 40px}}@media(max-width:640px){.citem .pimg-sm{display:none}}
 .ab-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.ab-card{border:1px solid var(--line,#10171f25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;background:#FDFAF5}.ab-card h3{font-size:16px;line-height:1.4;margin:0;overflow-wrap:anywhere}.ab-card .btn{margin-top:auto}.ab-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:20px 0}.ab-pages{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px}.ab-variant{padding:18px 0;border-bottom:1px solid #10171f25}.ab-variant .actions{margin-top:12px}.ab-variant input{width:90px;min-height:44px}.ab-card .small{margin:0}@media(max-width:900px){.ab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:550px){.ab-filters{grid-template-columns:1fr}.ab-card{padding:12px}.ab-card h3{font-size:14px}.ab-card .btn{font-size:12px;padding:10px}}
+.wa-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none;box-shadow:var(--shadow)}
+.legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.foot{padding-bottom:76px}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
 </style></head>
 <body>
 <div id="app"></div>
@@ -1366,7 +1374,7 @@ function contactMessage(company,product,text){
  lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
  return lines.join('\n');
 }
-function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
+function waUrl(text,company,product){return 'https://wa.me/5491159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
 function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
 function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
 function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
@@ -1851,7 +1859,7 @@ async function startMpPayment(payRef){
  location.href=d.url;
 }
 /* Paga el primer grupo del carrito: crea un pedido por producto (mismo pago) y lo saca del carrito. */
-function payFirstGroup(){if(!FC.identity()){ui.afterLogin='checkout';go('ingresar');throw Error('Ingresá a tu cuenta para registrar el pedido.');}var C=cartGroups(),g=C.groups[0];if(!g||g.bad||!C.ok)throw Error('Revisá el stock, los mínimos y el código postal.');var k=ui.requestKey||(ui.requestKey=FC.key());var out=FC.reserve(g.items.map(function(x){return {id:x.o.id,qty:x.i.qty,expectedPrice:x.o.price,method:g.method};}),Object.assign({},ui.ship,{name:ui.buyer,cp:ui.cp}),k);db=load();ui.lastPayRef=k;ui.requestKey=null;cart=cart.filter(function(i){return !g.items.some(function(x){return x.i.id===i.id;});});cartSave();return out.map(function(o){return o.id;});}
+function payFirstGroup(){if(!FC.identity()){ui.afterLogin='checkout';go('ingresar');throw Error('Ingresá a tu cuenta para registrar el pedido.');}var C=cartGroups(),g=C.groups[0];if(!g||g.bad||!C.ok)throw Error('Revisá el stock, los mínimos y el código postal.');var k=ui.requestKey||(ui.requestKey=FC.key());var out=FC.reserve(g.items.map(function(x){return {id:x.o.id,qty:x.i.qty,expectedPrice:x.o.price,method:g.method};}),Object.assign({},ui.ship,{name:ui.buyer,cp:ui.cp,utm:(window.nfUtm&&window.nfUtm())||undefined}),k);db=load();ui.lastPayRef=k;ui.requestKey=null;cart=cart.filter(function(i){return !g.items.some(function(x){return x.i.id===i.id;});});cartSave();return out.map(function(o){return o.id;});}
 function vDoneMany(){
   var ids=ui.doneOrders||[], os=ids.map(function(id){ return order(id); }).filter(Boolean);
   if(!os.length) return '<div class="wrap page"><div class="empty">No encontramos esa compra.</div></div>';
@@ -1925,7 +1933,7 @@ function header(){
     +accountBtn()+cartBtn()+'</nav></div></header>';
 }
 function footer(){
-  return '<footer class="foot"><div class="wrap foot-in"><span>Nexo Fit · Comparación independiente. <button class="linkbtn small" data-go="pedido">Seguí tu pedido</button></span>'+demoLinks('buy')+'</div></footer>';
+  return '<footer class="foot"><div class="wrap foot-in"><span>Nexo Fit · Comparación independiente. <button class="linkbtn small" data-go="pedido">Seguí tu pedido</button></span>'+demoLinks('buy')+'</div><div class="wrap">'+'<nav class="legal-links" aria-label="Para quién"><a href="gimnasios.html">Gimnasios</a> · <a href="clubes.html">Clubes</a> · <a href="colegios.html">Colegios</a> · <a href="proveedores.html">Vendé en Nexo Fit</a></nav><nav class="legal-links" aria-label="Información legal"><a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Privacidad</a> · <a class="arrepentimiento" href="arrepentimiento.html">Botón de arrepentimiento</a> · <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a></nav>'+'</div></footer>';
 }
 
 /* La barra interactiva */
@@ -2369,7 +2377,7 @@ function render(){
   if(ui.pay){ var b=app.querySelector('[data-act="pay-ok"],[data-act="cpay-ok"]'); if(b){ try{ b.focus(); }catch(e){} } }
 }
 function createOrder(){var o=offer(ui.offerId);if(!o)throw Error('Producto no disponible');return createOrderFrom(o,Math.max(1,ui.qty|0),0,'',selectedMethod(vendor(o.vendorId)));}
-function createOrderFrom(o,qty,shipping,payRef,paymentMethod){if(!FC.identity()){ui.afterLogin='checkout';go('ingresar');throw Error('Ingresá a tu cuenta para registrar el pedido.');}var k=ui.requestKey||(ui.requestKey=FC.key());var out=FC.reserve([{id:o.id,qty:qty,expectedPrice:o.price,method:paymentMethod||'card'}],Object.assign({},ui.ship,{name:ui.buyer,cp:ui.cp}),k);db=load();ui.lastPayRef=k;ui.requestKey=null;return out[0];}
+function createOrderFrom(o,qty,shipping,payRef,paymentMethod){if(!FC.identity()){ui.afterLogin='checkout';go('ingresar');throw Error('Ingresá a tu cuenta para registrar el pedido.');}var k=ui.requestKey||(ui.requestKey=FC.key());var out=FC.reserve([{id:o.id,qty:qty,expectedPrice:o.price,method:paymentMethod||'card'}],Object.assign({},ui.ship,{name:ui.buyer,cp:ui.cp,utm:(window.nfUtm&&window.nfUtm())||undefined}),k);db=load();ui.lastPayRef=k;ui.requestKey=null;return out[0];}
 
 document.addEventListener('submit',async function(ev){
  var f=ev.target,ids=['alogin','slogin','f-login','f-register','f-forgot','f-pass','apply','f-google','f-quick','uform'];
@@ -2432,6 +2440,7 @@ document.addEventListener('click',function(ev){
     case 'add-cart':
       x=offer(t.dataset.id); if(!x||!isLive(x)) break; if(x.units!=null&&x.units<x.minQty){ toast('No alcanza el stock para la compra mínima de este proveedor.'); break; } trackVendorOf(x.id);
       var aq=t.dataset.qty?Math.max(1,parseInt(t.dataset.qty,10)||1):(ui.route==='compare'?Math.max(1,ui.qty|0):x.minQty), upd=cartAdd(x,aq), it=cartFind(x.id);
+      if(window.nfTrack) window.nfTrack('AddToCart',{value:x.price*it.qty,name:x.model+' '+x.size});
       if(ui.route==='compare') updateCompare(); else { var vt=document.getElementById('vt'); if(vt) vt.innerHTML=vendorTabsHTML(); var vb2=document.getElementById('vs-box'); if(vb2) vb2.innerHTML=vsHTML(); }
       var hb=document.querySelector('.cartbtn'); if(hb) hb.outerHTML=cartBtn();
       var fb=document.querySelector('.cartfab'); if(fb) fb.remove(); app.insertAdjacentHTML('beforeend','<button type="button" class="cartfab" data-go="carrito">'+ico('ventas',20)+'Ver carrito · '+cart.length+'</button>');
@@ -2470,14 +2479,14 @@ document.addEventListener('click',function(ev){
       x=cartFind(t.dataset.id); var co=offer(t.dataset.id); if(!x) break;
       x.qty=Math.min(999999,Math.max(1,x.qty+(a==='cq-inc'?1:-1))); if(co&&co.units!=null&&x.qty>co.units){ x.qty=co.units; toast('Quedan '+co.units+' unidades de este producto.'); } cartSave(); rerender(); break;
     case 'cart-clear': if(ui.confirm!=='cart-clear'){ ui.confirm='cart-clear'; rerender(); break; } cart=[]; ui.confirm=null; cartSave(); rerender(); toast('Vaciaste el carrito'); break;
-    case 'cart-pay': ui.paidOrders=[]; ui.payStep=0; ui.payError=''; go('checkout',{cartMode:true}); break;
+    case 'cart-pay': if(window.nfTrack) window.nfTrack('InitiateCheckout',{value:cartGroups().total}); ui.paidOrders=[]; ui.payStep=0; ui.payError=''; go('checkout',{cartMode:true}); break;
     case 'cpay-ok':
       var ids=payFirstGroup(); ui.paidOrders=(ui.paidOrders||[]).concat(ids); ui.payStep++;
       if(!cartGroups().groups.length){ ui.pay=false; go('done',{doneOrders:ui.paidOrders.slice()}); toast(ui.payTotal>1?'Listo: pedidos registrados sin cobro':'Pedido pendiente de pago'); }
       else { rerender(); toast('Pedido registrado sin cobro. Sigue el proveedor '+(ui.payStep+1)+' de '+ui.payTotal+'.'); }
       break;
     case 'cpay-mp':
-      t.disabled=true; var mpIds=payFirstGroup(); ui.paidOrders=(ui.paidOrders||[]).concat(mpIds);
+      t.disabled=true; try{ var g0=cartGroups().groups[0]; sessionStorage.setItem('nf-pay-total',String(g0?g0.total:'')); }catch(e){} var mpIds=payFirstGroup(); ui.paidOrders=(ui.paidOrders||[]).concat(mpIds);
       startMpPayment(ui.lastPayRef).catch(function(e){ ui.pay=false; go('done',{doneOrders:mpIds}); toast(e.message); });
       break;
     case 'pay-mp':
@@ -2621,7 +2630,7 @@ document.addEventListener('input',function(ev){
     if(t.id==='b-qty') ui.qty=Math.max(1,digits(t.value)||1); else ui.cp=t.value.trim();
     var o=offer(ui.offerId), s=document.getElementById('co-sum'); if(o&&s) s.innerHTML=coSummary(o);
   }
-  else if(t.id==='q'){ ui.q=t.value; var box=document.getElementById('q-res'); if(box) box.innerHTML=searchHTML(ui.q); clearTimeout(searchTimer); var qq=ui.q; searchTimer=setTimeout(function(){ trackSearch(qq,!!(box&&box.querySelector('.q-item'))); },1500); }
+  else if(t.id==='q'){ ui.q=t.value; var box=document.getElementById('q-res'); if(box) box.innerHTML=searchHTML(ui.q); clearTimeout(searchTimer); var qq=ui.q; searchTimer=setTimeout(function(){ trackSearch(qq,!!(box&&box.querySelector('.q-item,.q-prod'))); if(window.nfTrack&&qq.trim()) window.nfTrack('Search',{search:qq.trim()}); },1500); }
 });
 document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'&&ui.pay){ ui.pay=false; rerender(); } else if(ev.key==='Escape'&&ui.gModal){ ui.gModal=false; rerender(); } });
 window.addEventListener('popstate',function(ev){
@@ -2643,10 +2652,14 @@ window.addEventListener('hashchange',function(){ if(fromHash()){ render(); try{ 
 fromHash();
 try{ history.replaceState({r:ui.route,p:snap()},''); }catch(e){}
 trackView(ui.route);
+/* WhatsApp siempre visible para consultas de compra. */
+(function(){var n=String((db.contact||{}).wa||'').replace(/\D/g,'');if(!n)return;if(!/^54/.test(n))n='549'+n.replace(/^0/,'');else if(!/^549/.test(n))n='549'+n.slice(2);
+ var a=document.createElement('a');a.className='wa-fab';a.target='_blank';a.rel='noopener';a.href='https://wa.me/'+n+'?text='+encodeURIComponent('Hola, vengo de nexofitt.com.ar y quiero hacer una consulta sobre un producto.');a.textContent='WhatsApp';a.setAttribute('aria-label','Consultar por WhatsApp');
+ a.addEventListener('click',function(){if(window.nfTrack)window.nfTrack('Lead',{name:'whatsapp'});});document.body.appendChild(a);})();
 upgradeABCart();
 render();
 checkPayments();
-(function(){var back=new URLSearchParams(location.search).get('pago'),msg={ok:'Recibimos tu pago. Cuando Mercado Pago confirma el cobro, el pedido pasa a “Pagado”.',pendiente:'Tu pago quedó pendiente en Mercado Pago. Te avisamos cuando se acredite.',error:'El pago no se completó y no se cobró nada. La reserva vence a los 30 minutos.'}[back];if(!msg)return;toast(msg);try{var clean=new URL(location.href);clean.searchParams.delete('pago');history.replaceState(history.state,'',clean.href);}catch(e){}})();
+(function(){var back=new URLSearchParams(location.search).get('pago');if(back==='ok'&&window.nfTrack){var pt=null;try{pt=Number(sessionStorage.getItem('nf-pay-total'))||null;sessionStorage.removeItem('nf-pay-total');}catch(e){}window.nfTrack('Purchase',{value:pt});}var msg={ok:'Recibimos tu pago. Cuando Mercado Pago confirma el cobro, el pedido pasa a “Pagado”.',pendiente:'Tu pago quedó pendiente en Mercado Pago. Te avisamos cuando se acredite.',error:'El pago no se completó y no se cobró nada. La reserva vence a los 30 minutos.'}[back];if(!msg)return;toast(msg);try{var clean=new URL(location.href);clean.searchParams.delete('pago');history.replaceState(history.state,'',clean.href);}catch(e){}})();
 
 var refreshingCatalog=false;
 async function refreshBuyerCatalog(){

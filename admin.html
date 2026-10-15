@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nexo Fit · Administrador</title>
+<meta name="robots" content="noindex,nofollow">
+<script src="assets/sitio.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
 <style>
@@ -1355,7 +1357,7 @@ function contactMessage(company,product,text){
  lines.push('¿Podés ayudarme con la disponibilidad, las condiciones y el costo final?');
  return lines.join('\n');
 }
-function waUrl(text,company,product){return 'https://wa.me/541159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
+function waUrl(text,company,product){return 'https://wa.me/5491159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
 function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
 function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
 function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
@@ -1983,6 +1985,7 @@ function bulkCond(){
   if(['Unidad','Par','Kit'].indexOf(c.unit)<0)throw ['Elegí cómo se vende.','bulk-unit'];
   if(!/^\d+$/.test(c.lead))throw ['La entrega tiene que ser un número entero de días.','bulk-lead'];
   if(!/^\d+$/.test(c.warranty))throw ['La garantía tiene que ser un número entero de meses.','bulk-warr'];
+  if(Number(c.warranty)<6)throw ['La garantía legal mínima para productos nuevos es de 6 meses (Ley 24.240).','bulk-warr'];
   if(c.shipAmba===null||!Number.isFinite(c.shipAmba)||c.shipAmba<0)throw ['Completá el envío a AMBA (0 = sin cargo).','bulk-amba'];
   if(c.shipInt===null||!Number.isFinite(c.shipInt)||c.shipInt<0)throw ['Completá el envío al resto del país (0 = sin cargo).','bulk-int'];
   if(!/^[1-9]\d*$/.test(c.minQty))throw ['La compra mínima tiene que ser 1 o más.','bulk-min'];
@@ -2259,7 +2262,7 @@ function salesTable(rows){
   return '<div class="tablewrap"><table style="min-width:1000px"><thead><tr><th>Venta</th><th>Comprador</th><th>Proveedor</th><th>Detalle</th><th class="r">Total</th><th class="r">Tu comisión</th><th class="r">Al proveedor</th><th>Estado</th><th></th></tr></thead><tbody>'
     +rows.map(function(o){
       var v=vendor(o.vendorId), ref=o.status==='refunded', c=ui.confirm==='r'+o.id;
-      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(v?v.name:'')+'</td><td>'+esc(o.desc)+' × '+o.qty+'</td>'
+      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(v?v.name:'')+'</td><td>'+esc(o.desc)+' × '+o.qty+orderOrigin(o)+'</td>'
         +'<td class="r num">'+money(o.subtotal+o.shipping)+'</td><td class="r num"><b>'+(ref?'—':money(o.commission))+'</b><span class="sub">'+(ref?'':o.pct+'%')+'</span></td><td class="r num">'+(ref?'—':money(net(o)))+'</td><td>'+orderStatus(o)+'</td>'
         +'<td><div class="actions nw">'+(!ref&&!o.shipped?'<button class="btn btn-primary btn-sm" data-act="ship" data-id="'+o.id+'">Marcar enviado</button>':'')+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
@@ -2275,7 +2278,7 @@ function partners(ok){
     +'</div></div>';
 }
 function waCard(){
-  var n='541159656436';
+  var n='5491159656436';
   return '<form id="waform" class="card" novalidate style="max-width:520px"><h2 class="display h-card">WhatsApp de contacto</h2>'
     +'<p class="note">Las consultas de la plataforma se derivan a Nico, con un mensaje precargado.</p>'
     +'<div id="wa-err" class="alert bad" role="alert" hidden></div>'
@@ -2493,9 +2496,10 @@ function vAdmin(){
       +monthly(ok)
       +partners(ok);
   } else if(ui.tab==='ventas'){
-    var subsV=[['todas','Todas las ventas'],['comisiones','Comisiones a facturar'],['compradores','Compradores']];
+    var subsV=[['todas','Todas las ventas'],['comisiones','Comisiones a facturar'],['compradores','Compradores'],['arrepentimientos','Arrepentimientos'+(ui.withdrawals?' ('+ui.withdrawals.filter(function(w){return w.status==='nueva';}).length+')':'')]];
     body='<div class="seg" role="group" aria-label="Vista de ventas">'+subsV.map(function(x){ return '<button type="button" data-act="sales-sub" data-sub="'+x[0]+'" aria-pressed="'+(ui.salesSub===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div>';
-    if(ui.salesSub==='comisiones') body+=commissionsView();
+    if(ui.salesSub==='arrepentimientos') body+=withdrawalsView();
+    else if(ui.salesSub==='comisiones') body+=commissionsView();
     else if(ui.salesSub==='compradores') body+=buyersView();
     else {
       var mlist=orderMonths(); if(mlist.indexOf(ui.salesMonth)<0) ui.salesMonth='';
@@ -2931,6 +2935,23 @@ document.addEventListener('change',function(ev){
     save(); rerender(t.id); toast('Comisión de '+v.name+': '+pctOf(v)+'%');
   }
 });
+/* Origen de la venta según la etiqueta de campaña (utm) con la que llegó el comprador. */
+function orderOrigin(o){var u=o.ship&&o.ship.utm;if(!u)return '';var src=[u.utm_source||(u.gclid?'google':u.fbclid?'meta':''),u.utm_campaign].filter(Boolean).join(' · ');return src?'<span class="sub">Origen: '+esc(src)+'</span>':'';}
+/* ---------- Botón de arrepentimiento: pedidos recibidos ---------- */
+async function adminRpc(fn,args){var r=await fetch(FITNESS_CONFIG.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:FITNESS_CONFIG.key,Authorization:'Bearer '+FC.token(),'Content-Type':'application/json'},body:JSON.stringify(args||{})});var d=await r.json().catch(function(){return {};});if(!r.ok)throw Error(d.message||'No se pudo completar la acción.');return d;}
+async function loadWithdrawals(){try{ui.withdrawals=await adminRpc('fitness_withdrawals_admin');ui.withdrawalsErr='';}catch(e){ui.withdrawals=[];ui.withdrawalsErr=e.message;}rerender();}
+function withdrawalsView(){
+ if(!ui.withdrawals){setTimeout(loadWithdrawals,0);return '<div class="card"><p class="muted">Cargando pedidos de arrepentimiento…</p></div>';}
+ var st={nueva:['warn','Nueva'],en_gestion:['neu','En gestión'],resuelta:['ok','Resuelta']},list=ui.withdrawals;
+ return '<div class="card">'+chead('alert','Pedidos de arrepentimiento','Llegan desde el Botón de arrepentimiento del sitio. La ley pide responder con rapidez: contactá al comprador y al proveedor para coordinar la devolución.')
+  +(ui.withdrawalsErr?'<p class="alert bad">'+esc(ui.withdrawalsErr)+'</p>':'')
+  +(list.length?'<div class="tablewrap"><table><thead><tr><th>Código</th><th>Fecha</th><th>Comprador</th><th>Compra</th><th>Comentario</th><th>Estado</th><th></th></tr></thead><tbody>'+list.map(function(w){var s2=st[w.status]||['neu',w.status];
+   return '<tr><td><b class="mono">'+esc(w.code)+'</b></td><td>'+fdate(String(w.created_at).slice(0,10))+'</td><td>'+esc(w.name)+'<span class="sub">'+esc(w.email)+(w.phone?' · '+esc(w.phone):'')+'</span></td><td>'+esc(w.order_ref)+'</td><td>'+esc(w.details||'—')+'</td><td><span class="st '+s2[0]+'">'+s2[1]+'</span></td><td>'
+    +(w.status!=='en_gestion'&&w.status!=='resuelta'?'<button class="btn btn-outline btn-sm" data-act="wd-status" data-code="'+esc(w.code)+'" data-status="en_gestion">En gestión</button>':'')
+    +(w.status!=='resuelta'?'<button class="btn btn-primary btn-sm" data-act="wd-status" data-code="'+esc(w.code)+'" data-status="resuelta">Resuelta</button>':'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="muted">Todavía no hay pedidos de arrepentimiento.</p>')+'</div>';
+}
+document.addEventListener('click',function(ev){var t=ev.target.closest&&ev.target.closest('[data-act="wd-status"]');if(!t||t.disabled)return;t.disabled=true;adminRpc('fitness_withdrawal_status',{p_code:t.dataset.code,p_status:t.dataset.status}).then(function(){toast('Pedido actualizado');return loadWithdrawals();}).catch(function(e){t.disabled=false;toast(e.message);});});
+
 /* ---------- Fotos de productos (a través del Worker: R2 + Workers AI) ---------- */
 function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+path;}
 function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}

@@ -19,6 +19,6 @@
     "MP_CLIENT_ID": "",
     "SUPABASE_URL": "https://ecdaxdqvdwplhovcmnxr.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-",
-    "ALLOWED_ORIGINS": "https://lagmannicolas-star.github.io"
+    "ALLOWED_ORIGINS": "https://nexofitt.com.ar,https://www.nexofitt.com.ar,https://lagmannicolas-star.github.io"
   }
 }

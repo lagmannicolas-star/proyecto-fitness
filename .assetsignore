@@ -5,7 +5,15 @@
 !proveedores.html
 !admin.html
 !catalogo-ab.html
+!arrepentimiento.html
+!terminos.html
+!privacidad.html
+!gimnasios.html
+!clubes.html
+!colegios.html
 !_headers
+!robots.txt
+!sitemap.xml
 !assets/
 !assets/**
 assets/**/*.md
