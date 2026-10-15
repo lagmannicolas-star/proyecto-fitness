@@ -8,17 +8,25 @@ const dom=new JSDOM(source,{url:'https://fitness.test/nicolas.html',runScripts:'
 await new Promise(r=>setTimeout(r,100));const w=dom.window,d=w.document;
 assert.equal(d.querySelector('.brand img').getAttribute('src'),'assets/nexofit-logo.png');
 assert.equal(d.querySelectorAll('.space-card').length,w.spaces().length);
+assert(d.querySelector('.hero h1').textContent.includes('Un solo carrito'));
+assert(d.querySelector('.hero [data-act="to-catalog"]'),'primary CTA to the catalog');
+assert(d.querySelector('.hero [data-go="buscar"]'),'secondary CTA to the comparison');
+assert(!d.body.textContent.includes('Empresa 1'),'no fake demo companies');
+assert(d.getElementById('catalogo'),'one catalog section');
+assert(!d.getElementById('ab-productos')&&!d.getElementById('productos-proveedores'),'old catalog sections removed');
+assert(!/Administrador|Actualizar datos/.test(d.querySelector('footer').textContent),'no admin links in the footer');
+assert(d.querySelector('#hsearch #hq'),'header search');
+assert(d.querySelector('details #bb'),'bar calculator remains available');
+w.go('buscar');
 assert.equal(d.querySelectorAll('.cat-card').length,w.CATALOG.length);
 assert.equal(d.querySelectorAll('.space-card img,.space-card svg,.cat-card svg').length,0);
 assert.equal(d.querySelectorAll('.cat-card img').length,w.CATALOG.length);
 for(const img of d.querySelectorAll('.cat-card img'))assert(fs.existsSync(img.getAttribute('src')),'category photo exists');
-assert(d.querySelector('.hero-demo').textContent.includes('3 empresas'));
 assert(!source.includes('var CAT_ART='),'generated illustrations removed');
 assert(!d.querySelector('.mv'),'mission/vision removed from main flow');
-assert(d.querySelector('details #bb'),'bar calculator remains available');
 const catalog=JSON.stringify(w.CATALOG);
 for(const space of w.spaces()){
- w.go('home');d.querySelector('[data-space="'+space.n+'"]').click();
+ w.go('buscar');d.querySelector('[data-space="'+space.n+'"]').click();
  assert.equal(w.ui.route,'buscar');assert.equal(w.ui.space,space.n);
  assert.equal(d.querySelector('[data-space="'+space.n+'"]').getAttribute('aria-pressed'),'true');
  assert.equal(d.querySelectorAll('.cat-card').length,w.CATALOG.filter(c=>space.cats.includes(c.n)).length);

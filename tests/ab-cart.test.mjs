@@ -1,8 +1,57 @@
-import fs from 'node:fs';import assert from 'node:assert/strict';import {JSDOM,VirtualConsole} from 'jsdom';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {JSDOM,VirtualConsole} from 'jsdom';
+
+// Carritos guardados con la versión anterior del catálogo (ítems "ab-catalog"): se pasan solos a la oferta publicada
+// cuando existe y, si no, quedan aparte como "No disponibles", sin sumarse al pago.
 const errors=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
-const options={url:'https://fitness.test/catalogo-ab.html',runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};w.HTMLElement.prototype.scrollIntoView=()=>{};w.localStorage.setItem('cf-cart',JSON.stringify([{id:'existing',qty:1,price:100}]));}};
-const dom=new JSDOM(fs.readFileSync('catalogo-ab.html','utf8'),options),d=dom.window.document,data=JSON.parse(d.getElementById('catalog-data').textContent),p=data.find(p=>p.id==='mancuerna-hexagonal-cromada-de-goma-unidad-x-peso');assert(p);const search=d.getElementById('search');search.value='hexagonal cromada';search.dispatchEvent(new dom.window.Event('input'));d.querySelector('[data-id="'+p.id+'"]').click();assert.equal(d.querySelectorAll('[data-add-variant]').length,16);d.getElementById('qty-0').value='3';d.querySelector('[data-add-variant="0"]').click();let saved=()=>JSON.parse(dom.window.localStorage.getItem('cf-cart'));assert.equal(saved().length,2);assert.equal(saved()[1].qty,3);assert.equal(saved()[1].size,'PESO: 1 KG');d.querySelector('[data-add-variant="0"]').click();assert.equal(saved()[1].qty,6);d.querySelector('[data-add-variant="1"]').click();assert.equal(saved().length,3);d.querySelector('[data-add-variant="2"]').click();assert.equal(saved()[3].price,null);d.getElementById('qty-0').value='0';d.querySelector('[data-add-variant="0"]').click();assert.equal(saved()[1].qty,6);assert(d.getElementById('cart-feedback').textContent.includes('cantidad entera'));assert.equal(saved()[0].id,'existing');assert.equal(d.getElementById('cart-count').textContent,'4');const snapshot=dom.window.localStorage.getItem('cf-cart');dom.window.close();
+const slug='mancuerna-hexagonal-cromada-de-goma-unidad-x-peso',kit='kit-fuerza-total-mancuernas-3-kg-rusa-4-kg-tobilleras-2-kg-colchoneta-150-1ih1t';
+const legacy=(i,size,qty,price)=>({kind:'ab-catalog',id:'ab:'+slug+':'+i,sourceSlug:slug,variantIndex:i,vendorName:'AB Fitness',model:'Mancuerna hexagonal cromada de goma - Unidad x peso',category:'Mancuernas',size,price,qty});
+const saved=JSON.stringify([{id:'existing',qty:1,price:100},legacy(0,'PESO: 1 KG',6,13000),legacy(2,'PESO: 3 KG',1,null),{kind:'ab-catalog',id:'ab:'+kit+':0',sourceSlug:kit,variantIndex:0,model:'Kit',category:'Combos y kits',size:'Presentación única',price:65000,qty:2}]);
 const base={commission:10,nextId:100,nextOrder:1,offers:[],vendors:[],orders:[],buyers:[],users:[],catalog:[],ad:{on:false,items:[]},contact:{wa:''},clicks:{p:{},v:{},a:{}},traffic:{days:{},q:{},z:{}},images:{},log:[],notifs:[],invoiced:{},prefs:{},_revision:1,_identity:null};
-const raw=fs.readFileSync('nicolas.html','utf8'),end=raw.lastIndexOf('})();'),source=raw.slice(0,end)+'Object.assign(window,{cartGroups,go});'+raw.slice(end);
-function buyer(saved){return new JSDOM(source,{url:'https://fitness.test/nicolas.html#carrito',runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.localStorage.setItem('cf-cart',saved);w.fetch=async()=>({ok:true,json:async()=>structuredClone(base)});class XHR{open(){}setRequestHeader(){}send(){this.status=200;this.responseText=JSON.stringify(base)}}w.XMLHttpRequest=XHR;}})}
-let buy=buyer(snapshot);await new Promise(r=>setTimeout(r,80));const b=buy.window.document;assert(b.querySelector('[aria-label="Productos de AB Fitness"]'));assert.equal(b.querySelectorAll('h1').length,1);assert(b.body.textContent.includes('PESO: 1 KG'));assert(b.body.textContent.includes('Precio a confirmar'));assert.equal(buy.window.cartGroups().groups.length,1,'existing offer preserved as unavailable');assert(b.querySelector('[data-act="cart-pay"]').disabled,'reference items cannot be reserved');let qty=b.querySelector('[data-abqty="ab:'+p.id+':0"]');qty.value='9';qty.dispatchEvent(new buy.window.Event('change',{bubbles:true}));assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart'))[1].qty,9);qty=b.querySelector('[data-abqty="ab:'+p.id+':0"]');qty.value='12';qty.dispatchEvent(new buy.window.Event('input',{bubbles:true}));assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart'))[1].qty,12,'quantity persists immediately while typing');qty.value='9';qty.dispatchEvent(new buy.window.Event('input',{bubbles:true}));b.querySelector('[data-act="cq-inc"][data-id="ab:'+p.id+':0"]').click();assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart'))[1].qty,10);b.querySelector('[data-act="cq-dec"][data-id="ab:'+p.id+':0"]').click();assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart'))[1].qty,9);const reloadSnapshot=buy.window.localStorage.getItem('cf-cart');buy.window.close();buy=buyer(reloadSnapshot);await new Promise(r=>setTimeout(r,80));assert.equal(buy.window.document.querySelector('[data-abqty="ab:'+p.id+':0"]').value,'9');buy.window.document.querySelector('[data-act="cart-del"][data-id="ab:'+p.id+':0"]').click();assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart')).length,3);buy.window.document.querySelector('[data-act="cart-clear"]').click();buy.window.document.querySelector('[data-act="cart-clear"]').click();assert.equal(JSON.parse(buy.window.localStorage.getItem('cf-cart')).length,0);buy.window.close();base.vendors=[{id:'v2',name:'Segundo proveedor',status:'active'}];base.offers=[{id:'existing',vendorId:'v2',status:'published',stock:'ok',model:'Producto activo',category:'Mancuernas',size:'1 kg',unit:'Unidad',price:100,units:20,minQty:1,shipAmba:25,shipInt:50,lead:2,volume:[]}];buy=buyer(snapshot);await new Promise(r=>setTimeout(r,80));assert.equal(buy.window.cartGroups().groups.length,1);assert.equal(buy.window.cartGroups().groups[0].items.length,1);assert.equal(buy.window.cartGroups().groups[0].items[0].o.id,'existing');assert.equal(buy.window.document.querySelectorAll('h1').length,1);assert(!buy.window.document.querySelector('[data-act="cart-pay"]').disabled);buy.window.go('checkout',{cartMode:true});assert(buy.window.document.body.textContent.includes('Confirmá tu compra'));assert(!buy.window.document.querySelector('form#checkout').textContent.includes('AB Fitness'));assert.equal(errors.length,0,errors.join(';'));buy.window.close();console.log('OK: AB variantes, cantidades, suma sin duplicados, precio pendiente, carrito compartido, persistencia, quitar/vaciar y exclusión del pago.');
+const raw=fs.readFileSync('nicolas.html','utf8'),end=raw.lastIndexOf('})();'),source=raw.slice(0,end)+'Object.assign(window,{cartGroups,go,getCart:function(){return cart;}});'+raw.slice(end);
+function buyer(cartJson,snap,catalog){return new JSDOM(source,{url:'https://fitness.test/nicolas.html#carrito',runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.localStorage.setItem('cf-cart',cartJson);w.fetch=async(u)=>({ok:true,json:async()=>structuredClone(String(u).includes('fitness_public_catalog')?(catalog||[]):snap)});class XHR{open(){}setRequestHeader(){}send(){this.status=200;this.responseText=JSON.stringify(snap)}}w.XMLHttpRequest=XHR;}})}
+const wait=()=>new Promise(r=>setTimeout(r,100));
+const stored=w=>JSON.parse(w.localStorage.getItem('cf-cart'));
+
+// 1) Sin ofertas publicadas: los guardados quedan aparte, sin precio de "referencia" ni compra "pendiente".
+let buy=buyer(saved,base);await wait();let b=buy.window.document;
+const box=b.querySelector('[aria-label="Productos guardados no disponibles"]');
+assert(box,'sección de no disponibles');
+assert.equal(b.querySelectorAll('h1').length,1);
+assert(box.textContent.includes('Peso: 1 kg'),'variante con texto prolijo');
+assert(!/referencia|pendiente de activar|precio del archivo/i.test(b.querySelector('main').textContent));
+assert.equal(buy.window.cartGroups().groups.length,1,'la oferta vieja se conserva como no disponible');
+assert(b.querySelector('[data-act="cart-pay"]').disabled,'no se puede pagar lo que no está disponible');
+b.querySelector('[data-act="cart-del"][data-id="ab:'+slug+':0"]').click();
+assert.equal(stored(buy.window).length,3);
+b.querySelector('[data-act="cart-clear"]').click();b.querySelector('[data-act="cart-clear"]').click();
+assert.equal(stored(buy.window).length,0);
+buy.window.close();
+
+// 2) Otro proveedor con la oferta activa: se puede pagar y el formulario no mezcla los guardados.
+const active=structuredClone(base);
+active.vendors=[{id:'v2',name:'Segundo proveedor',status:'active'}];
+active.offers=[{id:'existing',vendorId:'v2',status:'published',stock:'ok',model:'Producto activo',category:'Mancuernas',size:'1 kg',unit:'Unidad',price:100,units:20,minQty:1,shipAmba:25,shipInt:50,lead:2,volume:[]}];
+buy=buyer(saved,active);await wait();b=buy.window.document;
+assert.equal(buy.window.cartGroups().groups.length,1);
+assert.equal(buy.window.cartGroups().groups[0].items[0].o.id,'existing');
+assert(!b.querySelector('[data-act="cart-pay"]').disabled);
+buy.window.go('checkout',{cartMode:true});
+assert(b.body.textContent.includes('Confirmá tu compra'));
+assert(!b.querySelector('form#checkout').textContent.includes('AB Fitness'));
+buy.window.close();
+
+// 3) Con el catálogo real: cada guardado pasa a su oferta publicada (misma clave de importación), sumando sin duplicar.
+const snap=JSON.parse(fs.readFileSync('tests/fixtures/live-snapshot.json','utf8')),cat=JSON.parse(fs.readFileSync('tests/fixtures/live-catalog.json','utf8'));
+const key1=slug+'#[{"name":"PESO","value":"1 KG"}]',o1=snap.offers.find(o=>o.sourceKey===key1),ok=snap.offers.find(o=>o.sourceKey===kit+'#[]');
+assert(o1&&ok);
+buy=buyer(saved,snap,cat);await wait();b=buy.window.document;
+const c=buy.window.getCart();
+assert(c.some(i=>i.id===o1.id&&i.qty===Math.min(6,o1.units==null?6:o1.units)),'PESO: 1 KG → oferta publicada');
+assert(c.some(i=>i.id===ok.id),'Presentación única → oferta sin propiedades');
+assert(c.some(i=>i.id==='ab:'+slug+':2'),'sin oferta publicada queda como guardado');
+assert(!/referencia|pendiente de activar/i.test(b.querySelector('main').textContent));
+assert.equal(errors.length,0,errors.join('; '));
+buy.window.close();
+console.log('OK: carritos guardados antes: pasan a la oferta publicada, los no disponibles quedan aparte, quitar/vaciar y exclusión del pago.');

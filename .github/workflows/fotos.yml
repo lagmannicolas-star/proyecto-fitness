@@ -1,0 +1,39 @@
+name: Fotos y catálogo propios
+
+# Copia las fotos de los productos a la propia página (assets/productos/) para no depender
+# de la tienda de cada proveedor, y guarda una foto del catálogo público para las pruebas.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
+  push:
+    branches: [etapa-1]
+    paths: ['.github/workflows/fotos.yml', 'scripts/fotos.py']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fotos-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet pillow==11.0.0
+      - run: python scripts/fotos.py
+      - name: Guardar cambios
+        run: |
+          git config user.name "nexofit-bot"
+          git config user.email "nexofit-bot@users.noreply.github.com"
+          git add assets/productos tests/fixtures
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Fotos y catálogo: actualización automática"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
