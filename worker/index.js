@@ -15,11 +15,22 @@ const MP_AUTH = 'https://auth.mercadopago.com.ar/authorization';
 const enc = new TextEncoder(), dec = new TextDecoder();
 // MP_API_URL y MP_AUTH_URL solo se usan para pruebas locales con un Mercado Pago simulado.
 const mpApi = env => env.MP_API_URL || MP_API;
+const SEO_PATHS = /^\/(?:|nicolas|nicolas\.html|sitemap\.xml|arma|arma\/.*|producto\/[^/]+\/?|categoria\/[^/]+\/?)$/;
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/fotos/') && request.method === 'GET') return servePhoto(env, url);
+    // Páginas para buscadores: producto, categoría, portada, Armá tu espacio y sitemap (ver worker/seo.js).
+    if ((request.method === 'GET' || request.method === 'HEAD') && SEO_PATHS.test(url.pathname)) {
+      try {
+        const { seoResponse } = await import('./seo.js');
+        return await seoResponse(request, env, url);
+      } catch (e) {
+        console.error('seo', e && e.message);
+        return env.ASSETS.fetch(request);
+      }
+    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
       return await api(request, env, url);
