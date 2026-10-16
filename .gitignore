@@ -2,3 +2,5 @@ node_modules
 node_modules/
 tests/export-views.mjs
 redes/*.zip
+__pycache__/
+*.pyc

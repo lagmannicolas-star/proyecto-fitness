@@ -7,6 +7,7 @@
 <meta name="description" content="Vendé tu equipamiento deportivo en Nexo Fit: llegá a gimnasios, clubes y colegios de todo el país. Sin abono fijo.">
 <link rel="canonical" href="https://nexofitt.com.ar/proveedores">
 <script src="assets/sitio.js"></script>
+<script src="assets/empresa.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
 <style>
@@ -839,6 +840,16 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
+.vr-card{display:flex;flex-direction:column;gap:14px}
+.vr-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px 20px}
+.vr-avg b{font-size:1.4rem}
+.vr-list{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.vr-item{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.vr-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.vr-stars{letter-spacing:2px}
+.vr-reply{align-self:stretch;padding:10px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 10px 10px 0}
+.vr-form{align-self:stretch;display:flex;flex-direction:column;gap:6px;max-width:640px}
+.vr-form textarea{width:100%;min-height:90px;padding:10px 12px;border:1.5px solid var(--field-line,rgba(16,23,31,.3));border-radius:10px;font:inherit;background:var(--surface,white);color:inherit}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
 </head>
@@ -881,7 +892,7 @@ var FC=(function(){
 
  function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#A5CC21;color:#10171F;padding:16px;border-radius:8px';document.body.appendChild(box);}box.textContent=e.message||String(e);setTimeout(function(){box.remove();},12000);}
  function token(){ensureSession();return session&&session.access_token||null;}
- return {token:token,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
+ return {rpc:function(fn,args){ensureSession();return request('/rest/v1/rpc/'+fn,args||{},true);},token:token,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
 })();
 
 
@@ -1362,7 +1373,7 @@ function demoLinks(cur){var items=[['nicolas.html','Compradores','buy'],['provee
 var CHAT='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>';
 /* Consultas centralizadas con contexto de empresa y producto. */
 function contactMessage(company,product,text){
- var lines=['Hola Nico, llegué desde Nexo Fit.'];
+ var lines=['Hola, llegué desde Nexo Fit.'];
  if(company) lines.push('Quiero consultar por la empresa '+company+'.');
  if(product) lines.push('Producto: '+product+'.');
  if(product&&typeof ui!=='undefined'){if(ui.qty)lines.push('Cantidad de referencia: '+ui.qty+'.');if(ui.cp)lines.push('Código postal: '+ui.cp+'.');}
@@ -1371,9 +1382,9 @@ function contactMessage(company,product,text){
  return lines.join('\n');
 }
 function waUrl(text,company,product){return 'https://wa.me/5491159656436?text='+encodeURIComponent("Hola Nicolas, vengo de nexofitt.com.ar, me gustaria incorporar nuestra empresa a la pagina, me podrias comentar condiciones?\nMuchas gracias");}
-function mailUrl(company,product){return 'mailto:lagmannicolas@gmail.com?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
+function mailUrl(company,product){var em=String((window.NEXOFIT_EMPRESA||{}).email||'').trim();if(!em)return '';return 'mailto:'+em+'?subject='+encodeURIComponent('CONSULTA ('+(company||'Consulta general')+')')+'&body='+encodeURIComponent(contactMessage(company,product,''));}
 function vendorMinimumNote(v){return v&&v.minOrderAmount>0?'<p class="note">Compra mínima de '+esc(v.name)+': '+money(v.minOrderAmount)+' en productos, sin envío. '+(v.pricesIncludeVat?'Precios con IVA incluido.':'')+'</p>':'';}
-function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar con Nico</a><a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a></div>';}
+function contactCtas(company,product){return '<div class="actions"><a class="btn btn-outline btn-sm" href="'+esc(waUrl('',company,product))+'" target="_blank" rel="noopener">'+CHAT+'Consultar por WhatsApp</a>'+(mailUrl(company,product)?'<a class="btn btn-outline btn-sm" href="'+esc(mailUrl(company,product))+'">Consultar por email</a>':'')+'</div>';}
 function waCta(label,cls,text){
   var u=waUrl(text);
   return u?'<a class="'+cls+'" href="'+esc(u)+'" target="_blank" rel="noopener">'+CHAT+'<span>'+label+'</span></a>'
@@ -1871,7 +1882,7 @@ function vPanel(){
   var toShip=ok.filter(function(o){ return !o.shipped; }).length;
   var cp=vComplete(v), low=mine.filter(function(o){ return stockState(o)==='low'; }), out=mine.filter(function(o){ return stockState(o)==='none'&&o.status!=='rejected'; });
   checkLateV(v);
-  var list=[{id:'resumen',label:'Resumen'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'}];
+  var list=[{id:'resumen',label:'Resumen'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'},{id:'resenas',label:'Reseñas'}];
   list.forEach(function(t){ t.count=vUnread(v,t.id); });
   if(!list[4].count&&cp.pct<100) list[4].count='!';
   if(!list.some(function(t){ return t.id===ui.tab; })) ui.tab='resumen';
@@ -1897,6 +1908,8 @@ function vPanel(){
     body=dataForm(v,cp);
   } else if(ui.tab==='promociones'){
     body=promotionForm(v);
+  } else if(ui.tab==='resenas'){
+    body=vendorReviewsView(v);
   } else {
     body='<div class="card" style="max-width:640px"><h2 class="display h-card">Mercado Pago</h2>'
       +(v.mp?'<div class="alert ok">Cuenta conectada. Cada venta se acredita en tu Mercado Pago.</div>':'<div class="alert">Todavía no conectaste tu cuenta.</div>')
@@ -1909,6 +1922,41 @@ function vPanel(){
   return '<div class="wrap page"><div class="adm-top-row"><h1 class="display h-page">'+esc(v.name)+'</h1><button type="button" class="bell'+(all?' on':'')+'" data-act="vbell" aria-expanded="'+ui.vbell+'" aria-label="Novedades'+(all?', '+all+' sin leer':'')+'">'+ico('bell',22)+'<span>Novedades</span>'+(all?'<span class="count">'+all+'</span>':'')+'</button></div>'
     +(ui.vbell?vBell(v):'')+warn+tabsHTML(list,ui.tab)+body+'</div>';
 }
+/* ---------- Reseñas de tus productos: solo las publicadas por el administrador; respondés una vez y podés editar la respuesta ---------- */
+async function loadVendorReviews(){
+ try{ var r=await FC.rpc('fitness_reviews_public'); ui.vrev=Array.isArray(r&&r.reviews)?r.reviews:[]; ui.vrevErr=''; }
+ catch(e){ ui.vrev=[]; ui.vrevErr=/could not find|does not exist|404/i.test(String(e&&e.message))?'off':(e&&e.message||'No pudimos cargar las reseñas.'); }
+ rerender();
+}
+function vendorReviewsView(v){
+ if(!ui.vrev){ setTimeout(loadVendorReviews,0); return '<div class="card"><p class="muted">Cargando reseñas…</p></div>'; }
+ if(ui.vrevErr==='off') return '<div class="card"><h2 class="display h-card">Reseñas</h2><p class="muted">Las reseñas se activan cuando se aplique la migración de reseñas en Supabase. Vas a poder responder cada reseña publicada de tus productos.</p></div>';
+ var mine=ui.vrev.filter(function(r){ return r&&r.vendorId===v.id; }),f=ui.vrevF||'todas',shown=mine.filter(function(r){ return f==='todas'||(f==='sin'?!r.reply:!!r.reply); });
+ var name=function(slug){ var o=db.offers.filter(function(x){ return String(x.sourceKey||'').split('#')[0]===slug; })[0]; return o?o.model:slug; };
+ var stars=function(n){ var s=''; for(var i=1;i<=5;i++) s+=i<=n?'★':'☆'; return '<span class="vr-stars" aria-label="'+n+' de 5 estrellas">'+s+'</span>'; };
+ var avg=mine.length?Math.round(mine.reduce(function(a,r){ return a+Number(r.rating||0); },0)/mine.length*10)/10:0;
+ return '<div class="card vr-card"><div class="vr-head"><div><h2 class="display h-card">Reseñas de tus productos</h2><p class="muted small">Las publica el administrador después de revisarlas. Tu respuesta se ve debajo de cada reseña, con el nombre de tu empresa.</p></div>'
+  +(mine.length?'<p class="vr-avg"><b class="num">'+String(avg).replace('.',',')+'</b> de 5 · '+mine.length+(mine.length===1?' reseña':' reseñas')+'</p>':'')+'</div>'
+  +(ui.vrevErr?'<p class="alert bad">'+esc(ui.vrevErr)+'</p>':'')
+  +(mine.length?'<div class="seg" role="group" aria-label="Filtrar reseñas">'+[['todas','Todas'],['sin','Sin responder ('+mine.filter(function(r){ return !r.reply; }).length+')'],['con','Respondidas']].map(function(x){ return '<button type="button" data-act="vr-filter" data-f="'+x[0]+'" aria-pressed="'+(f===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div>':'')
+  +(shown.length?'<ul class="vr-list">'+shown.map(function(r){ var open=ui.vrOpen===r.id;
+    return '<li class="vr-item"><div class="vr-meta">'+stars(r.rating)+'<span class="muted small">'+esc(r.name||'Comprador verificado')+' · '+fdate(String(r.createdAt||'').slice(0,10))+' · '+esc(name(r.slug))+'</span></div>'
+     +(r.title?'<b>'+esc(r.title)+'</b>':'')+'<p>'+esc(r.text)+'</p>'
+     +(r.reply&&!open?'<div class="vr-reply"><span class="muted small">Tu respuesta'+(r.replyAt?' · '+fdate(String(r.replyAt).slice(0,10)):'')+'</span><p>'+esc(r.reply)+'</p><button type="button" class="linkbtn" data-act="vr-open" data-id="'+esc(r.id)+'">Editar respuesta</button></div>':'')
+     +(open?'<form class="vr-form" data-id="'+esc(r.id)+'" novalidate><label for="vr-text-'+esc(r.id)+'">Tu respuesta</label><textarea id="vr-text-'+esc(r.id)+'" maxlength="1000" rows="3" required>'+esc(r.reply||'')+'</textarea><span class="hint">Entre 2 y 1000 caracteres. Respondé con respeto y sin datos personales.</span><p class="alert bad" id="vr-err-'+esc(r.id)+'" role="alert" hidden></p><div class="actions"><button type="submit" class="btn btn-accent btn-sm">'+(r.reply?'Guardar respuesta':'Publicar respuesta')+'</button><button type="button" class="btn btn-outline btn-sm" data-act="vr-cancel">Cancelar</button></div></form>'
+      :(r.reply?'':'<button type="button" class="btn btn-outline btn-sm" data-act="vr-open" data-id="'+esc(r.id)+'">Responder</button>'))+'</li>'; }).join('')+'</ul>'
+   :'<p class="muted">'+(mine.length?'No hay reseñas en esta vista.':'Todavía no hay reseñas publicadas de tus productos. Cuando un comprador califique una compra y el administrador la publique, la vas a ver acá.')+'</p>')+'</div>';
+}
+document.addEventListener('click',function(ev){ var t=ev.target.closest&&ev.target.closest('[data-act="vr-open"],[data-act="vr-cancel"],[data-act="vr-filter"]'); if(!t) return;
+ if(t.dataset.act==='vr-filter'){ ui.vrevF=t.dataset.f; rerender(); return; }
+ ui.vrOpen=t.dataset.act==='vr-open'?Number(t.dataset.id):null; rerender(); if(ui.vrOpen!=null){ var ta=document.getElementById('vr-text-'+ui.vrOpen); if(ta){ try{ ta.focus(); }catch(e){} } } });
+document.addEventListener('submit',function(ev){ var f=ev.target; if(!f.classList||!f.classList.contains('vr-form')) return; ev.preventDefault();
+ var id=Number(f.getAttribute('data-id')),ta=document.getElementById('vr-text-'+id),err=document.getElementById('vr-err-'+id),txt=String(ta&&ta.value||'').trim();
+ if(txt.length<2||txt.length>1000){ if(err){ err.textContent='La respuesta tiene que tener entre 2 y 1000 caracteres.'; err.hidden=false; } if(ta) ta.focus(); return; }
+ var b=f.querySelector('[type="submit"]'); if(b){ b.disabled=true; b.textContent='Guardando…'; }
+ FC.rpc('fitness_review_reply',{p_id:id,p_reply:txt}).then(function(){ (ui.vrev||[]).forEach(function(r){ if(r.id===id){ r.reply=txt; r.replyAt=new Date().toISOString(); } }); ui.vrOpen=null; toast('Respuesta publicada'); rerender(); })
+  .catch(function(e){ if(b){ b.disabled=false; b.textContent='Publicar respuesta'; } if(err){ err.textContent=/could not find/i.test(String(e&&e.message))?'Las respuestas se activan cuando se aplique la migración de reseñas.':(e&&e.message||'No pudimos guardar la respuesta.'); err.hidden=false; } });
+});
 function modelOpts(cat,cur){ var c=catBy(cat)||CATALOG[0]; return c.m.map(function(m){ return '<option'+(m[0]===cur?' selected':'')+'>'+esc(m[0])+'</option>'; }).join(''); }
 function sizeOpts(cat,model,cur){ var c=catBy(cat)||CATALOG[0], m=modelBy(c.n,model)||c.m[0]; return m[1].map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>'; }).join(''); }
 function modelInfo(cat,model){

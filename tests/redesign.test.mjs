@@ -19,31 +19,16 @@ assert(!d.getElementById('ab-productos')&&!d.getElementById('productos-proveedor
 assert(!/Administrador|Actualizar datos/.test(d.querySelector('footer').textContent),'no admin links in the footer');
 assert(d.querySelector('#hsearch #hq'),'header search');
 assert(d.querySelector('details #bb'),'bar calculator remains available');
+// El comparador nuevo (etapa 4) arma categoría → modelo → medida con la capa de productos; sin catálogo publicado muestra un estado vacío claro.
 w.go('buscar');
-assert.equal(d.querySelectorAll('.cat-card').length,w.CATALOG.length);
-assert.equal(d.querySelectorAll('.space-card img,.space-card svg,.cat-card svg').length,0);
-assert.equal(d.querySelectorAll('.cat-card img').length,w.CATALOG.length);
-for(const img of d.querySelectorAll('.cat-card img'))assert(fs.existsSync(img.getAttribute('src')),'category photo exists');
+assert(d.querySelector('.nf-cmp .cmp-steps'),'comparador por pasos');
+assert(d.querySelector('.nf-cmp .nf-empty'),'sin productos: estado vacío');
+assert(!d.querySelector('.cat-card')&&!d.querySelector('.vchip'),'el comparador viejo ya no se muestra');
 assert(!source.includes('var CAT_ART='),'generated illustrations removed');
 assert(!d.querySelector('.mv'),'mission/vision removed from main flow');
 const catalog=JSON.stringify(w.CATALOG);
-for(const space of w.spaces()){
- w.go('buscar');d.querySelector('[data-space="'+space.n+'"]').click();
- assert.equal(w.ui.route,'buscar');assert.equal(w.ui.space,space.n);
- assert.equal(d.querySelector('[data-space="'+space.n+'"]').getAttribute('aria-pressed'),'true');
- assert.equal(d.querySelectorAll('.cat-card').length,w.CATALOG.filter(c=>space.cats.includes(c.n)).length);
- d.querySelector('[data-act="space-clear"]').click();
- assert.equal(d.querySelectorAll('.cat-card').length,w.CATALOG.length);
- assert.equal(d.querySelectorAll('.space-card[aria-pressed="true"]').length,0);
-}
 let variants=0;
-for(const c of w.CATALOG){
- w.go('buscar');d.querySelector('[data-cat="'+c.n+'"]').click();assert.equal(w.ui.route,'cat');assert.equal(w.ui.cat,c.n);
- assert.equal(d.querySelectorAll('.vchip[data-act="variant"]').length,c.m.reduce((n,m)=>n+m[1].length,0));
- assert(d.querySelector('details'),'comparison instructions retained');
- d.querySelector('.vchip[data-act="variant"]').click();assert.equal(w.ui.route,'compare');
- assert.equal(w.ui.model,c.m[0][0]);assert.equal(w.ui.size,c.m[0][1][0]);variants++;
-}
+for(const route of ['cat','compare']){w.go(route);assert.equal(w.ui.route,'buscar','la ruta vieja '+route+' abre el comparador');assert(d.querySelector('.nf-cmp'));variants++;}
 w.go('home');const start=w.liftKg();d.querySelector('[data-act="plate"]').click();assert(w.liftKg()>start);d.querySelector('[data-act="plate-clear"]').click();assert.equal(w.liftKg(),20);
 for(const route of ['buscar','carrito','ingresar','pedido','home']){w.go(route);assert.equal(w.ui.route,route);assert(d.querySelector('main').textContent.trim().length>10);}
 assert.equal(JSON.stringify(w.CATALOG),catalog,'catalog unchanged by navigation');
@@ -53,4 +38,4 @@ for(const file of ['nicolas.html','admin.html','proveedores.html']){
  assert.equal((text.match(/var LOGO=/g)||[]).length,1);
 }
 assert.equal(errors.length,0,errors.join(';'));
-console.log('OK: all '+w.spaces().length+' spaces, '+variants+' categories, variant routes, clear selections, calculator, cart, account and order lookup; brand palette only.');dom.window.close();
+console.log('OK: all '+w.spaces().length+' spaces, comparator steps and '+variants+' legacy routes, calculator, cart, account and order lookup; brand palette only.');dom.window.close();

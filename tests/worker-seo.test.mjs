@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 // Supabase y los archivos del sitio están simulados con los datos reales de tests/fixtures.
 const root = new URL('../', import.meta.url);
 const read = p => fs.readFileSync(new URL(p, root), 'utf8');
-const html = read('nicolas.html'), catalog = JSON.parse(read('tests/fixtures/live-catalog.json')), snap = JSON.parse(read('tests/fixtures/live-snapshot.json')), mapa = JSON.parse(read('assets/productos/mapa.json'));
+const html = read('nicolas.html'), catalog = JSON.parse(read('tests/fixtures/live-catalog.json')), snap = JSON.parse(read('tests/fixtures/live-snapshot.json')), mapa = JSON.parse(read('assets/productos/mapa.json')), textos = JSON.parse(read('assets/productos/textos.json'));
 const worker = (await import(new URL('worker/index.js', root))).default;
 const seo = await import(new URL('worker/seo.js', root));
 const texto = await import(new URL('worker/texto.js', root));
@@ -21,7 +21,7 @@ globalThis.fetch = async (url, opts = {}) => {
   return new Response('?', { status: 404 });
 };
 const env = { SUPABASE_URL: 'https://db.example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test',
-  ASSETS: { fetch: async req => { const p = new URL(req.url).pathname; if (p === '/nicolas') return new Response(html, { headers: { 'Content-Type': 'text/html' } }); if (p === '/assets/productos/mapa.json') return new Response(JSON.stringify(mapa)); return new Response('asset ' + p, { status: p.startsWith('/assets/') || p.endsWith('.html') ? 200 : 404 }); } } };
+  ASSETS: { fetch: async req => { const p = new URL(req.url).pathname; if (p === '/nicolas') return new Response(html, { headers: { 'Content-Type': 'text/html' } }); if (p === '/assets/productos/mapa.json') return new Response(JSON.stringify(mapa)); if (p === '/assets/productos/textos.json') return new Response(JSON.stringify(textos)); return new Response('asset ' + p, { status: p.startsWith('/assets/') || p.endsWith('.html') ? 200 : 404 }); } } };
 const get = path => worker.fetch(new Request('https://nexofitt.com.ar' + path), env);
 const ld = page => [...page.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1]));
 const meta = (page, re) => (re.exec(page) || [])[1];
@@ -39,6 +39,12 @@ for (const c of catalog) {
 }
 for (const o of snap.offers) assert.equal(texto.nfDetail(o.detail, o.model), pageCtx.nfDetail(o.detail, o.model));
 for (const n of ['Combos y kits', 'Natación', 'Accesorios de yoga y pilates']) assert.equal(texto.catSlug(n), pageCtx.catSlug(n));
+// Descripciones completas: el Worker y la tienda leen igual las 466 fichas, y worker/texto.js está generado desde la página.
+const names = {}; for (const c of catalog) names[c.key.split('#')[0]] = c.name;
+for (const [slug, t] of Object.entries(textos)) assert.deepEqual(JSON.parse(JSON.stringify(texto.nfDesc(t.d, names[slug]))), JSON.parse(JSON.stringify(pageCtx.nfDesc(t.d, names[slug]))), slug);
+const gen = await import(new URL('scripts/texto-worker.mjs', root));
+assert.equal(read('worker/texto.js'), gen.build(), 'worker/texto.js al día: correr node scripts/texto-worker.mjs');
+assert.deepEqual(Array.from(texto.NF_FAQ, x => Array.from(x)), Array.from(pageCtx.NF_FAQ, x => Array.from(x)));
 
 // ---------- Producto ----------
 const KIT = 'kit-fuerza-tonificacion-colchoneta-tobillera-3k-mancuerna-3k-4dhms';
@@ -50,6 +56,7 @@ assert.equal(meta(page, /<link rel="canonical" href="([^"]*)">/), 'https://nexof
 assert.equal(meta(page, /<meta property="og:url" content="([^"]*)">/), 'https://nexofitt.com.ar/producto/' + KIT);
 assert.match(meta(page, /<meta property="og:image" content="([^"]*)">/), /^https:\/\/nexofitt\.com\.ar\/assets\/productos\/[\w]+\.webp$/, 'foto propia');
 const desc = meta(page, /<meta name="description" content="([^"]*)">/); assert(desc.length > 50 && desc.length <= 170, desc);
+assert(desc.startsWith('Kit Fuerza &amp; Tonificación: incluye una colchoneta'), 'la descripción para Google sale del texto real: ' + desc);
 assert.match(page, /<meta name="nf-routing" content="paths">/);
 assert.match(page, /<meta charset="utf-8"><base href="\/">/, 'base para que assets/… funcione en rutas anidadas');
 assert.equal((page.match(/<title>/g) || []).length, 1, 'un solo título');
@@ -58,6 +65,8 @@ assert.equal(product.name, 'Kit fuerza & tonificación: colchoneta tobillera 3 k
 assert(['Offer', 'AggregateOffer'].includes(product.offers['@type'])); assert.equal(product.offers.priceCurrency, 'ARS');
 assert.equal(product.offers.availability, 'https://schema.org/InStock'); assert(product.image.length > 1 && product.image.every(u => u.startsWith('https://')));
 assert.equal(product.brand.name, 'AB Fitness'); assert(!('aggregateRating' in product), 'sin reseñas no hay puntaje');
+assert(product.description.length > 200 && product.description.includes('espuma de polietileno'), 'descripción completa en JSON-LD');
+assert.equal(new Set(product.image).size, product.image.length, 'fotos sin repetir');
 assert.deepEqual(crumbs.itemListElement.map(i => i.name), ['Inicio', 'Combos y kits', product.name]);
 // Contenido legible sin JavaScript dentro de #app
 const app = page.slice(page.indexOf('<div id="app">'), page.indexOf('<div id="toast"'));
@@ -67,6 +76,14 @@ assert(/href="\/producto\/[^"]+"/.test(app), 'enlaces a otros productos');
 const out = catalog.map(c => c.key.split('#')[0]).find(s => catalog.filter(c => c.key.startsWith(s + '#')).every(c => !snap.offers.some(o => o.sourceKey === c.key && o.stock !== 'none' && o.units !== 0)));
 page = await (await get('/producto/' + out)).text();
 assert.equal(ld(page)[0]['@graph'][0].offers.availability, 'https://schema.org/OutOfStock');
+
+// Galería completa en JSON-LD y descripción con listas y ficha técnica en la página.
+page = await (await get('/producto/discos-3-kg-acanalado-con-agarre-de-pvc-para-barra-unidad')).text();
+const disco = ld(page)[0]['@graph'][0];
+assert(disco.image.length >= 5 && disco.image.every(u => /^https:\/\/nexofitt\.com\.ar\/assets\/productos\/[\w]+\.webp$/.test(u)), 'galería: ' + disco.image.length);
+page = await (await get('/producto/barra-w-de-cano-hueca-con-topes')).text();
+assert(/<section class="nf-desc">[\s\S]*<ul><li>Confeccionada en caño de 25 mm hueco<\/li>/.test(page) && /<dt>Largo<\/dt><dd>125 cm<\/dd>/.test(page), 'lista y ficha técnica');
+assert(ld(page)[0]['@graph'][0].additionalProperty.some(x => x.name === 'Diámetro' && x.value === '25 mm'));
 
 // ---------- 404 ----------
 r = await get('/producto/no-existe-este-producto'); page = await r.text();
@@ -82,6 +99,10 @@ page = await (await get('/')).text();
 const home = ld(page)[0]['@graph']; assert(home.some(x => x['@type'] === 'Organization'));
 assert.equal(home.find(x => x['@type'] === 'WebSite').potentialAction.target.urlTemplate, 'https://nexofitt.com.ar/?q={search_term_string}');
 assert.equal(meta(page, /<link rel="canonical" href="([^"]*)">/), 'https://nexofitt.com.ar/');
+const faq = home.find(x => x['@type'] === 'FAQPage'); assert.equal(faq.mainEntity.length, 6); assert(faq.mainEntity.every(q => q.name.endsWith('?') && q.acceptedAnswer.text.length > 80));
+assert(faq.mainEntity.some(q => /10 días corridos/.test(q.acceptedAnswer.text)), 'mismas condiciones que terminos.html');
+assert(page.includes('<section class="section nf-faq" id="preguntas">'), 'las preguntas también se ven en la página');
+assert(!page.includes('gmail.com'), 'sin email personal');
 page = await (await get('/nicolas.html?v=1')).text(); assert.equal(meta(page, /<link rel="canonical" href="([^"]*)">/), 'https://nexofitt.com.ar/', 'una sola dirección para la portada');
 page = await (await get('/arma/lista')).text(); assert.match(meta(page, /<title>([^<]*)<\/title>/), /^Armá tu espacio/); assert.equal(meta(page, /<link rel="canonical" href="([^"]*)">/), 'https://nexofitt.com.ar/arma');
 
