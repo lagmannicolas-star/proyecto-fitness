@@ -138,14 +138,19 @@ def read_product(html, base):
     for m in re.finditer(r'(?:https?:)?//[\w.-]*mitiendanube\.com/stores/[\w/]+/products/[\w.-]+?-(?:\d+)-(?:\d+)\.(?:webp|jpe?g|png)', zone):
         u = m.group(0)
         u = ('https:' + u) if u.startswith('//') else u
-        key = re.sub(r'-\d+-\d+\.(webp|jpe?g|png)$', '', u)
+        key = re.sub(r'-\d+-\d+\.(webp|jpe?g|png)$', '', u.split('?')[0])
         if key in seen:
             continue
         seen.add(key)
         gallery.append(re.sub(r'-\d+-\d+\.(webp|jpe?g|png)$', r'-1024-1024.\1', u))
         if len(gallery) >= 8:
             break
-    return clean_text(desc), gallery
+    text = clean_text(desc)
+    # "Comprá online X por $..." es el texto automático de la tienda, no una descripción.
+    if re.match(r'(?i)^compr[aá] online', text):
+        text = ''
+    text = re.sub(r'(?i)^descripci[oó]n\s*\n+', '', text).strip()
+    return text, gallery
 
 
 def main():
