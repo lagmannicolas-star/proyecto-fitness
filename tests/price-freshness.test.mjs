@@ -28,7 +28,8 @@ const isFresh=(updated,today='2026-10-16')=>{
 assert.equal(isFresh('2026-10-16'),true);
 assert.equal(isFresh('2026-09-16'),true);
 assert.equal(isFresh('2026-09-15'),false);
-assert.equal(isFresh(''),false);
+assert.equal(isFresh('', '2026-10-16'),true);
+assert.equal(isFresh('', '2026-11-16'),false);
 assert.equal(isFresh('2026-10-17'),false);
 
 console.log('OK: precios vencidos quedan fuera de compra hasta su reconfirmación.');
