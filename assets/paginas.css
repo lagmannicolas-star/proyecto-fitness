@@ -153,3 +153,28 @@ main section{margin-bottom:48px}
  .cmp td:not(:first-child)::before{content:attr(data-label);display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
  .cmp tr.win{background:var(--soft);border-radius:10px}.cmp tr.win td{background:none}
 }
+/* Pedido de oferta (proveedores) */
+.of-pedido{max-width:720px;margin-top:16px}.of-pedido h2{margin-top:0}
+.of-items{margin:8px 0 14px;padding-left:20px}.of-items li{margin-bottom:4px}
+.of-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px 18px;margin:0}
+.of-datos dt{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.of-datos dd{margin:0;font-weight:600}
+.of-reglas{max-width:720px;margin:16px 0}
+#of-estado{max-width:720px}#of-estado .alert{margin-bottom:16px}
+.of-total{max-width:720px;margin:0;background:var(--surface)}
+/* Comparación de ofertas para el comprador */
+.cmp-of{display:flex;flex-direction:column;gap:12px}.cmp-of h2{margin:8px 0 0}
+.reco{border:2px solid var(--accent);background:var(--soft);border-radius:14px;padding:14px 16px}.reco p{margin:0 0 4px}
+.of-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}
+.of-card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--bg)}
+.of-card.best{border:2px solid var(--accent);box-shadow:0 6px 20px rgba(16,23,31,.08)}
+.of-card.chosen{border:2px solid var(--ink)}
+.of-card.old{opacity:.6}
+.of-h{display:flex;align-items:center;gap:8px;font-size:1.1rem}.of-h .pill{margin-left:0}
+.of-tot{font-size:1.6rem;font-weight:700;margin:0;line-height:1.1}.of-tot span{font-size:.85rem;font-weight:400;margin-left:6px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.tag{font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--soft)}
+.tag.warn{background:var(--surface);outline:1px solid var(--line)}
+.of-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0}
+.of-dl dt{font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.of-dl dd{margin:0;font-weight:600}
+.of-card .btn{margin-top:auto}
+.confirm{border-top:1px solid var(--line);padding-top:10px}.confirm p{margin:0 0 6px}

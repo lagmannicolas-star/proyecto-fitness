@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedido de oferta · Nexo Fit</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+</head>
+<body data-segmento="oferta">
+<header class="top" id="top"></header>
+<main class="wrap">
+  <p class="eyebrow">Pedido de oferta para proveedores</p>
+  <h1 id="of-titulo">Cargando el pedido…</h1>
+  <p id="of-error" class="alert" role="alert" hidden></p>
+  <div id="of-body" hidden>
+    <section class="card of-pedido" aria-labelledby="pedido-t">
+      <h2 id="pedido-t">Qué necesita el comprador</h2>
+      <ul class="of-items" id="of-items"></ul>
+      <dl class="of-datos" id="of-datos"></dl>
+      <p class="muted small" id="of-detalles"></p>
+    </section>
+
+    <section class="note small of-reglas">
+      <b>Cómo funciona:</b> el comprador ve las ofertas sin el nombre de cada empresa y elige según costo total, plazo, cuotas y garantía. Vos no ves las ofertas de los demás y ellos no ven la tuya. Si te elige, Nexo Fit te contacta para coordinar pago y entrega.
+    </section>
+
+    <section id="of-estado"></section>
+
+    <form id="of-form" class="sol" novalidate>
+      <fieldset>
+        <legend>Tu oferta</legend>
+        <div class="row2">
+          <div><label for="precio">Precio total del pedido ($, con IVA)</label><input id="precio" inputmode="decimal" required maxlength="16" placeholder="Ej.: 950.000"><p class="hint">Por todo lo pedido, con las cantidades indicadas.</p></div>
+          <div><label for="envio">Envío a <span id="of-dest">destino</span> ($)</label><input id="envio" inputmode="decimal" maxlength="16" placeholder="0"><label class="check small"><input type="checkbox" id="envio-incl"> <span>El envío está incluido en el precio</span></label></div>
+        </div>
+        <div class="row2">
+          <div><label for="plazo">Plazo de entrega (días hábiles)</label><input id="plazo" type="number" inputmode="numeric" min="1" max="180" required placeholder="Ej.: 5"><p class="hint" id="plazo-hint"></p></div>
+          <div><label for="cuotas">Cuotas sin interés</label><select id="cuotas"><option value="0">Sin cuotas</option><option value="3">3 cuotas</option><option value="6">6 cuotas</option><option value="9">9 cuotas</option><option value="12">12 cuotas</option><option value="18">18 cuotas</option></select></div>
+        </div>
+        <div class="row2">
+          <div><label for="garantia">Garantía (meses)</label><input id="garantia" type="number" inputmode="numeric" min="0" max="120" value="0"></div>
+          <div><label for="valida">La oferta vale hasta</label><input id="valida" type="date" required></div>
+        </div>
+        <div class="opts" role="radiogroup" aria-label="¿Cubrís todo el pedido?">
+          <label class="opt"><input type="radio" name="cumple" value="total" checked><span><b>Cubro todo el pedido</b><span class="muted small">Todos los productos y cantidades.</span></span></label>
+          <label class="opt"><input type="radio" name="cumple" value="parcial"><span><b>Cubro una parte</b><span class="muted small">Contá abajo qué no incluís.</span></span></label>
+        </div>
+        <div><label for="notas">Notas para el comprador <span class="muted">(opcional)</span></label>
+          <textarea id="notas" maxlength="600" placeholder="Ej.: marca y modelo, colores disponibles, si incluye instalación."></textarea>
+          <p class="hint">No incluyas teléfonos, emails ni redes: el contacto se comparte cuando el comprador elige.</p></div>
+      </fieldset>
+      <p class="card of-total" id="of-total" aria-live="polite"></p>
+      <button class="btn btn-accent btn-big" type="submit" id="of-enviar">Enviar oferta</button>
+    </form>
+  </div>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script src="assets/oferta.js"></script>
+</body>
+</html>

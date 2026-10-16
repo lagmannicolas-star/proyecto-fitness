@@ -34,3 +34,13 @@ La suite utiliza datos de ejemplo y respuestas de API simuladas; no confirma pag
 ## Catálogo AB Fitness
 
 `catalogo-ab.html` incluye 466 productos visibles y 724 variantes de la exportación recibida. Ofrece búsqueda, filtro por 35 categorías visibles, detalle de variantes, cantidades y botón Agregar al carrito. Los 93 productos ocultos no se exponen. Los precios se identifican como referencia del archivo, no como oferta activa. La selección de AB se guarda en el mismo carrito local, separada de las ofertas activas. Permite cambiar cantidades, quitar variantes y ver un subtotal de referencia. No se envía al pago ni a reservas sin precio/stock/condiciones confirmados. La importación autenticada de los 865 borradores y la activación de ofertas comprables siguen pendientes.
+
+## Pedí ofertas (modelo híbrido)
+
+- `index.html`: portada "¿Qué querés equipar?". Los links de pago, el carrito y las vueltas de Mercado Pago siguen yendo a `nicolas.html`.
+- `arma-tu-espacio.html`: arma una lista sugerida y la pasa a `solicitud.html`.
+- `solicitud.html`: el comprador pide ofertas y recibe un número SOL-.
+- Admin → Solicitudes: red de proveedores (rubros y zonas), invitaciones con link privado y estado de cada oferta.
+- `oferta.html#t=<token>`: el proveedor ve el pedido sin datos del comprador y carga su oferta (precio, envío, plazo, cuotas, garantía, validez).
+- `mi-solicitud.html`: el comprador ve las ofertas comparadas (sin nombres hasta elegir), la recomendación según sus prioridades (`assets/recomendar.js`) y elige una.
+- Vencimientos: una solicitud abierta sin movimiento por 30 días queda vencida; una oferta vale hasta la fecha que puso el proveedor (máximo 90 días).

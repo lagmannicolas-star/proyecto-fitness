@@ -9,9 +9,13 @@
   var PASOS = [
     ['nueva', 'Recibida', 'Revisamos tu pedido y elegimos a qué proveedores consultar.'],
     ['enviada', 'Consultando proveedores', 'Los proveedores que pueden cumplirlo están preparando su oferta.'],
-    ['con_ofertas', 'Ofertas listas', 'Comparamos las ofertas y te las enviamos con nuestra recomendación.'],
-    ['cerrada', 'Compra cerrada', 'Elegiste una oferta. ¡Gracias por comprar en Nexo Fit!']
+    ['con_ofertas', 'Ofertas listas', 'Compará las ofertas abajo y elegí la que más te convenga.'],
+    ['elegida', 'Oferta elegida', 'Nexo Fit te contacta para coordinar el pago y la entrega.'],
+    ['cerrada', 'Compra cerrada', '¡Gracias por comprar en Nexo Fit!']
   ];
+  var money = function (n) { return '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 }); };
+  var dia = function (iso) { try { var p = String(iso).split('-'); return p[2] + '/' + p[1]; } catch (e) { return iso; } };
+  var actual = { code: '', email: '' }, confirmar = null, ultimo = null;
   var form = $('buscar');
   if (!form) return;
 
@@ -28,17 +32,21 @@
       + '<p class="muted small">Creada el ' + esc(fecha(s.createdAt)) + '<br>' + esc(s.productos) + (s.productos === 1 ? ' producto' : ' productos') + ' · entrega en ' + esc(s.localidad) + '</p></div>';
     if (s.status === 'descartada') {
       html += '<p class="alert">Esta solicitud quedó sin efecto. Si fue un error o querés retomarla, escribinos.</p>';
+    } else if (s.status === 'vencida') {
+      html += '<p class="alert">Esta solicitud venció porque pasaron 30 días sin movimiento. Si todavía necesitás el equipamiento, hacé una nueva y la retomamos.</p><div class="actions"><a class="btn btn-accent" href="solicitud.html">Hacer una nueva solicitud</a></div>';
     } else {
       html += '<ol class="timeline">' + PASOS.map(function (p, i) {
         var cls = i < idx ? 'done' : i === idx ? 'now' : '';
         var extra = '';
         if (p[0] === 'enviada' && s.proveedores > 0 && i <= idx) extra = ' <b>' + s.proveedores + (s.proveedores === 1 ? ' proveedor consultado.' : ' proveedores consultados.') + '</b>';
-        if (p[0] === 'con_ofertas' && s.ofertas > 0 && i <= idx) extra = ' <b>' + s.ofertas + (s.ofertas === 1 ? ' oferta recibida.' : ' ofertas recibidas.') + '</b>';
+        var nOf = (s.ofertas || []).length;
+        if (p[0] === 'con_ofertas' && nOf > 0 && i <= idx) extra = ' <b>' + nOf + (nOf === 1 ? ' oferta recibida.' : ' ofertas recibidas.') + '</b>';
         return '<li class="' + cls + '"' + (i === idx ? ' aria-current="step"' : '') + '><span class="dot" aria-hidden="true"></span><div><b>' + esc(p[1]) + '</b>'
           + (i === idx ? ' <span class="pill">Ahora</span>' : '') + '<p class="muted small">' + esc(p[2]) + extra + '</p></div></li>';
       }).join('') + '</ol>';
     }
     if (s.nota) html += '<p class="note"><b>Mensaje de Nexo Fit:</b> ' + esc(s.nota) + '</p>';
+    html += ofertasHTML(s);
     if (Array.isArray(s.items) && s.items.length) {
       html += '<details class="seg-items"><summary>Ver lo que pediste</summary><ul>' + s.items.map(function (it) {
         return '<li>' + esc(it.cantidad) + ' × ' + esc(it.producto) + (it.detalle ? ' <span class="muted">(' + esc(it.detalle) + ')</span>' : '') + '</li>';
@@ -47,13 +55,69 @@
     html += '<p class="muted small">Última actualización: ' + esc(fecha(s.updatedAt)) + '</p>';
     if (E.whatsapp) html += '<div class="actions"><a class="btn btn-dark" target="_blank" rel="noopener" href="https://wa.me/' + esc(E.whatsapp) + '?text=' + encodeURIComponent('Hola, quiero consultar por mi solicitud ' + s.code + ' en Nexo Fit.') + '">Consultar por WhatsApp</a></div>';
     html += '</div>';
-    var box = $('resultado');
-    box.innerHTML = html; box.hidden = false; box.focus();
+    var box = $('resultado'), primera = box.hidden;
+    box.innerHTML = html; box.hidden = false; if (primera) box.focus();
   }
 
+  // Comparación de ofertas: sin nombres hasta elegir, con la recomendación explicada.
+  function ofertasHTML(s) {
+    var ofs = s.ofertas || [];
+    if (!ofs.length) return '';
+    var R = w.nfRecomendar ? w.nfRecomendar(ofs, s.prioridad, s.plazo) : { mejor: null, motivo: '', marcas: {} };
+    var elegida = ofs.filter(function (o) { return o.elegida; })[0];
+    var puedeElegir = s.status === 'con_ofertas';
+    var orden = ofs.slice().sort(function (a, b) {
+      if (R.mejor) { if (a.id === R.mejor.id) return -1; if (b.id === R.mejor.id) return 1; }
+      return (a.vencida - b.vencida) || (a.total - b.total);
+    });
+    var h = '<section class="cmp-of" aria-labelledby="cmp-t"><h2 id="cmp-t">' + (elegida ? 'Tu elección' : 'Compará las ofertas') + '</h2>';
+    if (elegida) {
+      h += '<div class="alert ok"><b>Elegiste la Oferta ' + esc(elegida.letra) + (elegida.proveedor ? ' de ' + esc(elegida.proveedor) : '') + '</b> por ' + money(elegida.total)
+        + '. Nexo Fit te va a contactar para coordinar el pago y la entrega. Elegir no te cobró nada.</div>';
+    } else if (R.mejor && ofs.length > 1) {
+      h += '<div class="reco"><p class="eyebrow">Recomendación de Nexo Fit</p><p><b>Oferta ' + esc(R.mejor.letra) + '.</b> ' + esc(R.motivo) + '</p>'
+        + '<p class="muted small">La calculamos con las prioridades que marcaste. Es una ayuda: la decisión es tuya.</p></div>';
+    } else if (R.mejor) {
+      h += '<p class="muted small">' + esc(R.motivo) + ' Te avisamos si llegan más ofertas.</p>';
+    }
+    h += '<p class="muted small">Los nombres de los proveedores se muestran cuando elegís. Así cada uno ofrece su mejor condición sin copiar a los demás.</p><div class="of-list">';
+    h += orden.map(function (o) {
+      var marcas = (R.marcas[o.id] || []), esMejor = R.mejor && o.id === R.mejor.id && !elegida;
+      var cls = 'of-card' + (esMejor ? ' best' : '') + (o.elegida ? ' chosen' : '') + (o.vencida ? ' old' : '');
+      var row = function (k, v) { return '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>'; };
+      var btn = '';
+      if (puedeElegir && !o.vencida) {
+        btn = confirmar === o.id
+          ? '<div class="confirm"><p>¿Elegís la <b>Oferta ' + esc(o.letra) + '</b> por <b>' + money(o.total) + '</b>? Te contactamos para coordinar pago y entrega. Elegir no te cobra nada todavía.</p><div class="actions"><button class="btn btn-accent" type="button" data-elegir="' + o.id + '" data-ok="1">Sí, elegir esta oferta</button><button class="btn btn-outline" type="button" data-cancelar="1">Volver</button></div></div>'
+          : '<button class="btn ' + (esMejor ? 'btn-accent' : 'btn-outline') + '" type="button" data-elegir="' + o.id + '">Elegir esta oferta</button>';
+      }
+      return '<article class="' + cls + '"><div class="of-h"><b>Oferta ' + esc(o.letra) + '</b>' + (esMejor ? '<span class="pill">Recomendada</span>' : '') + (o.elegida ? '<span class="pill">Elegida</span>' : '') + '</div>'
+        + '<p class="of-tot">' + money(o.total) + '<span class="muted small"> costo total</span></p>'
+        + (marcas.length ? '<p class="tags">' + marcas.map(function (m) { return '<span class="tag' + (/después|parte|Vencida/.test(m) ? ' warn' : '') + '">' + esc(m) + '</span>'; }).join('') + '</p>' : '')
+        + '<dl class="of-dl">' + row('Productos', money(o.precio)) + row('Envío', Number(o.envio) ? money(o.envio) : 'Incluido') + row('Entrega', o.plazo + (o.plazo === 1 ? ' día hábil' : ' días hábiles'))
+        + row('Cuotas', o.cuotas ? o.cuotas + ' sin interés' : 'No') + row('Garantía', o.garantia ? o.garantia + (o.garantia === 1 ? ' mes' : ' meses') : 'Sin garantía') + row('Vale hasta', esc(dia(o.validaHasta))) + '</dl>'
+        + (o.notas ? '<p class="small"><b>Notas del proveedor:</b> ' + esc(o.notas) + '</p>' : '') + btn + '</article>';
+    }).join('');
+    return h + '</div></section>';
+  }
+
+  $('resultado').addEventListener('click', function (ev) {
+    var c = ev.target.closest('[data-cancelar]');
+    if (c) { confirmar = null; render(ultimo); return; }
+    var b = ev.target.closest('[data-elegir]');
+    if (!b || b.disabled) return;
+    var id = Number(b.getAttribute('data-elegir'));
+    if (!b.getAttribute('data-ok')) { confirmar = id; render(ultimo); var k = $('resultado').querySelector('[data-ok]'); if (k) k.focus(); return; }
+    b.disabled = true; b.textContent = 'Guardando…';
+    fetch(DB.url + '/rest/v1/rpc/fitness_oferta_elegir', { method: 'POST', headers: { apikey: DB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_code: actual.code, p_email: actual.email, p_oferta: id }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.message || 'No pudimos registrar tu elección.'); return j; }); })
+      .then(function () { confirmar = null; if (w.nfTrack) w.nfTrack('Purchase', { name: 'oferta elegida ' + actual.code }); buscar(); })
+      .catch(function (e) { var err = $('seg-error'); err.textContent = e.message; err.hidden = false; b.disabled = false; b.textContent = 'Sí, elegir esta oferta'; });
+  });
+
   var busy = false;
-  form.addEventListener('submit', function (ev) {
-    ev.preventDefault();
+  form.addEventListener('submit', function (ev) { ev.preventDefault(); buscar(); });
+  function buscar() {
     if (busy) return;
     var err = $('seg-error'); err.hidden = true;
     var code = $('codigo').value.trim().toUpperCase(), email = $('email').value.trim();
@@ -65,6 +129,7 @@
       .then(function (res) {
         if (!res.ok || !res.j || !res.j.code) throw new Error((res.j && res.j.message) || 'No pudimos consultar la solicitud.');
         try { w.sessionStorage.setItem('nf-sol-ultima', JSON.stringify({ code: code, email: email })); } catch (e) { /* sin almacenamiento */ }
+        actual = { code: code, email: email }; ultimo = res.j;
         render(res.j);
       })
       .catch(function (e) {
@@ -72,6 +137,6 @@
         err.hidden = false; $('resultado').hidden = true;
       })
       .then(function () { busy = false; $('ver').disabled = false; $('ver').textContent = 'Ver estado'; });
-  });
-  if ($('codigo').value && $('email').value) form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit'));
+  }
+  if ($('codigo').value && $('email').value) buscar();
 })(window, document);
