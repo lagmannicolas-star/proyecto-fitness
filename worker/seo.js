@@ -2,7 +2,7 @@
 // Toma nicolas.html de los archivos del sitio, le pone título, descripción, enlace canónico, Open Graph, JSON-LD
 // y un bloque con el contenido ya armado dentro de #app. La tienda arranca encima y toma el control.
 // Los datos salen de Supabase con la clave pública (catálogo público y estado público) y se guardan 10 minutos.
-import { plain, nfText, nfProp, nfDetail, nfCategory, catSlug } from './texto.js';
+import { plain, nfText, nfProp, nfDetail, nfCategory, catSlug, nfDesc, NF_FAQ } from './texto.js';
 
 export const SITE = 'https://nexofitt.com.ar';
 const TTL = 10 * 60 * 1000;
@@ -25,21 +25,22 @@ async function asset(env, origin, paths) {
 }
 export async function siteData(env, origin) {
   if (memo && Date.now() - memo.at < TTL) return memo;
-  const [catalog, snap, html, mapa, reviews] = await Promise.all([
+  const [catalog, snap, html, mapa, reviews, textos] = await Promise.all([
     rpc(env, 'fitness_public_catalog'), rpc(env, 'fitness_snapshot'), asset(env, origin, ['/nicolas', '/nicolas.html']),
     asset(env, origin, ['/assets/productos/mapa.json']).then(JSON.parse).catch(() => ({})),
     rpc(env, 'fitness_reviews_public').catch(() => null),
+    asset(env, origin, ['/assets/productos/textos.json']).then(JSON.parse).catch(() => ({})),
   ]);
   if (!Array.isArray(catalog) || !snap || !Array.isArray(snap.offers) || !/<div id="app"><\/div>/.test(html)) throw new Error('datos inválidos');
   const m = /<script id="ab-cats" type="application\/json">([^<]*)<\/script>/.exec(html);
   const curated = {};
   try { const cats = JSON.parse(m ? m[1] : '{}'); for (const c of Object.keys(cats)) for (const s of cats[c]) curated[s] = c; } catch (e) { /* sin mapa curado */ }
-  memo = { at: Date.now(), html, ...buildProducts(catalog, snap, curated, mapa, reviews) };
+  memo = { at: Date.now(), html, contact: snap.contact || {}, ...buildProducts(catalog, snap, curated, mapa, reviews, textos) };
   return memo;
 }
 
 // Misma agrupación que la tienda: variantes del catálogo público + ofertas publicadas.
-export function buildProducts(catalog, snap, curated, mapa, reviews) {
+export function buildProducts(catalog, snap, curated, mapa, reviews, textos) {
   const vendors = {}; for (const v of snap.vendors || []) vendors[v.id] = v;
   const live = o => o && o.status === 'published' && o.stock !== 'none' && vendors[o.vendorId] && vendors[o.vendorId].status === 'active';
   const byId = {}, byKey = {};
@@ -64,7 +65,12 @@ export function buildProducts(catalog, snap, curated, mapa, reviews) {
     const count = {}; for (const x of p.variants) if (x.image) count[x.image] = (count[x.image] || 0) + 1;
     const imgs = Object.keys(count).sort((a, b) => count[b] - count[a]);
     p.photos = imgs.length ? [imgs[0]] : []; for (const x of p.variants) if (x.image && !p.photos.includes(x.image)) p.photos.push(x.image);
-    p.photoUrls = p.photos.map(photo);
+    // Galería: la foto principal, la galería de la tienda y las de las variantes, sin repetir (igual que la ficha).
+    const tx = textos && typeof textos === 'object' ? textos[p.slug] : null, seen = new Set(), gal = [];
+    const add = u => { if (!u) return; const full = /^assets\//.test(u) ? SITE + '/' + u : photo(u); if (seen.has(full)) return; seen.add(full); gal.push(full); };
+    add(p.photos[0]); if (tx && Array.isArray(tx.g)) tx.g.filter(g => typeof g === 'string' && /^assets\/productos\/[\w.-]+$/.test(g)).forEach(add); p.photos.forEach(add);
+    p.photoUrls = gal;
+    p.desc = tx && typeof tx.d === 'string' && tx.d ? nfDesc(tx.d, p.rawName) : null;
     p.available = p.variants.some(x => x.available);
     const pool = p.available ? p.variants.filter(x => x.available) : p.variants, prices = pool.map(x => x.price).filter(n => n > 0);
     p.minPrice = prices.length ? Math.min(...prices) : 0; p.maxPrice = prices.length ? Math.max(...prices) : 0; p.offerCount = pool.length;
@@ -82,6 +88,8 @@ export function buildProducts(catalog, snap, curated, mapa, reviews) {
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = n => '$ ' + Math.round(Number(n)).toLocaleString('es-AR');
 const clip = (s, n) => { s = String(s).replace(/\s+/g, ' ').trim(); return s.length <= n ? s : s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…'; };
+// WhatsApp del sitio (estado público) en formato internacional para los datos de contacto.
+const waPhone = c => { let n = String((c || {}).wa || '').replace(/\D/g, ''); if (!n) return ''; if (!/^54/.test(n)) n = '549' + n.replace(/^0/, ''); else if (!/^549/.test(n)) n = '549' + n.slice(2); return '+' + n; };
 const ldJson = data => JSON.stringify(data).replace(/</g, '\\u003c');
 
 function inject(html, meta) {
@@ -116,11 +124,16 @@ const cardHTML = p => '<a class="nf-card' + (p.available ? '' : ' is-out') + '" 
 function productPage(data, p) {
   const url = SITE + '/producto/' + encodeURIComponent(p.slug), cat = data.cats.find(c => c.name === p.category), v = p.vendorObj || {};
   const price = p.minPrice ? (p.maxPrice > p.minPrice ? 'Desde ' : '') + money(p.minPrice) : '';
-  const description = clip(p.name + '. ' + (p.detail ? p.detail.replace(/…$/, '') + '. ' : '') + (price ? price + (v.pricesIncludeVat ? ' con IVA' : '') + '. ' : '') + 'Vendido por ' + p.vendor + ' en Nexo Fit: distintas empresas, un solo carrito.', 160);
+  const summary = p.desc && p.desc.summary ? p.desc.summary : '';
+  // Descripción para buscadores: el texto real del producto (~155 caracteres); si es corto, se completa con precio y vendedor.
+  const description = summary.length >= 90 ? summary
+    : clip((summary ? summary.replace(/[.…]$/, '') + '. ' : p.name + '. ' + (p.detail ? p.detail.replace(/…$/, '') + '. ' : '')) + (price ? price + (v.pricesIncludeVat ? ' con IVA' : '') + '. ' : '') + 'Vendido por ' + p.vendor + ' en Nexo Fit: distintas empresas, un solo carrito.', 160);
+  const fullText = p.desc ? p.desc.blocks.map(b => b.t === 'ul' ? b.items.join('. ') : b.text).join(' ').replace(/\s+/g, ' ').trim() : '';
   const offers = p.offerCount > 1 && p.maxPrice > p.minPrice
     ? { '@type': 'AggregateOffer', priceCurrency: 'ARS', lowPrice: p.minPrice, highPrice: p.maxPrice, offerCount: p.offerCount, availability: 'https://schema.org/' + (p.available ? 'InStock' : 'OutOfStock'), url }
     : { '@type': 'Offer', priceCurrency: 'ARS', price: p.minPrice, availability: 'https://schema.org/' + (p.available ? 'InStock' : 'OutOfStock'), url, seller: { '@type': 'Organization', name: p.vendor } };
-  const product = { '@type': 'Product', '@id': url + '#producto', name: p.name, image: p.photoUrls.slice(0, 6), description: p.detail || p.name, category: p.category, brand: { '@type': 'Brand', name: p.vendor }, url, offers };
+  const product = { '@type': 'Product', '@id': url + '#producto', name: p.name, image: p.photoUrls.slice(0, 8), description: clip(fullText || p.detail || p.name, 5000), category: p.category, brand: { '@type': 'Brand', name: p.vendor }, url, offers };
+  if (p.desc && p.desc.specs.length) product.additionalProperty = p.desc.specs.slice(0, 12).map(([k, val]) => ({ '@type': 'PropertyValue', name: k, value: val }));
   if (p.rating) product.aggregateRating = { '@type': 'AggregateRating', ratingValue: p.rating.avg, reviewCount: p.rating.count, bestRating: 5, worstRating: 1 };
   const crumbsLd = { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: p.category, item: SITE + '/categoria/' + catSlug(p.category) }, { '@type': 'ListItem', position: 3, name: p.name, item: url }] };
   const related = (cat ? cat.products : []).filter(x => x !== p && x.available).slice(0, 8);
@@ -130,7 +143,10 @@ function productPage(data, p) {
     + '<div class="nf-pricebox"><span class="nf-bigprice num">' + esc(price || 'Consultar precio') + '</span>' + (v.pricesIncludeVat ? '<span class="muted small">IVA incluido</span>' : '') + '</div>'
     + '<p class="nf-stock ' + (p.available ? 'ok">Disponible' : 'out">Sin stock') + '</p>'
     + p.opts.map(g => '<p><b>' + esc(g.name) + ':</b> ' + esc(g.values.join(', ')) + '</p>').join('')
-    + (p.detail ? '<p class="nf-desc-text">' + esc(p.detail) + '</p>' : '') + '</div></div>'
+    + (!p.desc && p.detail ? '<p class="nf-desc-text">' + esc(p.detail) + '</p>' : '') + '</div></div>'
+    + (p.desc && (p.desc.blocks.length || p.desc.specs.length) ? '<section class="nf-desc"><h2 class="display">Descripción</h2><div class="nf-desc-grid"><div class="nf-desc-body">'
+      + p.desc.blocks.map(b => b.t === 'h' ? '<h3>' + esc(b.text) + '</h3>' : b.t === 'ul' ? '<ul>' + b.items.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p>' + esc(b.text) + '</p>').join('') + '</div>'
+      + (p.desc.specs.length ? '<dl class="nf-specs">' + p.desc.specs.map(([k, val]) => '<div><dt>' + esc(k) + '</dt><dd>' + esc(val) + '</dd></div>').join('') + '</dl>' : '') + '</div></section>' : '')
     + (related.length ? '<section class="nf-related"><h2 class="display">Más de ' + esc(p.category) + '</h2><div class="nf-grid">' + related.map(cardHTML).join('') + '</div></section>' : ''),
     '<a class="linkbtn" href="/">Inicio</a><span aria-hidden="true">›</span><a class="linkbtn" href="/categoria/' + esc(catSlug(p.category)) + '">' + esc(p.category) + '</a>');
   return { title: clip(p.name, 60) + ' · ' + p.category + ' · Nexo Fit', description, canonical: url, image: p.photoUrls[0], ogType: 'product', slug: p.slug, ld: { '@context': 'https://schema.org', '@graph': [product, crumbsLd] }, body };
@@ -147,11 +163,13 @@ function categoryPage(data, c) {
 }
 function homePage(data) {
   const ld = { '@context': 'https://schema.org', '@graph': [
-    { '@type': 'Organization', '@id': SITE + '/#org', name: 'Nexo Fit', url: SITE + '/', logo: SITE + '/assets/nexofit-logo.png', email: 'lagmannicolas@gmail.com' },
+    Object.assign({ '@type': 'Organization', '@id': SITE + '/#org', name: 'Nexo Fit', url: SITE + '/', logo: SITE + '/assets/nexofit-logo.png' }, waPhone(data.contact) ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: waPhone(data.contact), availableLanguage: 'es', areaServed: 'AR' } } : {}),
+    { '@type': 'FAQPage', '@id': SITE + '/#preguntas', mainEntity: NF_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
     { '@type': 'WebSite', '@id': SITE + '/#web', name: 'Nexo Fit', url: SITE + '/', inLanguage: 'es-AR', publisher: { '@id': SITE + '/#org' }, potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: SITE + '/?q={search_term_string}' }, 'query-input': 'required name=search_term_string' } }] };
   const body = shell('<h1 class="display">Distintas empresas. Un solo carrito.</h1><p class="lead">Equipamiento deportivo y de fitness de proveedores de todo el país para gimnasios, clubes, colegios y casa.</p>'
     + '<p><a class="btn btn-accent" href="/#catalogo">Ver catálogo</a> <a class="btn btn-outline" href="/arma">Armá tu espacio</a></p>'
-    + '<h2 class="display">Categorías</h2><ul class="nf-ssr-cats">' + data.cats.map(c => '<li><a href="/categoria/' + c.slug + '">' + esc(c.name) + '</a> (' + c.products.length + ')</li>').join('') + '</ul>');
+    + '<h2 class="display">Categorías</h2><ul class="nf-ssr-cats">' + data.cats.map(c => '<li><a href="/categoria/' + c.slug + '">' + esc(c.name) + '</a> (' + c.products.length + ')</li>').join('') + '</ul>'
+    + '<section class="section nf-faq" id="preguntas"><h2 class="display">Preguntas frecuentes</h2><div class="nf-faq-list">' + NF_FAQ.map(([q, a]) => '<details><summary><span>' + esc(q) + '</span></summary><p>' + esc(a) + '</p></details>').join('') + '</div></section>');
   return { title: 'Nexo Fit · Equipamiento deportivo de distintas empresas en un solo carrito', description: 'Compará y comprá equipamiento deportivo y de fitness de distintas empresas en un solo carrito. Para gimnasios, clubes, colegios y casa, con envío a todo el país.', canonical: SITE + '/', ld, body };
 }
 function armaPage() {
