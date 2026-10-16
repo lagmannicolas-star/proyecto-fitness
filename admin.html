@@ -617,6 +617,7 @@ tfoot td{padding:12px 14px;border-top:2px solid var(--ink);background:var(--surf
 .alert.warnbox{display:flex;flex-direction:column;gap:6px;background:var(--warn-bg);color:var(--warn-fg);border:1px solid var(--warn-fg);border-radius:10px;padding:14px 16px}
 .alert.warnbox .check{color:var(--ink)}
 /* Quién cobra */
+.rq-sub{display:block;font-size:.85rem;color:var(--muted);margin:2px 0}
 .mono{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.04em}
 .paywho{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:10px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
 .paywho ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:.92rem}
@@ -1408,6 +1409,7 @@ function vendorStatus(v){
 /* ---------- Íconos compartidos ---------- */
 var ICONS={instagram:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/>',
   resumen:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  solicitudes:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h4"/><circle cx="17" cy="17" r="3" fill="currentColor" stroke="none" opacity=".35"/>',
   ventas:'<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>',
   vendedores:'<path d="M4 11v9h16v-9"/><path d="M3 10l2-6h14l2 6"/><path d="M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M10 20v-5h4v5"/>',
   productos:'<path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/>',
@@ -2233,6 +2235,7 @@ function rerender(focusId){
 var TABS=[
   {id:'resumen',label:'Resumen',sub:'Cómo viene el negocio: lo vendido, tu comisión y las visitas.'},
   {id:'ventas',label:'Ventas',sub:'Lo que hay que resolver y todas las ventas del sitio.'},
+  {id:'solicitudes',label:'Solicitudes',sub:'Pedidos de ofertas de los compradores: a quién consultar, cuántas ofertas llegaron y en qué etapa está cada uno.'},
   {id:'vendedores',label:'Proveedores',sub:'Las marcas que venden en el sitio.'},
   {id:'usuarios',label:'Usuarios',sub:'Las cuentas de los compradores: quiénes son, qué compran y cuándo vuelven.'},
   {id:'productos',label:'Productos',sub:'Los más vendidos, los que esperan aprobación y el stock de cada proveedor.'},
@@ -2523,6 +2526,8 @@ function vAdmin(){
         +'<p class="sumline"><b>'+rows.length+(rows.length===1?' venta':' ventas')+'</b>'+(okr.length?' · Vendido <b class="num">'+money(tt)+'</b> · Tu comisión <b class="num">'+money(tc)+'</b>':'')+' · Código NICO: <b>'+nico.length+(nico.length===1?' venta':' ventas')+'</b> · Comisión atribuida <b class="num">'+money(nicoCom)+'</b>'+(okr.length!==rows.length&&okr.length?' <span class="muted">(los montos cuentan solo las aprobadas)</span>':'')+'</p>'
         +salesTable(rows);
     }
+  } else if(ui.tab==='solicitudes'){
+    body=requestsView();
   } else if(ui.tab==='usuarios'){
     body=usersView();
   } else if(ui.tab==='vendedores'){
@@ -2945,6 +2950,63 @@ document.addEventListener('change',function(ev){
 });
 /* Origen de la venta según la etiqueta de campaña (utm) con la que llegó el comprador. */
 function orderOrigin(o){var u=o.ship&&o.ship.utm;if(!u)return '';var src=[u.utm_source||(u.gclid?'google':u.fbclid?'meta':''),u.utm_campaign].filter(Boolean).join(' · ');return src?'<span class="sub">Origen: '+esc(src)+'</span>':'';}
+/* ---------- Solicitudes de ofertas ("Conseguí la mejor oferta" y "Armá tu espacio") ---------- */
+var SOL_ST={nueva:['warn','Nueva'],enviada:['neu','Consultando proveedores'],con_ofertas:['ok','Ofertas listas'],cerrada:['ok','Cerrada'],descartada:['bad','Descartada']};
+var SOL_PRIO={equilibrio:'Mejor equilibrio',precio:'Menor costo total',rapidez:'Entrega más rápida',financiacion:'Financiación',calidad:'Calidad y garantía'};
+var SOL_PLAZO={urgente:'Lo antes posible','7':'Hasta 7 días','15':'Hasta 15 días','30':'Hasta 30 días',flexible:'Sin apuro'};
+async function loadRequests(){try{ui.requests=await adminRpc('fitness_solicitudes_admin');ui.requestsErr='';}catch(e){ui.requests=[];ui.requestsErr=e.message;}rerender();}
+/* Texto para reenviar a proveedores: sin nombre, email ni teléfono del comprador. */
+function requestBrief(r){
+ var l=['Nexo Fit · pedido de oferta '+r.code,''];
+ (r.items||[]).forEach(function(it){l.push('• '+it.cantidad+' × '+it.producto+(it.detalle?' ('+it.detalle+')':''));});
+ l.push('','Entrega: '+r.localidad+', '+r.provincia+' · '+(SOL_PLAZO[r.plazo]||r.plazo));
+ l.push('Factura: '+(r.factura==='no'?'no necesita':r.factura)+' · Pago: '+((r.pagos||[]).join(', ')||'a convenir'));
+ l.push('Prioridad del comprador: '+(SOL_PRIO[r.prioridad]||r.prioridad));
+ if(r.detalles)l.push('Detalles: '+r.detalles);
+ l.push('','Pasanos tu mejor oferta: precio total, costo de envío, plazo de entrega, cuotas y garantía.');
+ return l.join('\n');
+}
+function requestsView(){
+ if(!ui.requests){setTimeout(loadRequests,0);return '<div class="card"><p class="muted">Cargando solicitudes…</p></div>';}
+ var list=ui.requests,f=ui.reqFilter||'abiertas';
+ var open=function(r){return r.status!=='cerrada'&&r.status!=='descartada';};
+ var shown=list.filter(function(r){return f==='todas'?true:f==='abiertas'?open(r):r.status===f;});
+ var filters=[['abiertas','Abiertas ('+list.filter(open).length+')'],['nueva','Nuevas ('+list.filter(function(r){return r.status==='nueva';}).length+')'],['cerrada','Cerradas'],['todas','Todas']];
+ var head='<div class="card">'+chead('solicitudes','Solicitudes de ofertas','Llegan desde "Pedir ofertas" y "Armá tu espacio". Copiá el pedido (sin datos del comprador), mandalo a los proveedores que pueden cumplirlo y cargá acá cuántos consultaste y cuántas ofertas llegaron: el comprador lo ve en "Seguir mi solicitud".')
+  +(ui.requestsErr?'<p class="alert bad">'+esc(ui.requestsErr)+'</p>':'')
+  +'<div class="seg" role="group" aria-label="Filtrar solicitudes">'+filters.map(function(x){return '<button type="button" data-act="req-filter" data-f="'+x[0]+'" aria-pressed="'+(f===x[0])+'">'+x[1]+'</button>';}).join('')+'</div></div>';
+ if(!shown.length)return head+'<div class="card"><p class="muted">'+(list.length?'No hay solicitudes en este filtro.':'Todavía no llegaron solicitudes. Aparecen acá apenas un comprador pide ofertas.')+'</p></div>';
+ return head+shown.map(function(r){
+  var s2=SOL_ST[r.status]||['neu',r.status],id='rq-'+esc(r.code);
+  var wa=String(r.telefono||'').replace(/\D/g,'');if(wa&&wa.length<=10)wa='549'+wa.replace(/^0/,'');
+  return '<div class="card" id="'+id+'"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><b class="mono">'+esc(r.code)+'</b> <span class="st '+s2[0]+'">'+s2[1]+'</span><span class="rq-sub">'+fdate(String(r.created_at).slice(0,10))+' · '+esc(r.tipo)+' · '+esc(r.localidad)+', '+esc(r.provincia)+'</span></div>'
+   +'<div><b>'+esc(r.nombre)+'</b>'+(r.empresa?' · '+esc(r.empresa):'')+'<span class="rq-sub">'+esc(r.email)+' · '+esc(r.telefono)+'</span></div></div>'
+   +'<ul style="margin:10px 0">'+(r.items||[]).map(function(it){return '<li><b>'+esc(it.cantidad)+' ×</b> '+esc(it.producto)+(it.detalle?' <span class="muted">('+esc(it.detalle)+')</span>':'')+'</li>';}).join('')+'</ul>'
+   +'<p class="rq-sub">Plazo: '+esc(SOL_PLAZO[r.plazo]||r.plazo)+' · Factura '+esc(r.factura==='no'?'no':r.factura)+' · Pago: '+esc((r.pagos||[]).join(', ')||'—')+' · Prioridad: '+esc(SOL_PRIO[r.prioridad]||r.prioridad)+(r.presupuesto?' · Presupuesto aprox.: '+money(r.presupuesto)+' (no compartir)':'')+'</p>'
+   +(r.detalles?'<p class="rq-sub">'+esc(r.detalles)+'</p>':'')
+   +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">'
+   +'<label style="display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem">Etapa<select data-rq="status">'+Object.keys(SOL_ST).map(function(k){return '<option value="'+k+'"'+(r.status===k?' selected':'')+'>'+SOL_ST[k][1]+'</option>';}).join('')+'</select></label>'
+   +'<label style="display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem">Proveedores consultados<input data-rq="prov" type="number" min="0" max="99" value="'+(r.proveedores_consultados||0)+'" style="width:110px"></label>'
+   +'<label style="display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem">Ofertas recibidas<input data-rq="ofe" type="number" min="0" max="99" value="'+(r.ofertas_recibidas||0)+'" style="width:110px"></label>'
+   +'<label style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem">Mensaje para el comprador<input data-rq="nota" maxlength="500" value="'+esc(r.nota_publica||'')+'" placeholder="Ej.: Te enviamos las ofertas por WhatsApp"></label></div>'
+   +'<div class="actions" style="margin-top:10px"><button class="btn btn-primary btn-sm" data-act="req-save" data-code="'+esc(r.code)+'">Guardar</button>'
+   +'<button class="btn btn-outline btn-sm" data-act="req-copy" data-code="'+esc(r.code)+'">Copiar pedido para proveedores</button>'
+   +(wa?'<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hola '+r.nombre+', te escribimos de Nexo Fit por tu solicitud '+r.code+'.')+'">WhatsApp al comprador</a>':'')
+   +'</div></div>';
+ }).join('');
+}
+document.addEventListener('click',function(ev){
+ var t=ev.target.closest&&ev.target.closest('[data-act="req-filter"],[data-act="req-save"],[data-act="req-copy"]');if(!t||t.disabled)return;
+ var act=t.dataset.act;
+ if(act==='req-filter'){ui.reqFilter=t.dataset.f;rerender();return;}
+ var r=(ui.requests||[]).filter(function(x){return x.code===t.dataset.code;})[0];if(!r)return;
+ if(act==='req-copy'){var txt=requestBrief(r);try{navigator.clipboard.writeText(txt).then(function(){toast('Pedido copiado, sin datos del comprador');},function(){window.prompt('Copiá el pedido:',txt);});}catch(e){window.prompt('Copiá el pedido:',txt);}return;}
+ var box=t.closest('.card'),g=function(k){var el=box.querySelector('[data-rq="'+k+'"]');return el?el.value:'';};
+ t.disabled=true;
+ adminRpc('fitness_solicitud_actualizar',{p_code:r.code,p_status:g('status'),p_proveedores:parseInt(g('prov'),10)||0,p_ofertas:parseInt(g('ofe'),10)||0,p_nota:g('nota')})
+  .then(function(){toast('Solicitud actualizada');return loadRequests();}).catch(function(e){t.disabled=false;toast(e.message);});
+});
+
 /* ---------- Botón de arrepentimiento: pedidos recibidos ---------- */
 async function adminRpc(fn,args){var r=await fetch(FITNESS_CONFIG.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:FITNESS_CONFIG.key,Authorization:'Bearer '+FC.token(),'Content-Type':'application/json'},body:JSON.stringify(args||{})});var d=await r.json().catch(function(){return {};});if(!r.ok)throw Error(d.message||'No se pudo completar la acción.');return d;}
 async function loadWithdrawals(){try{ui.withdrawals=await adminRpc('fitness_withdrawals_admin');ui.withdrawalsErr='';}catch(e){ui.withdrawals=[];ui.withdrawalsErr=e.message;}rerender();}

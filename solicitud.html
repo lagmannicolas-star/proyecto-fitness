@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conseguí la mejor oferta · Nexo Fit</title>
+<meta name="description" content="Contanos qué equipamiento necesitás. Nexo Fit consulta a proveedores especializados, compara sus ofertas y te ayuda a elegir.">
+<link rel="canonical" href="https://nexofitt.com.ar/solicitud">
+<meta property="og:type" content="website"><meta property="og:title" content="Conseguí la mejor oferta · Nexo Fit"><meta property="og:description" content="Contanos qué necesitás. Los proveedores ofertan y Nexo Fit compara por vos."><meta property="og:url" content="https://nexofitt.com.ar/solicitud"><meta property="og:image" content="https://nexofitt.com.ar/assets/nexofit-logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+</head>
+<body data-segmento="solicitud">
+<header class="top" id="top"></header>
+<section class="hero"><div class="wrap">
+  <p class="eyebrow">Conseguí la mejor oferta</p>
+  <h1>Decinos qué necesitás. Los proveedores ofertan y nosotros comparamos.</h1>
+  <p>Ideal para compras por volumen o para equipar un espacio completo. Tu solicitud llega solo a proveedores que pueden cumplirla y cada uno presenta su mejor oferta en privado.</p>
+</div></section>
+<main class="wrap">
+  <ol class="pasos" aria-label="Cómo funciona">
+    <li><b>Publicás tu necesidad</b><span class="muted small">Productos, cantidades, destino y plazo.</span></li>
+    <li><b>Los proveedores ofertan</b><span class="muted small">Precio, envío, plazo, cuotas y garantía.</span></li>
+    <li><b>Comparamos por vos</b><span class="muted small">Ordenamos por costo total y tus prioridades.</span></li>
+    <li><b>Elegís sin compromiso</b><span class="muted small">Si ninguna te convence, no comprás.</span></li>
+  </ol>
+
+  <form id="sol" class="sol" novalidate>
+    <fieldset>
+      <legend>1. ¿Qué necesitás?</legend>
+      <p id="prefill-aviso" class="note small" role="status" hidden></p>
+      <div id="items"></div>
+      <button class="btn btn-outline" type="button" id="add-item">+ Agregar otro producto</button>
+      <div>
+        <label for="detalles">Detalles adicionales <span class="muted">(opcional)</span></label>
+        <textarea id="detalles" name="detalles" maxlength="1500" placeholder="Ej.: uso profesional, colores, marca preferida, si necesitás instalación."></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. Entrega</legend>
+      <div class="row2">
+        <div><label for="localidad">Localidad</label><input id="localidad" name="localidad" required maxlength="80" autocomplete="address-level2" placeholder="Ej.: Quilmes"></div>
+        <div><label for="provincia">Provincia</label>
+          <select id="provincia" name="provincia" required></select></div>
+      </div>
+      <div><label for="plazo">¿Para cuándo lo necesitás?</label>
+        <select id="plazo" name="plazo" required>
+          <option value="urgente">Lo antes posible</option>
+          <option value="7">En hasta 7 días</option>
+          <option value="15" selected>En hasta 15 días</option>
+          <option value="30">En hasta 30 días</option>
+          <option value="flexible">Sin apuro</option>
+        </select></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>3. Condiciones</legend>
+      <div><label for="factura">Factura</label>
+        <select id="factura" name="factura" required>
+          <option value="A">Factura A</option>
+          <option value="B" selected>Factura B</option>
+          <option value="C">Factura C</option>
+          <option value="no">No necesito</option>
+        </select></div>
+      <div role="group" aria-labelledby="pagos-t">
+        <span class="lbl" id="pagos-t">Formas de pago que te sirven</span>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="pagos" value="transferencia" checked> Transferencia</label>
+          <label class="chip"><input type="checkbox" name="pagos" value="mercadopago" checked> Mercado Pago</label>
+          <label class="chip"><input type="checkbox" name="pagos" value="tarjeta"> Tarjeta en cuotas</label>
+          <label class="chip"><input type="checkbox" name="pagos" value="efectivo"> Efectivo</label>
+          <label class="chip"><input type="checkbox" name="pagos" value="cuenta_corriente"> Cuenta corriente</label>
+        </div>
+      </div>
+      <div><label for="presupuesto">Presupuesto aproximado <span class="muted">(opcional, en $)</span></label>
+        <input id="presupuesto" name="presupuesto" inputmode="numeric" maxlength="15" placeholder="Ej.: 1.000.000">
+        <p class="hint">No se lo mostramos a los proveedores. Nos ayuda a filtrar ofertas.</p></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>4. ¿Qué es lo más importante para vos?</legend>
+      <div class="opts" role="radiogroup">
+        <label class="opt"><input type="radio" name="prioridad" value="equilibrio" checked><span><b>Mejor equilibrio</b><span class="muted small">Precio, entrega y garantía balanceados.</span></span></label>
+        <label class="opt"><input type="radio" name="prioridad" value="precio"><span><b>Menor costo total</b><span class="muted small">Precio con envío incluido.</span></span></label>
+        <label class="opt"><input type="radio" name="prioridad" value="rapidez"><span><b>Entrega más rápida</b><span class="muted small">Lo necesito cuanto antes.</span></span></label>
+        <label class="opt"><input type="radio" name="prioridad" value="financiacion"><span><b>Financiación</b><span class="muted small">Cuotas o plazos de pago.</span></span></label>
+        <label class="opt"><input type="radio" name="prioridad" value="calidad"><span><b>Calidad y garantía</b><span class="muted small">Uso intensivo, que dure.</span></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>5. Tus datos</legend>
+      <div><label for="tipo">Sos…</label>
+        <select id="tipo" name="tipo" required>
+          <option value="gimnasio">Gimnasio o centro de entrenamiento</option>
+          <option value="club">Club deportivo</option>
+          <option value="colegio">Colegio o institución</option>
+          <option value="entrenador">Entrenador o profesor</option>
+          <option value="particular">Particular</option>
+          <option value="otro">Otro</option>
+        </select></div>
+      <div class="row2">
+        <div><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" required maxlength="120" autocomplete="name"></div>
+        <div><label for="empresa">Gimnasio / club / empresa <span class="muted">(opcional)</span></label><input id="empresa" name="empresa" maxlength="120" autocomplete="organization"></div>
+      </div>
+      <div class="row2">
+        <div><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="160" autocomplete="email"></div>
+        <div><label for="telefono">WhatsApp</label><input id="telefono" name="telefono" type="tel" required maxlength="40" autocomplete="tel" placeholder="Ej.: 11 5965 6436"></div>
+      </div>
+      <div class="hp" aria-hidden="true"><label for="web">Sitio web</label><input id="web" name="web" tabindex="-1" autocomplete="off"></div>
+      <label class="check"><input type="checkbox" id="acepto" required> <span>Acepto que Nexo Fit comparta mi solicitud (sin mis datos de contacto) con proveedores para recibir ofertas, según la <a href="privacidad.html">política de privacidad</a>.</span></label>
+    </fieldset>
+
+    <p id="sol-error" class="alert" role="alert" hidden></p>
+    <button class="btn btn-accent btn-big" type="submit" id="enviar">Pedir ofertas</button>
+    <p class="hint">Gratis y sin compromiso. Tus datos de contacto no se comparten con los proveedores hasta que elijas una oferta.</p>
+  </form>
+
+  <section id="ok" class="card ok-box" hidden tabindex="-1">
+    <p class="eyebrow">Solicitud recibida</p>
+    <h2>¡Listo! Ya estamos consultando a los proveedores.</h2>
+    <p>Tu número de solicitud es</p>
+    <p class="code" id="ok-code"></p>
+    <p class="muted">Te vamos a contactar por WhatsApp o email con las ofertas comparadas. Guardá este número: con él y tu email podés ver en qué etapa está.</p>
+    <div class="actions"><a class="btn btn-accent" id="ok-track" href="mi-solicitud.html">Seguir mi solicitud</a><a class="btn btn-dark" id="ok-wa" target="_blank" rel="noopener" href="#">Avisar por WhatsApp</a><a class="btn btn-outline" href="nicolas.html">Ir a la tienda</a></div>
+  </section>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script src="assets/solicitud.js"></script>
+</body>
+</html>
