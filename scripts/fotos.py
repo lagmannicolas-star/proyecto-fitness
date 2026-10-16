@@ -111,45 +111,43 @@ def clean_text(raw):
     return t.strip()[:4000]
 
 
+def balanced_div(html, start):
+    """Devuelve el contenido del <div> que empieza en start, respetando los div anidados."""
+    i = html.find('>', start) + 1
+    depth, pos = 1, i
+    tag = re.compile(r'<(/?)div\b', re.I)
+    while depth and pos < len(html):
+        m = tag.search(html, pos)
+        if not m:
+            break
+        depth += -1 if m.group(1) else 1
+        pos = m.end()
+        if depth == 0:
+            return html[i:m.start()]
+    return ''
+
+
 def read_product(html, base):
     desc = ''
-    for m in re.finditer(r'<script[^>]+application/ld\+json[^>]*>([\s\S]*?)</script>', html, re.I):
-        try:
-            data = json.loads(m.group(1))
-        except Exception:  # noqa: BLE001
-            continue
-        for d in data if isinstance(data, list) else [data]:
-            if isinstance(d, dict) and d.get('@type') == 'Product' and d.get('description'):
-                desc = d['description']
-                break
-        if desc:
-            break
-    if not desc:
-        m = re.search(r'<div[^>]+(?:product-description|js-product-description|user-content)[^>]*>([\s\S]{20,8000}?)</div>\s*</div>', html, re.I)
-        if m:
-            desc = m.group(1)
-    if not desc:
-        m = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:)?description["\'][^>]*content=["\']([^"\']+)', html, re.I)
-        desc = m.group(1) if m else ''
+    m = re.search(r'<div[^>]+class="[^"]*\buser-content\b[^"]*"', html, re.I)
+    if m:
+        desc = balanced_div(html, m.start())
     gallery, seen = [], set()
-    # La galería del producto está antes de los productos relacionados.
-    cut = re.search(r'(?i)(js-related|related-products|productos-relacionados|productos similares|tambi[eé]n te puede interesar)', html)
-    zone = html[:cut.start()] if cut else html
-    for m in re.finditer(r'(?:https?:)?//[\w.-]*mitiendanube\.com/stores/[\w/]+/products/[\w.-]+?-(?:\d+)-(?:\d+)\.(?:webp|jpe?g|png)', zone):
-        u = m.group(0)
+    # Galería del producto (Tiendanube): enlaces con data-fancybox="product-gallery".
+    for m in re.finditer(r'href="([^"]+)"[^>]*data-fancybox="product-gallery"', html):
+        u = m.group(1)
         u = ('https:' + u) if u.startswith('//') else u
         key = re.sub(r'-\d+-\d+\.(webp|jpe?g|png)$', '', u.split('?')[0])
         if key in seen:
             continue
         seen.add(key)
-        gallery.append(re.sub(r'-\d+-\d+\.(webp|jpe?g|png)$', r'-1024-1024.\1', u))
+        gallery.append(u.split('?')[0])
         if len(gallery) >= 8:
             break
     text = clean_text(desc)
-    # "Comprá online X por $..." es el texto automático de la tienda, no una descripción.
+    text = re.sub(r'(?m)^\?\s+|\s+\?$', '', text)  # emojis que la tienda guardó como "?"
     if re.match(r'(?i)^compr[aá] online', text):
         text = ''
-    text = re.sub(r'(?i)^descripci[oó]n\s*\n+', '', text).strip()
     return text, gallery
 
 
@@ -189,9 +187,6 @@ def main():
         html = page(url)
         if not html:
             continue
-        if slug in ('agarre-v-de-triceps-con-estribos-para-polea-cromado', 'kit-de-hockey-inicial-w0u6o'):
-            with open(os.path.join(FIX, 'muestra-' + slug[:20] + '.html'), 'w', encoding='utf-8') as f:
-                f.write(html)
         desc, gallery = read_product(html, url)
         local = [x for x in (save_image(g, mapa) for g in gallery) if x]
         if desc or local:
