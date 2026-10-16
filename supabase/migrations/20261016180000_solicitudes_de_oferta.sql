@@ -20,6 +20,9 @@ create table if not exists public.fitness_solicitudes(
  presupuesto numeric,
  origen jsonb,
  status text not null default 'nueva' check (status in ('nueva','enviada','con_ofertas','cerrada','descartada')),
+ proveedores_consultados int not null default 0 check (proveedores_consultados between 0 and 99),
+ ofertas_recibidas int not null default 0 check (ofertas_recibidas between 0 and 99),
+ nota_publica text check (length(nota_publica)<=500),
  updated_at timestamptz not null default now()
 );
 alter table public.fitness_solicitudes enable row level security;
@@ -40,7 +43,7 @@ declare
  pg text[];
  pres numeric;
 begin
- if jsonb_typeof(its)<>'array' or jsonb_array_length(its) not between 1 and 15 then raise exception 'Cargá entre 1 y 15 productos'; end if;
+ if jsonb_typeof(its)<>'array' or jsonb_array_length(its) not between 1 and 25 then raise exception 'Cargá entre 1 y 25 productos'; end if;
  for it in select * from jsonb_array_elements(its) loop
   if length(btrim(coalesce(it->>'producto',''))) not between 2 and 120 then raise exception 'Escribí qué producto necesitás'; end if;
   if coalesce(it->>'cantidad','') !~ '^[0-9]{1,6}$' or (it->>'cantidad')::int<1 then raise exception 'Revisá las cantidades'; end if;
@@ -77,20 +80,37 @@ begin
  return (select coalesce(jsonb_agg(to_jsonb(s) order by s.created_at desc),'[]') from public.fitness_solicitudes s);
 end $$;
 
-create or replace function public.fitness_solicitud_estado(p_code text, p_status text) returns jsonb
+create or replace function public.fitness_solicitud_actualizar(p_code text, p_status text, p_proveedores int, p_ofertas int, p_nota text) returns jsonb
 language plpgsql security definer set search_path='' as $$
 begin
  if not exists(select 1 from public.fitness_profiles p where p.id=auth.uid() and p.role='admin' and not p.blocked) then raise exception 'No autorizado'; end if;
  if p_status not in ('nueva','enviada','con_ofertas','cerrada','descartada') then raise exception 'Estado inválido'; end if;
- update public.fitness_solicitudes set status=p_status,updated_at=now() where code=p_code;
+ if coalesce(p_proveedores,0) not between 0 and 99 or coalesce(p_ofertas,0) not between 0 and 99 then raise exception 'Revisá las cantidades'; end if;
+ if length(coalesce(p_nota,''))>500 then raise exception 'La nota es demasiado larga'; end if;
+ update public.fitness_solicitudes set status=p_status,proveedores_consultados=coalesce(p_proveedores,0),ofertas_recibidas=coalesce(p_ofertas,0),
+  nota_publica=nullif(btrim(coalesce(p_nota,'')),''),updated_at=now() where code=p_code;
  if not found then raise exception 'Solicitud inexistente'; end if;
  return jsonb_build_object('ok',true);
 end $$;
 
+-- Seguimiento para el comprador: con el código y el mismo email de la solicitud ve la etapa, nunca los datos de otros.
+create or replace function public.fitness_solicitud_consulta(p_code text, p_email text) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+declare s public.fitness_solicitudes;
+begin
+ select * into s from public.fitness_solicitudes x where x.code=upper(btrim(coalesce(p_code,''))) and x.email=lower(btrim(coalesce(p_email,'')));
+ if not found then raise exception 'No encontramos una solicitud con ese número y ese email'; end if;
+ return jsonb_build_object('code',s.code,'status',s.status,'createdAt',s.created_at,'updatedAt',s.updated_at,
+  'productos',jsonb_array_length(s.items),'items',s.items,'localidad',s.localidad,'proveedores',s.proveedores_consultados,
+  'ofertas',s.ofertas_recibidas,'nota',s.nota_publica);
+end $$;
+
 revoke all on function public.fitness_crear_solicitud(jsonb) from public;
 revoke all on function public.fitness_solicitudes_admin() from public,anon;
-revoke all on function public.fitness_solicitud_estado(text,text) from public,anon;
+revoke all on function public.fitness_solicitud_actualizar(text,text,int,int,text) from public,anon;
+revoke all on function public.fitness_solicitud_consulta(text,text) from public;
 grant execute on function public.fitness_crear_solicitud(jsonb) to anon,authenticated;
 grant execute on function public.fitness_solicitudes_admin() to authenticated;
-grant execute on function public.fitness_solicitud_estado(text,text) to authenticated;
+grant execute on function public.fitness_solicitud_actualizar(text,text,int,int,text) to authenticated;
+grant execute on function public.fitness_solicitud_consulta(text,text) to anon,authenticated;
 commit;

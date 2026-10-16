@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Armá tu espacio · Nexo Fit</title>
+<meta name="description" content="Contanos qué espacio querés equipar y para cuántas personas. Te armamos la lista de equipamiento y conseguimos ofertas de varios proveedores.">
+<link rel="canonical" href="https://nexofitt.com.ar/arma-tu-espacio">
+<meta property="og:type" content="website"><meta property="og:title" content="Armá tu espacio · Nexo Fit"><meta property="og:description" content="Tu lista de equipamiento en un minuto, y ofertas de varios proveedores."><meta property="og:url" content="https://nexofitt.com.ar/arma-tu-espacio"><meta property="og:image" content="https://nexofitt.com.ar/assets/nexofit-logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+</head>
+<body data-segmento="espacio">
+<header class="top" id="top"></header>
+<section class="hero"><div class="wrap">
+  <p class="eyebrow">Armá tu espacio</p>
+  <h1>Tu lista de equipamiento, en un minuto</h1>
+  <p>Respondé tres preguntas y te proponemos qué necesitás y cuántas unidades. Después la ajustás y pedís ofertas por todo junto.</p>
+</div></section>
+<main class="wrap">
+  <form id="cfg" class="sol" novalidate>
+    <fieldset>
+      <legend>1. ¿Qué querés equipar?</legend>
+      <div class="opts opts-row" role="radiogroup" id="tipos"></div>
+    </fieldset>
+    <fieldset id="paso2">
+      <legend>2. Contanos un poco más</legend>
+      <div id="detalle-tipo"></div>
+      <div>
+        <label for="personas" id="personas-lbl">Personas entrenando al mismo tiempo</label>
+        <div class="range"><input id="personas" type="range" min="1" max="60" value="15"><output id="personas-out" for="personas">15</output></div>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>3. ¿Qué nivel buscás?</legend>
+      <div class="opts" role="radiogroup">
+        <label class="opt"><input type="radio" name="nivel" value="basico" checked><span><b>Lo esencial</b><span class="muted small">Para arrancar con lo que más se usa.</span></span></label>
+        <label class="opt"><input type="radio" name="nivel" value="completo"><span><b>Completo</b><span class="muted small">Más variedad y accesorios para cubrir todo.</span></span></label>
+      </div>
+    </fieldset>
+  </form>
+
+  <section class="list-box" aria-labelledby="lista-t">
+    <div class="list-head">
+      <div><p class="eyebrow">Tu lista</p><h2 id="lista-t" class="display">Equipamiento sugerido</h2></div>
+      <p class="muted small" id="lista-resumen" aria-live="polite"></p>
+    </div>
+    <p class="note small">Es una sugerencia para empezar: cambiá cantidades, quitá lo que ya tenés o sumá lo que falte. Los precios llegan con las ofertas de los proveedores.</p>
+    <ul class="kit" id="kit"></ul>
+    <div class="add-row">
+      <label for="extra" class="sr">Agregar otro producto</label>
+      <input id="extra" maxlength="120" placeholder="Agregar otro producto, ej.: soga de batalla">
+      <button class="btn btn-outline" type="button" id="extra-add">Agregar</button>
+    </div>
+    <p id="kit-error" class="alert" role="alert" hidden></p>
+    <div class="actions">
+      <button class="btn btn-accent btn-big" type="button" id="pedir">Pedir ofertas por esta lista</button>
+      <a class="btn btn-outline" href="nicolas.html">Prefiero buscar en la tienda</a>
+    </div>
+  </section>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script src="assets/espacio.js"></script>
+</body>
+</html>

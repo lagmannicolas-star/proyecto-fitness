@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nexo Fit · Compará y comprá equipamiento deportivo</title>
 <meta name="description" content="Compará y comprá equipamiento deportivo y de fitness de distintas empresas en un solo carrito. Para gimnasios, clubes y colegios de todo el país.">
-<link rel="canonical" href="https://nexofitt.com.ar/">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/">
+<link rel="canonical" href="https://nexofitt.com.ar/nicolas">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/nicolas">
 <meta property="og:title" content="Nexo Fit · Compará y comprá equipamiento deportivo"><meta property="og:description" content="Distintas empresas, un solo carrito. Mancuernas, colchonetas, pesas, kits y más para gimnasios, clubes y colegios.">
 <meta property="og:image" content="https://nexofitt.com.ar/assets/nexofit-logo.png"><meta name="twitter:card" content="summary_large_image">
 <script src="assets/sitio.js"></script>
@@ -849,6 +849,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .pimg{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}.pimg img{display:block;width:100%;height:100%;object-fit:contain}.pimg-lg{max-width:360px;margin:12px 0}.pimg-sm{width:64px;flex:none}@media(min-width:641px){.citem:has(.pimg-sm){grid-template-columns:64px minmax(0,1fr) auto minmax(96px,auto) 40px}}@media(max-width:640px){.citem .pimg-sm{display:none}}
 .ab-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.ab-card{border:1px solid var(--line,#10171f25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;background:#FDFAF5}.ab-card h3{font-size:16px;line-height:1.4;margin:0;overflow-wrap:anywhere}.ab-card .btn{margin-top:auto}.ab-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:20px 0}.ab-pages{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px}.ab-variant{padding:18px 0;border-bottom:1px solid #10171f25}.ab-variant .actions{margin-top:12px}.ab-variant input{width:90px;min-height:44px}.ab-card .small{margin:0}@media(max-width:900px){.ab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:550px){.ab-filters{grid-template-columns:1fr}.ab-card{padding:12px}.ab-card h3{font-size:14px}.ab-card .btn{font-size:12px;padding:10px}}
 .wa-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none;box-shadow:var(--shadow)}
+.nf-bridge{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:14px;padding:16px 18px;border-radius:14px;border:2px solid var(--accent,#A5CC21);background:rgba(165,204,33,.14);color:var(--ink,#10171F)}.nf-bridge p{margin:4px 0 0}.nf-bridge-cart{justify-content:space-between;margin-block:8px 28px}.nf-bridge-cart>div{flex:1;min-width:240px}
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.foot{padding-bottom:76px}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
 </style></head>
 <body>
@@ -1934,6 +1935,7 @@ function header(){
     +'<nav class="nav" aria-label="Principal">'
     +'<button class="navlink" data-go="home"'+(r==='home'?' aria-current="page"':'')+'>Inicio</button>'
     +'<button class="navlink" data-go="buscar"'+(r!=='home'&&r!=='carrito'?' aria-current="page"':'')+'>Compará y comprá</button>'
+    +'<a class="navlink" href="solicitud.html" style="display:inline-flex;align-items:center;text-decoration:none">Pedir ofertas</a>'
     +accountBtn()+cartBtn()+'</nav></div></header>';
 }
 function footer(){
@@ -2037,7 +2039,7 @@ function searchHTML(q){
   var prods=supplierSearch(toks),idx=liveIndex();
   var withOffers=out.filter(function(r){ return r.m[1].some(function(sz){ return idx[vkey(r.c.n,r.m[0],sz)]; }); });
   if(prods.length) out=withOffers;
-  if(!out.length&&!prods.length) return '<div class="q-none">No encontramos productos con “'+esc(q)+'”. Probá con otra palabra o elegí una categoría.</div>';
+  if(!out.length&&!prods.length) return '<div class="q-none">No encontramos productos con “'+esc(q)+'”. Probá con otra palabra o elegí una categoría.<div class="nf-bridge"><b>¿No lo encontrás?</b> <span>Lo pedimos por vos a varios proveedores y te mandamos las ofertas comparadas.</span> <a class="btn btn-accent btn-sm" href="solicitud.html?producto='+encodeURIComponent(String(q).slice(0,120))+'">Pedir ofertas por “'+esc(q)+'”</a></div></div>';
   return supplierResultsHTML(prods)+(out.length?(prods.length?'<p class="q-sub">Comparar entre empresas</p>':'')+'<div class="q-list">'+out.slice(0,8).map(function(r){
     return '<button class="q-item" data-act="open-model" data-cat="'+esc(r.c.n)+'" data-mi="'+r.i+'"><b>'+esc(r.m[0])+'</b><span>'+esc(r.c.n)+' · '+(r.m[1].length===1?'1 variante':r.m[1].length+' variantes')+'</span></button>';
   }).join('')+(out.length>8?'<div class="q-more">Hay '+(out.length-8)+' resultados más. Escribí otra palabra para afinar.</div>':'')+'</div>':'');
@@ -2379,7 +2381,28 @@ function vTrack(){
     +'<div><button class="btn btn-outline" data-act="track-other">Buscar otro pedido</button></div></div>';
 }
 function favBtn(d){ var b=acct(), on=b&&d.unit&&favIndex(b,d.c.n,d.m[0],ui.size,d.unit)>=0; return '<button type="button" class="favbtn'+(on?' on':'')+'" data-act="fav-toggle" aria-pressed="'+!!on+'">'+(on?'♥ Guardado':'♡ Guardar')+'</button>'; }
-var VIEWS={ingresar:vLoginB,cuenta:vAccount,home:vFront,'ab-product':vAbProduct,buscar:vSearch,cat:vCat,compare:vCompare,checkout:function(){ return ui.cartMode?vCheckoutCart():vCheckout(); },done:function(){ return ui.doneOrders?vDoneMany():vDone(); },pedido:vTrack,carrito:vCart};
+/* Puente a "Pedir ofertas": con un carrito grande conviene que varios proveedores coticen precio por volumen. */
+var NF_VOLUMEN={unidades:10,productos:5};
+function cartUnits(){return cart.reduce(function(a,i){return a+Math.max(0,Math.floor(Number(i.qty)||0));},0);}
+function cartToOffersCard(){
+ if(!cart.length||(cartUnits()<NF_VOLUMEN.unidades&&cart.length<NF_VOLUMEN.productos))return '';
+ return '<div class="wrap"><section class="card nf-bridge nf-bridge-cart" aria-label="Pedir ofertas por volumen"><div><b>¿Comprás por volumen?</b><p class="muted">Tenés '+cartUnits()+' unidades en el carrito. Pedí ofertas con esta lista y varios proveedores te cotizan precio por cantidad, envío y cuotas. Es gratis y sin compromiso.</p></div><button type="button" class="btn btn-accent" data-nf="cart-offers">Pedir ofertas con este carrito</button></section></div>';
+}
+function cartToOffersItems(){
+ return cart.map(function(i){
+  if(isABCartItem(i))return {producto:String(i.model||'Producto').slice(0,120),cantidad:String(Math.max(1,Math.floor(Number(i.qty)||1))),detalle:String(i.size||'').slice(0,300)};
+  var o=offer(i.id);if(!o)return null;
+  return {producto:String(o.model||o.category||'Producto').slice(0,120),cantidad:String(Math.max(1,Math.floor(Number(i.qty)||1))),detalle:[o.size,o.unit&&o.unit!=='Unidad'?o.unit:''].filter(Boolean).join(' · ').slice(0,300)};
+ }).filter(Boolean).slice(0,25);
+}
+document.addEventListener('click',function(ev){
+ var b=ev.target.closest&&ev.target.closest('[data-nf="cart-offers"]');if(!b)return;
+ var items=cartToOffersItems();if(!items.length)return;
+ try{sessionStorage.setItem('nf-sol-prefill',JSON.stringify({items:items,detalles:'Lista enviada desde el carrito de Nexo Fit.'}));}catch(e){toast('Tu navegador no permite guardar la lista. Cargala a mano en Pedir ofertas.');return;}
+ if(window.nfTrack)window.nfTrack('Lead',{name:'carrito a solicitud'});
+ location.href='solicitud.html?desde=carrito';
+});
+var VIEWS={ingresar:vLoginB,cuenta:vAccount,home:vFront,'ab-product':vAbProduct,buscar:vSearch,cat:vCat,compare:vCompare,checkout:function(){ return ui.cartMode?vCheckoutCart():vCheckout(); },done:function(){ return ui.doneOrders?vDoneMany():vDone(); },pedido:vTrack,carrito:function(){ return vCart()+cartToOffersCard(); }};
 function render(){
   if(!VIEWS[ui.route]) ui.route='home';
   var fab=cart.length&&['carrito','checkout','done'].indexOf(ui.route)<0?'<button type="button" class="cartfab" data-go="carrito">'+ico('ventas',20)+'Ver carrito · '+cart.length+'</button>':'';

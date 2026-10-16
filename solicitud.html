@@ -29,6 +29,7 @@
   <form id="sol" class="sol" novalidate>
     <fieldset>
       <legend>1. ¿Qué necesitás?</legend>
+      <p id="prefill-aviso" class="note small" role="status" hidden></p>
       <div id="items"></div>
       <button class="btn btn-outline" type="button" id="add-item">+ Agregar otro producto</button>
       <div>
@@ -122,8 +123,8 @@
     <h2>¡Listo! Ya estamos consultando a los proveedores.</h2>
     <p>Tu número de solicitud es</p>
     <p class="code" id="ok-code"></p>
-    <p class="muted">Te vamos a contactar por WhatsApp o email con las ofertas comparadas. Guardá este número para cualquier consulta.</p>
-    <div class="actions"><a class="btn btn-dark" id="ok-wa" target="_blank" rel="noopener" href="#">Avisar por WhatsApp</a><a class="btn btn-outline" href="nicolas.html">Ir a la tienda</a></div>
+    <p class="muted">Te vamos a contactar por WhatsApp o email con las ofertas comparadas. Guardá este número: con él y tu email podés ver en qué etapa está.</p>
+    <div class="actions"><a class="btn btn-accent" id="ok-track" href="mi-solicitud.html">Seguir mi solicitud</a><a class="btn btn-dark" id="ok-wa" target="_blank" rel="noopener" href="#">Avisar por WhatsApp</a><a class="btn btn-outline" href="nicolas.html">Ir a la tienda</a></div>
   </section>
 </main>
 <footer class="foot" id="foot"></footer>

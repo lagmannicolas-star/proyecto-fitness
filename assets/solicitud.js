@@ -4,7 +4,7 @@
   'use strict';
   var DB = { url: 'https://ecdaxdqvdwplhovcmnxr.supabase.co', key: 'sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-' };
   var E = w.NEXOFIT_EMPRESA || {};
-  var MAX = 15;
+  var MAX = 25;
   var PROVINCIAS = ['Buenos Aires', 'Ciudad de Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'];
   var TIPOS = { gimnasios: 'gimnasio', gimnasio: 'gimnasio', clubes: 'club', club: 'club', colegios: 'colegio', colegio: 'colegio', entrenador: 'entrenador' };
   var PRIO = { equilibrio: 'Mejor equilibrio', precio: 'Menor costo total', rapidez: 'Entrega más rápida', financiacion: 'Financiación', calidad: 'Calidad y garantía' };
@@ -46,7 +46,24 @@
     });
     $('add-item').hidden = list.length >= MAX;
   }
-  addItem(q.get('producto'), (q.get('cantidad') || '').replace(/\D/g, ''));
+  // Lista que llega armada desde "Armá tu espacio" o desde el carrito.
+  var pre = null;
+  if (q.get('desde')) {
+    try { pre = JSON.parse(w.sessionStorage.getItem('nf-sol-prefill') || 'null'); } catch (e) { pre = null; }
+  }
+  if (pre && Array.isArray(pre.items) && pre.items.length) {
+    pre.items.slice(0, MAX).forEach(function (it) {
+      var row = addItem(String(it.producto || '').slice(0, 120), String(it.cantidad || '').replace(/\D/g, '').slice(0, 6));
+      var det = row && row.querySelector('[data-k=detalle]');
+      if (det && it.detalle) det.value = String(it.detalle).slice(0, 300);
+    });
+    if (pre.detalles) $('detalles').value = String(pre.detalles).slice(0, 1500);
+    if (pre.tipo && $('tipo').querySelector('option[value="' + pre.tipo + '"]')) $('tipo').value = pre.tipo;
+    var aviso = d.getElementById('prefill-aviso');
+    if (aviso) { aviso.hidden = false; aviso.textContent = 'Cargamos tu lista de ' + pre.items.length + (pre.items.length === 1 ? ' producto' : ' productos') + '. Revisala y completá los datos de entrega.'; }
+  } else {
+    addItem(q.get('producto'), (q.get('cantidad') || '').replace(/\D/g, ''));
+  }
   $('add-item').addEventListener('click', function () { var it = addItem(); if (it) it.querySelector('input').focus(); });
   items.addEventListener('click', function (ev) {
     var x = ev.target.closest('.item-x');
@@ -133,6 +150,11 @@
         if (!res.ok || !res.j || !res.j.code) throw new Error((res.j && res.j.message) || 'No pudimos guardar la solicitud.');
         if (w.nfTrack) w.nfTrack('Lead', { name: 'solicitud de ofertas' });
         $('ok-code').textContent = res.j.code;
+        var seg = $('ok-track'); if (seg) seg.href = 'mi-solicitud.html?codigo=' + encodeURIComponent(res.j.code);
+        try {
+          w.sessionStorage.removeItem('nf-sol-prefill');
+          w.sessionStorage.setItem('nf-sol-ultima', JSON.stringify({ code: res.j.code, email: s.email }));
+        } catch (e) { /* sin almacenamiento */ }
         var wa = $('ok-wa'), link = waLink(resumen(s, res.j.code));
         if (link) wa.href = link; else wa.hidden = true;
         form.hidden = true;

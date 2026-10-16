@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seguí tu solicitud · Nexo Fit</title>
+<meta name="description" content="Ingresá tu número de solicitud y tu email para ver en qué etapa está tu pedido de ofertas.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://nexofitt.com.ar/mi-solicitud">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+</head>
+<body data-segmento="seguimiento">
+<header class="top" id="top"></header>
+<main class="wrap">
+  <p class="eyebrow">Seguimiento</p>
+  <h1>Seguí tu solicitud</h1>
+  <p class="muted">Usá el número que te dimos al pedir ofertas (empieza con SOL-) y el mismo email.</p>
+  <form id="buscar" novalidate>
+    <div class="row2">
+      <div><label for="codigo">Número de solicitud</label><input id="codigo" required maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="SOL-XXXXXX"></div>
+      <div><label for="email">Email</label><input id="email" type="email" required maxlength="160" autocomplete="email"></div>
+    </div>
+    <button class="btn btn-accent" type="submit" id="ver">Ver estado</button>
+  </form>
+  <p id="seg-error" class="alert" role="alert" hidden></p>
+  <section id="resultado" hidden tabindex="-1" aria-live="polite"></section>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script src="assets/mi-solicitud.js"></script>
+</body>
+</html>
