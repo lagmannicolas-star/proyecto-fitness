@@ -15,7 +15,7 @@ assert.equal(go('', '#carrito'), 'nicolas.html#carrito', 'carrito');
 assert.equal(go('?pago=ok', ''), 'nicolas.html?pago=ok', 'vuelta de Mercado Pago');
 assert.equal(go('', ''), null, 'la portada se muestra');
 assert.equal(go('?utm_source=instagram&utm_medium=bio', ''), null, 'las campañas ven la portada');
-for (const href of ['arma-tu-espacio.html?tipo=gimnasio', 'arma-tu-espacio.html?tipo=club', 'arma-tu-espacio.html?tipo=colegio', 'arma-tu-espacio.html?tipo=casa', 'nicolas.html', 'solicitud.html', 'mi-solicitud.html'])
+for (const href of ['arma-tu-espacio.html?tipo=gimnasio', 'arma-tu-espacio.html?tipo=club', 'arma-tu-espacio.html?tipo=colegio', 'arma-tu-espacio.html?tipo=casa', 'nicolas.html#catalogo', 'solicitud.html', 'mi-solicitud.html'])
   assert(home.includes('href="' + href + '"'), 'portada enlaza ' + href);
 
 // Los archivos enlazados existen.
