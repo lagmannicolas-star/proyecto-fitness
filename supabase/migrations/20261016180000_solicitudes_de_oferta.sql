@@ -25,6 +25,8 @@ create table if not exists public.fitness_solicitudes(
  nota_publica text check (length(nota_publica)<=500),
  updated_at timestamptz not null default now()
 );
+create index if not exists fitness_solicitudes_email_idx on public.fitness_solicitudes(email,created_at desc);
+create index if not exists fitness_solicitudes_created_idx on public.fitness_solicitudes(created_at desc);
 alter table public.fitness_solicitudes enable row level security;
 revoke all on table public.fitness_solicitudes from public,anon,authenticated;
 grant select,insert,update on table public.fitness_solicitudes to service_role;
@@ -63,11 +65,21 @@ begin
  if (select count(*) from public.fitness_solicitudes s where s.email=e and s.created_at>now()-interval '1 day')>=5 then
   raise exception 'Ya recibimos varias solicitudes con este email hoy. Te vamos a contactar.';
  end if;
- c:='SOL-'||upper(substr(md5(random()::text||clock_timestamp()::text||e),1,6));
+ -- Freno ante envíos masivos automáticos.
+ if (select count(*) from public.fitness_solicitudes s where s.created_at>now()-interval '1 hour')>=100 then
+  raise exception 'Estamos recibiendo muchas solicitudes. Probá de nuevo en un rato o escribinos por WhatsApp.';
+ end if;
+ -- Se guardan solo los campos conocidos de cada producto, ya recortados.
+ select jsonb_agg(jsonb_build_object('producto',btrim(x->>'producto'),'cantidad',x->>'cantidad','detalle',btrim(coalesce(x->>'detalle',''))) order by o)
+  into its from jsonb_array_elements(its) with ordinality as a(x,o);
+ loop
+  c:='SOL-'||upper(substr(md5(random()::text||clock_timestamp()::text||e),1,6));
+  exit when not exists(select 1 from public.fitness_solicitudes s where s.code=c);
+ end loop;
  insert into public.fitness_solicitudes(code,tipo,nombre,empresa,email,telefono,items,detalles,localidad,provincia,plazo,factura,pagos,prioridad,presupuesto,origen)
  values(c,details->>'tipo',n,nullif(btrim(coalesce(details->>'empresa','')),''),e,t,its,
   nullif(btrim(coalesce(details->>'detalles','')),''),loc,prov,details->>'plazo',details->>'factura',pg,details->>'prioridad',pres,
-  case when jsonb_typeof(details->'origen')='object' then details->'origen' end);
+  case when jsonb_typeof(details->'origen')='object' and length((details->'origen')::text)<=1500 then details->'origen' end);
  return jsonb_build_object('code',c,'createdAt',now());
 exception when check_violation or not_null_violation then
  raise exception 'Revisá los datos de la solicitud';
