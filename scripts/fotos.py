@@ -189,6 +189,9 @@ def main():
         html = page(url)
         if not html:
             continue
+        if slug in ('agarre-v-de-triceps-con-estribos-para-polea-cromado', 'kit-de-hockey-inicial-w0u6o'):
+            with open(os.path.join(FIX, 'muestra-' + slug[:20] + '.html'), 'w', encoding='utf-8') as f:
+                f.write(html)
         desc, gallery = read_product(html, url)
         local = [x for x in (save_image(g, mapa) for g in gallery) if x]
         if desc or local:
