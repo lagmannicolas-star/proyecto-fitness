@@ -619,6 +619,7 @@ tfoot td{padding:12px 14px;border-top:2px solid var(--ink);background:var(--surf
 /* Quién cobra */
 .rq-sub{display:block;font-size:.85rem;color:var(--muted);margin:2px 0}
 .rq-l{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.88rem}
+.rq-steps{margin:0 0 12px;padding-left:20px;line-height:1.5}.rq-steps li{margin-bottom:4px}
 .rq-box{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px}
 .mono{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.04em}
 .paywho{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:10px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
@@ -3036,8 +3037,9 @@ function invitesHTML(r){
 }
 function requestsView(){
  if(!ui.requests){setTimeout(loadRequests,0);return '<div class="card"><p class="muted">Cargando solicitudes…</p></div>';}
- var views='<div class="seg" role="group" aria-label="Sección" style="margin-bottom:12px"><button type="button" data-act="req-view" data-v="sol" aria-pressed="'+(ui.reqView!=='red')+'">Solicitudes</button><button type="button" data-act="req-view" data-v="red" aria-pressed="'+(ui.reqView==='red')+'">Red de proveedores ('+(ui.red||[]).length+')</button></div>';
+ var views='<div class="seg" role="group" aria-label="Sección" style="margin-bottom:12px"><button type="button" data-act="req-view" data-v="sol" aria-pressed="'+(!ui.reqView||ui.reqView==='sol')+'">Solicitudes</button><button type="button" data-act="req-view" data-v="red" aria-pressed="'+(ui.reqView==='red')+'">Red de proveedores ('+(ui.red||[]).length+')</button><button type="button" data-act="req-view" data-v="avisos" aria-pressed="'+(ui.reqView==='avisos')+'">Avisos</button></div>';
  if(ui.reqView==='red')return views+redView();
+ if(ui.reqView==='avisos')return views+avisosView();
  var list=ui.requests,f=ui.reqFilter||'abiertas';
  var open=function(r){return ['nueva','enviada','con_ofertas','elegida'].indexOf(r.estado)>=0;};
  var shown=list.filter(function(r){return f==='todas'?true:f==='abiertas'?open(r):r.estado===f;});
@@ -3097,6 +3099,59 @@ document.addEventListener('click',function(ev){
   t.disabled=true;
   adminRpc('fitness_solicitud_actualizar',{p_code:r.code,p_status:g2('status'),p_proveedores:r.proveedores_consultados||0,p_ofertas:r.ofertas_recibidas||0,p_nota:g2('nota')})
    .then(function(){toast('Solicitud actualizada');return loadRequests();}).catch(function(e){t.disabled=false;toast(e.message);});
+ }
+});
+
+/* ---------- Avisos por email y WhatsApp ---------- */
+var AV_TIPO={solicitud_nueva:'Solicitud nueva',solicitud_nueva_comprador:'Confirmación al comprador',oferta_nueva:'Oferta nueva',oferta_nueva_comprador:'Primera oferta (comprador)',oferta_corregida:'Oferta corregida',oferta_elegida:'Oferta elegida',oferta_elegida_comprador:'Elección (comprador)',prueba:'Prueba'};
+async function loadAvisos(){try{ui.avisos=await adminRpc('fitness_avisos_admin');ui.avisosErr='';}catch(e){ui.avisos={avisos:[]};ui.avisosErr=e.message;}rerender();}
+function avisosView(){
+ if(!ui.avisos){setTimeout(loadAvisos,0);return '<div class="card"><p class="muted">Cargando avisos…</p></div>';}
+ var a=ui.avisos,domainOk=a.email_from&&!/@resend\.dev/i.test(a.email_from);
+ var st=function(ok,txt){return '<span class="st '+(ok?'ok':'neu')+'">'+txt+'</span>';};
+ var h='<div class="card">'+chead('bell','Avisos de solicitudes y ofertas','Te avisamos por email y por WhatsApp cuando entra una solicitud, cuando llega o se corrige una oferta y cuando un comprador elige. Al comprador le mandamos por email la confirmación, la primera oferta y su elección.')
+  +(ui.avisosErr?'<p class="alert bad">'+esc(ui.avisosErr)+'</p>':'')
+  +'<p>'+st(a.resend&&a.admin_email,a.resend&&a.admin_email?'Email activo':'Email sin configurar')+' '+st(a.callmebot&&a.admin_whatsapp,a.callmebot&&a.admin_whatsapp?'WhatsApp activo':'WhatsApp sin configurar')+' '+st(a.resend&&domainOk&&a.comprador_email,a.resend&&domainOk&&a.comprador_email?'Emails a compradores activos':'Emails a compradores en pausa')+'</p></div>';
+ h+='<div class="card"><h3 style="margin-top:0">Email (Resend)</h3>'
+  +'<ol class="rq-steps"><li>Creá una cuenta gratis en <a href="https://resend.com" target="_blank" rel="noopener">resend.com</a> con el email donde querés recibir los avisos.</li>'
+  +'<li>En <b>API Keys</b> creá una llave con permiso de envío y pegala abajo. Se guarda cifrada: después no se muestra más.</li>'
+  +'<li>Para escribirle también a los compradores: en <b>Domains</b> agregá <b>nexofitt.com.ar</b>, cargá en Cloudflare (DNS) los registros que te muestra y esperá que figure <b>Verified</b>. Después cambiá el remitente a <b>Nexo Fit &lt;avisos@nexofitt.com.ar&gt;</b>. Mientras tanto los avisos te llegan solo a vos.</li></ol>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">'
+  +'<label class="rq-l">Email donde recibís los avisos<input data-av="admin_email" maxlength="160" value="'+esc(a.admin_email||'')+'"></label>'
+  +'<label class="rq-l">Remitente<input data-av="email_from" maxlength="160" value="'+esc(a.email_from||'')+'"></label>'
+  +'<label class="rq-l">Llave de Resend '+(a.resend?'(ya cargada: dejalo vacío para no cambiarla)':'')+'<input data-av="resend_key" type="password" autocomplete="off" placeholder="re_…"></label></div>'
+  +'<label style="display:inline-flex;gap:6px;align-items:center;font-weight:600;margin-top:10px"><input type="checkbox" data-av="comprador_email"'+(a.comprador_email?' checked':'')+'> Mandar emails a los compradores (cuando el dominio esté verificado)</label></div>';
+ h+='<div class="card"><h3 style="margin-top:0">WhatsApp (CallMeBot)</h3>'
+  +'<ol class="rq-steps"><li>Entrá a <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener">callmebot.com</a> y agendá el número que indican (a veces cambia, usá el que figure ahí).</li>'
+  +'<li>Desde tu WhatsApp mandale: <b>I allow callmebot to send me messages</b>. En unos minutos te responde con tu <b>apikey</b>.</li>'
+  +'<li>Pegá abajo tu número (con 549 y código de área) y la apikey. Es un servicio gratuito para avisarte a vos mismo; más adelante se puede pasar a la API oficial de WhatsApp.</li></ol>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">'
+  +'<label class="rq-l">Tu WhatsApp<input data-av="admin_whatsapp" maxlength="20" value="'+esc(a.admin_whatsapp||'')+'" placeholder="5491112345678"></label>'
+  +'<label class="rq-l">Apikey de CallMeBot '+(a.callmebot?'(ya cargada)':'')+'<input data-av="callmebot_key" type="password" autocomplete="off"></label></div>'
+  +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-sm" data-act="av-save">Guardar</button><button class="btn btn-outline btn-sm" data-act="av-test">Mandar aviso de prueba</button></div></div>';
+ var list=a.avisos||[];
+ h+='<div class="card"><h3 style="margin-top:0">Últimos avisos</h3>'+(list.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Aviso</th><th>Canal</th><th>Para</th><th>Estado</th><th></th></tr></thead><tbody>'+list.map(function(x){
+  var s=x.estado==='enviado'?['ok','Enviado']:x.estado==='error'?['bad','Falló']:['warn',x.intentos?'Reintentando':'En cola'];
+  return '<tr><td class="nw">'+esc(new Date(x.creado).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</td><td>'+esc(AV_TIPO[x.tipo]||x.tipo)+'<span class="rq-sub">'+esc(x.asunto||'')+'</span></td><td>'+(x.canal==='email'?'Email':'WhatsApp')+'</td><td>'+esc(x.destino)+'</td><td><span class="st '+s[0]+'">'+s[1]+'</span>'+(x.error?'<span class="rq-sub">'+esc(x.error)+'</span>':'')+'</td><td>'+(x.estado!=='enviado'?'<button class="btn btn-outline btn-sm" data-act="av-retry" data-id="'+x.id+'">Reintentar</button>':'')+'</td></tr>';
+ }).join('')+'</tbody></table></div>':'<p class="muted">Todavía no salió ningún aviso.</p>')+'</div>';
+ return h;
+}
+document.addEventListener('click',function(ev){
+ var t=ev.target.closest&&ev.target.closest('[data-act^="av-"]');if(!t||t.disabled)return;
+ var act=t.dataset.act;
+ if(act==='av-save'){
+  var g=function(k){var el=document.querySelector('[data-av="'+k+'"]');return el?(el.type==='checkbox'?el.checked:el.value):'';};
+  t.disabled=true;
+  adminRpc('fitness_avisos_guardar',{p:{admin_email:g('admin_email'),email_from:g('email_from'),resend_key:g('resend_key'),comprador_email:g('comprador_email'),admin_whatsapp:g('admin_whatsapp'),callmebot_key:g('callmebot_key')}})
+   .then(function(r){ui.avisos=r;toast('Avisos guardados');rerender();}).catch(function(e){t.disabled=false;toast(e.message);});
+ }
+ if(act==='av-test'){
+  t.disabled=true;t.textContent='Enviando…';
+  adminRpc('fitness_avisos_probar').then(function(r){ui.avisos=r.panel;var bad=(r.pruebas||[]).filter(function(p){return p.resultado!=='ok';});toast(bad.length?'Hubo un problema: '+bad[0].resultado:'¡Listo! Revisá tu email y tu WhatsApp.');rerender();})
+   .catch(function(e){t.disabled=false;t.textContent='Mandar aviso de prueba';toast(e.message);});
+ }
+ if(act==='av-retry'){
+  t.disabled=true;adminRpc('fitness_aviso_reintentar',{p_id:Number(t.dataset.id)}).then(function(r){toast(r.resultado==='ok'?'Aviso enviado':'No salió: '+r.resultado);return loadAvisos();}).catch(function(e){t.disabled=false;toast(e.message);});
  }
 });
 
