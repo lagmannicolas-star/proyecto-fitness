@@ -1205,7 +1205,8 @@ function order(id){ return db.orders.filter(function(o){ return o.id===+id; })[0
 function pctOf(v){ return (v&&v.commission!=null)?v.commission:db.commission; }
 function vkey(cat,model,size){ return [cat,model,size].map(norm).join('|'); }
 function keyOf(o){ return vkey(o.category,o.model,o.size)+'|'+norm(o.unit); }
-function isLive(o){ var v=vendor(o.vendorId); return o.status==='published'&&o.stock!=='none'&&!!v&&v.status==='active'; }
+function priceIsFresh(o){ if(!o) return false; if(!/^\d{4}-\d{2}-\d{2}$/.test(String(o.updated||''))) return today()<='2026-11-15'; var age=calDays(o.updated,today()); return age>=0&&age<=30; }
+function isLive(o){ var v=vendor(o.vendorId); return o.status==='published'&&o.stock!=='none'&&!!v&&v.status==='active'&&priceIsFresh(o); }
 /* Ofertas publicadas agrupadas por variante del catálogo. */
 function liveIndex(){
   var map={};

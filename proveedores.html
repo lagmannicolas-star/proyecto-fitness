@@ -1405,11 +1405,12 @@ function tabsHTML(list,cur){
 /* Días hábiles (lunes a viernes) entre dos fechas. */
 function bizDays(a,b){ var d=new Date(a+'T12:00:00'), t=new Date(b+'T12:00:00'), n=0; while(d<t){ d.setDate(d.getDate()+1); var w=d.getDay(); if(w!==0&&w!==6) n++; } return n; }
 function calDays(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5); }
+function priceIsStale(o){ return !o||!/^\d{4}-\d{2}-\d{2}$/.test(String(o.updated||''))||calDays(o.updated,today())>30; }
 function lateDays(o){ return (o.status==='approved'&&!o.shipped)?bizDays(o.date,today())-(o.lead==null?5:o.lead):0; }
 function orderStatus(o){var labels={pending_payment:'Pendiente de pago',expired:'Reserva vencida',cancelled:'Cancelado',refunded:'Devuelto',approved:o.delivered?'Entregado':o.shipped?'Enviado':'Pagado, por enviar'};return '<span class="st '+(o.status==='approved'?'ok':'warn')+'">'+esc(labels[o.status]||o.status)+'</span>';}
 function offerStatus(o){
   var m={published:['ok','Publicado'],review:['warn','En revisión'],paused:['neu','Pausado'],rejected:['bad','Rechazado']}[o.status]||['neu',o.status];
-  return '<span class="st '+m[0]+'">'+m[1]+'</span>';
+  return '<span class="st '+m[0]+'">'+m[1]+'</span>'+(priceIsStale(o)?'<span class="st warn">Precio vencido</span>':'');
 }
 function vendorStatus(v){
   var m={active:['ok','Activo'],pending:['warn','Por aprobar'],suspended:['neu','Suspendido'],rejected:['bad','Rechazado']}[v.status]||['neu',v.status];
@@ -1580,7 +1581,7 @@ function productsView(v,mine,low,out){
     +'<div class="tablewrap"><table style="min-width:860px"><thead><tr><th>Producto</th><th class="r">Precio</th><th>Unidades y stock</th><th>Estado</th><th></th></tr></thead><tbody>'
     +shown.map(function(o){
       return '<tr><td><b>'+esc(o.model)+'</b> · '+esc(o.size)+'<span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+' · entrega '+days(o.lead)+(o.brand?' · Marca: '+esc(o.brand):'')+(o.detail?' · '+esc(o.detail):'')+'</span></td><td class="r num">'+money(o.price)+(priceBadge(o)?'<span class="sub">'+priceBadge(o)+'</span>':'')+'</td><td><div class="ustack"><label class="sr" for="un-'+o.id+'">Unidades de '+esc(o.model+' '+o.size)+'</label><input class="cell-in units" id="un-'+o.id+'" data-units="'+o.id+'" type="number" min="0" inputmode="numeric" placeholder="—" value="'+(o.units==null?'':o.units)+'">'+stockBadge(o)+'</div></td><td>'+offerStatus(o)+'</td>'
-        +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn btn-outline btn-sm" data-act="prod-edit" data-id="'+o.id+'">Precio y stock</button>'+(o.status==='published'?'<button class="btn btn-primary btn-sm" data-act="paylink" data-id="'+o.id+'">Link de pago</button>':'')+'</div></td></tr>';
+        +'<td><div class="actions nw" style="justify-content:flex-end">'+(priceIsStale(o)?'<button class="btn btn-accent btn-sm" data-act="price-confirm" data-id="'+o.id+'">Confirmar precio</button>':'')+'<button class="btn btn-outline btn-sm" data-act="prod-edit" data-id="'+o.id+'">Precio y stock</button>'+(o.status==='published'&&!priceIsStale(o)?'<button class="btn btn-primary btn-sm" data-act="paylink" data-id="'+o.id+'">Link de pago</button>':'')+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
   return head+vendorPhotosPanel(v)+catalogDraftPanel(v)+linkBox()+(ui.sheet?sheetPanel(v,mine):'')+filterBar(v,mine)+'<div class="stockbar">'+lowdef+'</div>'+table;
 }
@@ -2053,6 +2054,7 @@ document.addEventListener('click',function(ev){
       catch(e){ x.focus(); x.select(); toast('Seleccioná el link y copialo'); }
       break;
     case 'prod-edit': go('product',{editId:id}); break;
+    case 'price-confirm': x=offer(id); if(x&&x.vendorId===ui.vendorId){ x.updated=today(); vact(me(),'confirmó el precio de '+x.model+' '+x.size); save(); rerender(); toast('Precio confirmado por 30 días.'); } break;
     case 'back-products': go('panel',{tab:'productos'}); break;
     case 'wa-missing': toast('Todavía falta cargar el WhatsApp del sitio. Escribinos por email.'); break;
     case 'refund':
