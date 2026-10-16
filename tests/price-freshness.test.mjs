@@ -6,6 +6,7 @@ const supplier=fs.readFileSync('proveedores.html','utf8');
 const admin=fs.readFileSync('admin.html','utf8');
 
 assert.match(buyer,/function priceIsFresh\(o\)/,'existe la regla de vigencia');
+assert.match(buyer,/return today\(\)<='2026-11-15'/,'los registros heredados tienen una transición limitada');
 assert.match(buyer,/age>=0&&age<=30/,'la vigencia máxima es 30 días');
 assert.match(buyer,/function isLive\(o\)[\s\S]*&&priceIsFresh\(o\)/,'una oferta vencida no queda comprable');
 assert.match(buyer,/var o=offer\(i\.id\), live=o&&isLive\(o\)/,'el carrito vuelve a validar vigencia');
@@ -21,7 +22,7 @@ assert.match(admin,/Sin confirmar/,'el administrador identifica fechas faltantes
 assert.match(admin,/Precios sin actualizar hace más de 30 días/,'se conserva la alerta operativa');
 
 const isFresh=(updated,today='2026-10-16')=>{
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(updated||''))) return false;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(updated||''))) return today<='2026-11-15';
   const age=Math.round((new Date(today+'T12:00:00')-new Date(updated+'T12:00:00'))/864e5);
   return age>=0&&age<=30;
 };
