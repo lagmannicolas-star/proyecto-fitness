@@ -849,6 +849,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .pimg{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}.pimg img{display:block;width:100%;height:100%;object-fit:contain}.pimg-lg{max-width:360px;margin:12px 0}.pimg-sm{width:64px;flex:none}@media(min-width:641px){.citem:has(.pimg-sm){grid-template-columns:64px minmax(0,1fr) auto minmax(96px,auto) 40px}}@media(max-width:640px){.citem .pimg-sm{display:none}}
 .ab-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.ab-card{border:1px solid var(--line,#10171f25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;background:#FDFAF5}.ab-card h3{font-size:16px;line-height:1.4;margin:0;overflow-wrap:anywhere}.ab-card .btn{margin-top:auto}.ab-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:20px 0}.ab-pages{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px}.ab-variant{padding:18px 0;border-bottom:1px solid #10171f25}.ab-variant .actions{margin-top:12px}.ab-variant input{width:90px;min-height:44px}.ab-card .small{margin:0}@media(max-width:900px){.ab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:550px){.ab-filters{grid-template-columns:1fr}.ab-card{padding:12px}.ab-card h3{font-size:14px}.ab-card .btn{font-size:12px;padding:10px}}
 .wa-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none;box-shadow:var(--shadow)}
+.nf-avail{display:flex;flex-direction:column;gap:12px;margin:22px 0 8px}.nf-avail .q-prods{margin:0}.q-var.q-hit{background:var(--accent-soft);border-radius:8px;padding-inline:6px}
 .nf-bridge{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:14px;padding:16px 18px;border-radius:14px;border:2px solid var(--accent,#A5CC21);background:rgba(165,204,33,.14);color:var(--ink,#10171F)}.nf-bridge p{margin:4px 0 0}.nf-bridge-cart{justify-content:space-between;margin-block:8px 28px}.nf-bridge-cart>div{flex:1;min-width:240px}
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.foot{padding-bottom:76px}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
 </style></head>
@@ -1932,11 +1933,11 @@ function rerender(focusId){
 function header(){
   var r=ui.route;
   return '<header class="top"><div class="wrap top-in">'
-    +'<button class="brand" data-go="home" aria-label="Nexo Fit, ir al inicio">'+LOGO+'</button>'
+    +'<a class="brand" href="index.html" aria-label="Nexo Fit, ir al inicio">'+LOGO+'</a>'
     +'<nav class="nav" aria-label="Principal">'
-    +'<button class="navlink" data-go="home"'+(r==='home'?' aria-current="page"':'')+'>Inicio</button>'
-    +'<button class="navlink" data-go="buscar"'+(r!=='home'&&r!=='carrito'?' aria-current="page"':'')+'>Compará y comprá</button>'
     +'<a class="navlink" href="solicitud.html" style="display:inline-flex;align-items:center;text-decoration:none">Pedir ofertas</a>'
+    +'<a class="navlink" href="arma-tu-espacio.html" style="display:inline-flex;align-items:center;text-decoration:none">Armá tu espacio</a>'
+    +'<button class="navlink" data-go="buscar"'+(r!=='carrito'&&r!=='ingresar'&&r!=='cuenta'&&r!=='pedido'?' aria-current="page"':'')+'>Catálogo</button>'
     +accountBtn()+cartBtn()+'</nav></div></header>';
 }
 function footer(){
@@ -2055,7 +2056,9 @@ function supplierSearch(toks){
     if(!groups[g]){ groups[g]={name:p.name,vendor:p.vendorName,cat:p.category,items:[],score:toks.filter(function(t){ return plain(p.name).indexOf(t)>=0; }).length,pos:order.length}; order.push(g); }
     groups[g].items.push({p:p,label:props||'Presentación única',hit:toks.every(function(t){ return plain(p.name+' '+props).indexOf(t)>=0; })});
   });
-  return order.map(function(k){ return groups[k]; }).sort(function(a,b){ return b.score-a.score||a.pos-b.pos; });
+  var wantKits=toks.some(function(t){ return /^(kit|combo|set)/.test(t); });
+  var rank=function(g){ var n=plain(g.name); return g.score*10+(n.indexOf(toks[0])===0?5:0)-(!wantKits&&KIT_RE.test(n)?8:0)-(g.items.every(function(x){ var o=x.p.offerId&&offer(x.p.offerId); return !(o&&isLive(o)); })?20:0); };
+  return order.map(function(k){ return groups[k]; }).sort(function(a,b){ return rank(b)-rank(a)||a.pos-b.pos; });
 }
 function supplierResultsHTML(prods){
   if(!prods.length) return '';
@@ -2140,8 +2143,9 @@ function vFront(){
 function vSearch(){
   var idx=liveIndex(), f=ensureFilters(idx);
   return '<section class="dark" style="padding-block:40px 48px"><div class="wrap hero-in">'
-    +'<p class="eyebrow">Compará y comprá</p><h1 class="display h-page">¿Qué querés comparar?</h1>'
+    +'<p class="eyebrow">Catálogo</p><h1 class="display h-page">¿Qué estás buscando?</h1><p class="muted">¿Comprás por cantidad o equipás un espacio completo? <a href="solicitud.html">Pedí ofertas</a> y los proveedores compiten por tu pedido.</p>'
     +'<div class="q-box"><div class="field"><label for="q">Buscá por nombre</label><input id="q" type="search" autocomplete="off" placeholder="Producto, modelo o medida" value="'+esc(ui.q)+'"></div><div id="q-res" aria-live="polite">'+searchHTML(ui.q)+'</div></div>'
+    +'<details class="tool-details" style="margin-top:12px"><summary>Comparar por categoría, modelo y medida</summary>'
     +'<form id="search" class="search" novalidate>'
     +'<div class="field"><label for="f-cat">Categoría</label><select id="f-cat">'+CATALOG.map(function(c){ return '<option'+(c.n===ui.fCat?' selected':'')+'>'+esc(c.n)+'</option>'; }).join('')+'</select></div>'
     +'<div class="field"><label for="f-model">Modelo</label><select id="f-model">'+f.c.m.map(function(m){ return '<option'+(m[0]===ui.fModel?' selected':'')+'>'+esc(m[0])+'</option>'; }).join('')+'</select></div>'
@@ -2150,6 +2154,7 @@ function vSearch(){
     +'<div class="field"><label for="f-cp">Código postal</label><input id="f-cp" type="text" inputmode="numeric" maxlength="4" value="'+esc(ui.cp)+'"></div>'
     +'<button class="btn btn-accent btn-lg" type="submit">'+ico('ventas',20)+'Agregar al carrito</button>'
     +'<p class="search-alt"><span>Agrega la oferta con el <b>menor precio final</b>.</span><button type="button" class="linkbtn" data-act="search-compare">Comparar ofertas</button></p></form>'
+    +'</details>'
     +'</div></section>'
     +spaceSection()+catSection(idx)
     +vsSection()+vendorSection()
@@ -2170,8 +2175,10 @@ function vCat(){
     }).join('');
     var group=c.n==='Combos y kits'?m[0].split(' · ')[0]:'';var heading=group&&(i===0||c.m[i-1][0].split(' · ')[0]!==group)?'<h2 class="display" style="grid-column:1 / -1">'+esc(group)+'</h2>':'';return heading+'<article class="model" id="m-'+i+'"><div class="model-h"><h2>'+esc(m[0])+'</h2><p class="muted">'+esc(m[2])+'</p></div><div class="vchips">'+chips+'</div></article>';
   }).join('');
-  return '<div class="wrap page"><nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-go="buscar">Comparador</button><span>/</span><span>'+esc(c.n)+'</span></nav>'
+  return '<div class="wrap page"><nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-go="buscar">Catálogo</button><span>/</span><span>'+esc(c.n)+'</span></nav>'
     +'<div style="display:flex;flex-direction:column;gap:8px"><h1 class="display h-page">'+esc(c.n)+'</h1><p class="lead">'+esc(c.intro)+'</p></div>'
+    +availableHTML(catProducts(c.n),{title:'Productos que podés comprar hoy',note:'Con sus variantes, precio y stock de cada proveedor.',q:CAT_QUERY[c.n]})
+    +'<h2 class="display h-card" style="margin-top:28px">Comparar por modelo</h2><p class="muted small">Elegí un modelo y una medida para comparar ofertas equivalentes entre empresas. Los números indican cuántas ofertas hay.</p>'
     +'<p class="legend"><span class="vchip has" aria-hidden="true">10 kg<span class="n">3</span></span> El número indica las ofertas disponibles.</p>'
     +'<div class="models">'+models+'</div>'
     +'<details class="tool-details"><summary>Qué revisar al comparar</summary><p>'+esc(c.clave)+'</p></details></div>';
@@ -2189,7 +2196,9 @@ function cmpResults(d){
     var others=d.m[1].filter(function(s){ return d.idx[vkey(d.c.n,d.m[0],s)]; });
     return '<div class="empty"><p><b>Todavía no hay ofertas publicadas para esta variante.</b></p>'
       +(others.length?'<p>Estas variantes del mismo modelo sí tienen ofertas:</p><div class="vchips" style="justify-content:center">'+others.map(function(s){ return '<button class="vchip has" data-act="set-size" data-size="'+esc(s)+'">'+esc(s)+'</button>'; }).join('')+'</div>':'')
-      +'<p>¿Vendés este producto? '+waCta('Contactate por WhatsApp','linkbtn wa','Hola, vendo un producto que todavía no tiene ofertas en Nexo Fit.')+'</p></div>';
+      +'<p>¿Vendés este producto? '+waCta('Contactate por WhatsApp','linkbtn wa','Hola, vendo un producto que todavía no tiene ofertas en Nexo Fit.')+'</p>'
+      +'<p><a class="btn btn-outline btn-sm" href="solicitud.html?producto='+encodeURIComponent(d.m[0]+' '+ui.size)+'&amp;cantidad='+encodeURIComponent(ui.qty||'')+'">Pedir ofertas por esta variante</a></p></div>'
+      +availableHTML(similarProducts(d.c.n,ui.size),{eyebrow:'Disponible hoy',title:'Productos parecidos que podés comprar',note:'No es una comparación exacta: revisá medida, material y presentación. Resaltamos las variantes de la misma medida.',mark:true,max:4,q:CAT_QUERY[d.c.n]});
   }
   var qty=Math.max(1,ui.qty|0), ok=cpOk(ui.cp);
   var rows=d.offers.map(function(o){ return {o:o,v:vendor(o.vendorId),q:comparisonQuote(o,qty,ui.cp),can:qty>=o.minQty&&(o.units==null||qty<=o.units),few:o.units!=null&&qty>o.units}; });
@@ -2382,6 +2391,64 @@ function vTrack(){
     +'<div><button class="btn btn-outline" data-act="track-other">Buscar otro pedido</button></div></div>';
 }
 function favBtn(d){ var b=acct(), on=b&&d.unit&&favIndex(b,d.c.n,d.m[0],ui.size,d.unit)>=0; return '<button type="button" class="favbtn'+(on?' on':'')+'" data-act="fav-toggle" aria-pressed="'+!!on+'">'+(on?'♥ Guardado':'♡ Guardar')+'</button>'; }
+/* Productos reales en el comparador: mientras los productos de los proveedores no estén vinculados a las
+   variantes del catálogo, cada categoría y cada modelo muestran lo que hoy se puede comprar, con sus variantes. */
+var CAT_WORDS={'Colchonetas':/colchonet/,'Mancuernas':/mancuern/,'Discos':/\bdiscos?\b/,'Pesas rusas':/\brusas?\b|kettlebell/,'Barras':/\bbarras?\b/,
+ 'Pelotas de Pilates':/pelot[a-z]* (de )?pilates|pilates.*pelot/,'Esferodinamias':/esfero|fitball|pelota (suiza|de gimnasia)/,'Medicine balls':/medicine|medicinal/,
+ 'Steps':/\bsteps?\b/,'Mats de yoga':/\bmats?\b|esterilla/,'Conos y señalizadores':/\bconos?\b|senaliz|tortuga|platillo/,
+ 'Elementos de coordinacion':/\baros?\b|escalera|vallas?\b|coordinaci/,'Elementos de coordinación':/\baros?\b|escalera|vallas?\b|coordinaci/,
+ 'Tobilleras':/tobiller/,'Bandas de látex':/latex|mini ?band/,'Bandas':/\bbandas?\b/,'Combos y kits':/\bkits?\b|\bcombos?\b/};
+var KIT_RE=/\bkits?\b|\bcombos?\b|\bset\b/;
+var CAT_NOT={'Barras':/\bdiscos?\b|topes?\b/,'Mancuernas':/\bdiscos?\b|\bbarras?\b|mancuernero/,'Discos':/soporte|arbol/,'Conos y señalizadores':/cinturon/};
+function supplierGroups(test){
+ var groups={},order=[];
+ supplierCatalog.forEach(function(p){
+  var props=(p.properties||[]).map(function(x){ return x.name+': '+x.value; }).join(' · ');
+  var r=test(plain(p.name+' '+(p.category||'')),plain(p.name+' '+props),p);
+  if(!r) return;
+  var g=p.vendorId+'|'+String(p.key).split('#')[0];
+  if(!groups[g]){ groups[g]={name:p.name,vendor:p.vendorName,cat:p.category,items:[],score:0,pos:order.length}; order.push(g); }
+  groups[g].items.push({p:p,label:props||'Presentación única',hit:r===2});
+  if(r===2) groups[g].score=1;
+ });
+ return order.map(function(k){ return groups[k]; }).filter(function(g){ return g.items.some(function(x){ var o=x.p.offerId&&offer(x.p.offerId); return o&&isLive(o); }); })
+  .sort(function(a,b){ return b.score-a.score||a.pos-b.pos; });
+}
+function catProducts(catName){
+ var re=CAT_WORDS[catName]; if(!re) return [];
+ var kits=catName==='Combos y kits';
+ var no=CAT_NOT[catName];
+ return supplierGroups(function(t){ return re.test(t)&&!(no&&no.test(t))&&(kits||!KIT_RE.test(t))?1:0; });
+}
+/* Productos parecidos a una variante: misma categoría y, si se puede, la misma medida o peso. */
+function similarProducts(catName,size){
+ var re=CAT_WORDS[catName]; if(!re) return [];
+ var kits=catName==='Combos y kits', sz=plain(size), m=/(\d+(?:[.,]\d+)?)\s*kg/.exec(sz), nums=(sz.match(/\d+(?:[.,]\d+)?/g)||[]).slice(0,2);
+ var w=m?new RegExp('(^|[^0-9.,])'+m[1].replace(/[.,]/,'[.,]')+'\\s*(kg|k|kilos?)\\b'):null;
+ var hit=function(full){ return w?w.test(full):nums.length&&nums.every(function(n){ return new RegExp('(^|[^0-9])'+n.replace(/[.,]/,'[.,]')+'([^0-9]|$)').test(full); }); };
+ var no=CAT_NOT[catName];
+ return supplierGroups(function(t,full){ if(!re.test(t)||(no&&no.test(t))||(!kits&&KIT_RE.test(t))) return 0; return hit(full)?2:1; });
+}
+function availableHTML(groups,opts){
+ if(!groups.length) return '';
+ var max=opts.max||6, list=groups.slice(0,max);
+ return '<section class="nf-avail" aria-label="'+esc(opts.title)+'"><div class="section-head" style="margin:0"><div><p class="eyebrow">'+esc(opts.eyebrow||'Disponible hoy')+'</p><h2 class="display h-card">'+esc(opts.title)+'</h2>'+(opts.note?'<p class="muted small">'+esc(opts.note)+'</p>':'')+'</div></div>'
+  +'<div class="q-prods">'+list.map(function(g){
+   var items=g.items.slice().sort(function(a,b){ return (b.hit?1:0)-(a.hit?1:0); }),shown=items.slice(0,6);
+   return '<article class="q-prod">'+photoHTML(photoFor(g.items[0].p.key),g.name,'pimg-sm')+'<div class="q-prod-b"><b>'+esc(g.name)+'</b><span class="small muted">'+esc(g.vendor)+(g.cat?' · '+esc(g.cat):'')+' · '+(g.items.length===1?'1 variante':g.items.length+' variantes')+'</span>'
+    +shown.map(function(x){ var o=x.p.offerId&&offer(x.p.offerId),live=o&&isLive(o);
+     return '<div class="q-var'+(x.hit&&opts.mark?' q-hit':'')+'"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
+    +(items.length>6?'<span class="small muted">Y '+(items.length-6)+' variantes más.</span>':'')+'</div></article>';
+  }).join('')+'</div>'
+  +(groups.length>max&&opts.q?'<div class="actions"><button type="button" class="btn btn-outline" data-nf-q="'+esc(opts.q)+'">Ver los '+groups.length+' productos</button></div>':'')+'</section>';
+}
+document.addEventListener('click',function(ev){
+ var b=ev.target.closest&&ev.target.closest('[data-nf-q]'); if(!b) return;
+ ui.q=b.getAttribute('data-nf-q'); go('buscar');
+ setTimeout(function(){ var i=document.getElementById('q'); if(i){ i.value=ui.q; i.dispatchEvent(new Event('input',{bubbles:true})); i.focus(); } },0);
+});
+var CAT_QUERY={'Colchonetas':'colchoneta','Mancuernas':'mancuerna','Discos':'disco','Pesas rusas':'rusa','Barras':'barra','Pelotas de Pilates':'pilates','Esferodinamias':'esfero','Medicine balls':'medicine','Steps':'step','Mats de yoga':'mat','Conos y señalizadores':'cono','Elementos de coordinación':'aro','Tobilleras':'tobillera','Bandas de látex':'latex','Bandas':'banda','Combos y kits':'kit'};
+
 /* Puente a "Pedir ofertas": con un carrito grande conviene que varios proveedores coticen precio por volumen. */
 var NF_VOLUMEN={unidades:10,productos:5};
 function cartUnits(){return cart.reduce(function(a,i){return a+Math.max(0,Math.floor(Number(i.qty)||0));},0);}
@@ -2679,6 +2746,7 @@ document.addEventListener('change',function(ev){if(ev.target.id==='ab-category')
 /* Link de pago: index.html#pagar-<id> abre directo el pago de esa oferta. */
 function fromHash(){
   if(location.hash==='#carrito'){ui.route='carrito';ui.cartMode=false;return true;}
+  if(location.hash==='#catalogo'){ui.route='buscar';return true;}
   var m=/^#pagar-([A-Za-z0-9]+)$/.exec(location.hash||''); if(!m) return false;
   var o=offer(m[1]); ui.route='checkout'; ui.offerId=m[1]; ui.cartMode=false; ui.doneOrders=null; ui.pay=false; ui.payError='';
   if(o){ ui.qty=Math.max(1,o.minQty); ui.cat=o.category; ui.model=o.model; ui.size=o.size; ui.unit=o.unit; track('v',o.vendorId); }

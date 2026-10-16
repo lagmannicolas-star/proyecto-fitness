@@ -4,7 +4,7 @@
   var E = w.NEXOFIT_EMPRESA || {};
   var LOGO = '<a href="index.html" aria-label="Nexo Fit, ir al inicio"><span class="logo-frame"><img src="assets/nexofit-logo.png" alt="Nexo Fit" width="1254" height="1254"></span></a>';
   var top = d.getElementById('top');
-  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="nicolas.html">Tienda</a><a href="nicolas.html#carrito">Carrito</a></nav></div>';
+  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="nicolas.html#catalogo">Catálogo</a><a href="nicolas.html#carrito">Carrito</a></nav></div>';
   var foot = d.getElementById('foot');
   if (foot) {
     var who = [E.razonSocial, E.cuit && 'CUIT ' + E.cuit, E.domicilio].filter(Boolean).join(' · ');
