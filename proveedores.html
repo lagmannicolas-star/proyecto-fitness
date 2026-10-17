@@ -205,6 +205,7 @@ input[type=range]{width:100%;height:44px;accent-color:var(--accent);padding:0;bo
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{min-height:48px;padding:0 13px;border:1px solid var(--field-line);border-radius:999px;background:var(--surface);font-weight:600;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.red-fs{border:0;padding:0;margin:18px 0 0;min-width:0}.red-fs legend{font-weight:700;margin-bottom:8px}.red-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:4px 16px;margin-top:6px}.red-opt{display:flex;gap:8px;align-items:center;min-height:36px;font-weight:600}
 .formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px}
 fieldset{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:14px}
 legend{padding:0;font-family:var(--display);font-weight:700;font-size:1.4rem;text-transform:uppercase}
@@ -1776,30 +1777,74 @@ function simHTML(){
     +'<div><div class="small muted" style="font-weight:600">Comisión del sitio · '+p+'%</div><div id="sim-com" class="bigfig num">'+money(n*p/100)+'</div></div></div>'
     +'<p class="muted small">Simulación de comisión. La integración de Mercado Pago está pendiente.</p></div>';
 }
+/* Red de "Pedí ofertas": el proveedor se suma sin cuenta ni catálogo. Entra pausado hasta que el administrador lo activa. */
+var RED_RUBROS=[['musculacion','Musculación'],['funcional','Funcional'],['colchonetas','Colchonetas, yoga y pilates'],['deportes','Deportes y pelotas'],['entrenamiento','Conos, escaleras y vallas'],['atletismo','Atletismo'],['escolar','Psicomotricidad y escolar'],['boxeo','Boxeo y artes marciales'],['natacion','Natación'],['rehabilitacion','Protección y rehabilitación']];
+var RED_PROV=['Buenos Aires','Ciudad de Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán'];
+function redJoinHTML(){
+  if(ui.redOk) return '<div class="card" style="max-width:760px"><h2 class="display" style="font-size:1.9rem">¡Listo, ya estás en la lista!</h2><div class="alert ok" role="status">Revisamos tus datos y te avisamos por WhatsApp cuando quedes activo. Desde ese momento te llegan los pedidos de tu rubro y tu zona.</div></div>';
+  return '<form id="red-join" class="card" novalidate style="max-width:760px">'
+    +'<h2 class="display" style="font-size:1.9rem">Quiero recibir pedidos</h2>'
+    +'<p class="muted">No hace falta cuenta ni catálogo. Te contactamos por WhatsApp.</p>'
+    +'<div id="red-err" class="alert bad" role="alert" hidden></div>'
+    +'<div class="formgrid">'
+    +'<div class="field"><label for="r-nombre">Empresa</label><input id="r-nombre" maxlength="120" autocomplete="organization"></div>'
+    +'<div class="field"><label for="r-tipo">Tipo</label><select id="r-tipo"><option>Distribuidor</option><option>Fabricante</option><option>Importador</option><option>Comercio</option></select></div>'
+    +'<div class="field"><label for="r-contacto">Persona de contacto</label><input id="r-contacto" maxlength="120" autocomplete="name"></div>'
+    +'<div class="field"><label for="r-wa">WhatsApp</label><input id="r-wa" type="tel" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="11 2345 6789"><span class="hint">Con código de área, sin 0 ni 15.</span></div>'
+    +'<div class="field"><label for="r-email">Email</label><input id="r-email" type="email" maxlength="160" autocomplete="email"></div>'
+    +'<div class="field"><label for="r-loc">Localidad <span class="hint">(opcional)</span></label><input id="r-loc" maxlength="80" autocomplete="address-level2"></div>'
+    +'<div class="field"><label for="r-cuit">CUIT <span class="hint">(opcional)</span></label><input id="r-cuit" inputmode="numeric" maxlength="13" placeholder="11 dígitos"></div>'
+    +'</div>'
+    +'<fieldset class="red-fs"><legend>¿Qué vendés?</legend><div class="red-opts">'+RED_RUBROS.map(function(r){ return '<label class="red-opt"><input type="checkbox" name="r-rubro" value="'+r[0]+'"> '+r[1]+'</label>'; }).join('')+'</div></fieldset>'
+    +'<fieldset class="red-fs"><legend>¿A dónde entregás?</legend><label class="red-opt"><input type="checkbox" id="r-todo" checked> Todo el país</label>'
+    +'<div class="red-opts" id="r-provs" hidden>'+RED_PROV.map(function(v,i){ return '<label class="red-opt"><input type="checkbox" name="r-prov" value="'+esc(v)+'"> '+esc(v)+'</label>'; }).join('')+'</div></fieldset>'
+    +'<div class="sr" aria-hidden="true"><label for="r-web">No completar</label><input id="r-web" tabindex="-1" autocomplete="off"></div>'
+    +'<p class="note small">Al enviar aceptás que guardemos estos datos para mandarte pedidos de oferta. Los compradores no ven tu contacto hasta elegir tu oferta. <a href="privacidad.html">Privacidad</a>.</p>'
+    +'<div><button class="btn btn-primary btn-lg" type="submit">Sumarme a la red</button></div></form>';
+}
+document.addEventListener('change',function(ev){ if(ev.target&&ev.target.id==='r-todo'){ var b=document.getElementById('r-provs'); if(b) b.hidden=ev.target.checked; } });
+document.addEventListener('submit',async function(ev){
+  var f=ev.target; if(!f||f.id!=='red-join') return; ev.preventDefault(); ev.stopImmediatePropagation();
+  var err=document.getElementById('red-err'), btn=f.querySelector('[type="submit"]');
+  var pick=function(n){ return [].slice.call(f.querySelectorAll('input[name="'+n+'"]:checked')).map(function(i){ return i.value; }); };
+  var todo=document.getElementById('r-todo').checked, zonas=todo?['todo']:pick('r-prov');
+  var p={nombre:val('r-nombre').trim(),tipo:val('r-tipo'),contacto:val('r-contacto').trim(),whatsapp:val('r-wa'),email:val('r-email').trim(),localidad:val('r-loc').trim(),cuit:val('r-cuit'),rubros:pick('r-rubro'),zonas:zonas,web:val('r-web')};
+  var msg=!p.nombre?'Escribí el nombre de tu empresa':!p.contacto?'Escribí el nombre de la persona de contacto':p.whatsapp.replace(/\D/g,'').length<8?'Revisá el WhatsApp':!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)?'Revisá el email':!p.rubros.length?'Marcá al menos un rubro':(!todo&&!zonas.length)?'Elegí al menos una provincia o marcá Todo el país':'';
+  if(msg){ err.textContent=msg; err.hidden=false; err.scrollIntoView({block:'center'}); return; }
+  err.hidden=true; btn.disabled=true; btn.textContent='Enviando…';
+  try{
+    var r=await fetch(FITNESS_CONFIG.url+'/rest/v1/rpc/fitness_red_postular',{method:'POST',headers:{apikey:FITNESS_CONFIG.key,'Content-Type':'application/json'},body:JSON.stringify({p:p})});
+    var out=await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw Error(out.message||'No pudimos enviar tus datos. Probá de nuevo.');
+    ui.redOk=true; var box=document.getElementById('red'); if(box){ box.querySelector('.wrap').innerHTML=redJoinHTML(); box.scrollIntoView({block:'start'}); }
+  }catch(e){ err.textContent=e.message; err.hidden=false; btn.disabled=false; btn.textContent='Sumarme a la red'; }
+},true);
 function vLanding(){
   var p=db.commission;
   var done=ui.applied?'<div class="alert ok" role="status">Recibimos tu solicitud. Queda pendiente hasta que el administrador la apruebe.</div>':'';
   return '<section class="dark hero"><div class="wrap hero-in">'
-    +'<p class="eyebrow">Para fabricantes, importadores y distribuidores</p>'
-    +'<h1 class="display">Llegá a gimnasios, clubes y colegios. <em>Sumá tu catálogo.</em></h1>'
-    +'<p class="lead">Publicá tu catálogo y recibí pedidos. Mantené tus precios y stock al día.</p>'
-    +'<div class="chips"><span class="chip">Sin abono fijo</span><span class="chip">Comisión del '+p+'% por venta</span><span class="chip">Mercado Pago: pendiente</span></div>'
-    +'<div class="actions"><a class="btn btn-accent btn-lg" href="#alta">Quiero participar</a><button class="btn btn-outline btn-lg" data-go="login">Ya tengo cuenta</button></div>'
+    +'<p class="eyebrow">Para fabricantes, importadores, distribuidores y comercios</p>'
+    +'<h1 class="display">Recibí pedidos de gimnasios, clubes y colegios. <em>Competí por ventas, no por visibilidad.</em></h1>'
+    +'<p class="lead">Los compradores publican lo que necesitan. Te llega el pedido por WhatsApp y ofertás en privado desde un link. Sin abono y sin cargar catálogo.</p>'
+    +'<div class="chips"><span class="chip">Sin abono fijo</span><span class="chip">No ves las ofertas de los demás</span><span class="chip">Pedidos reales, con cantidades</span></div>'
+    +'<div class="actions"><a class="btn btn-accent btn-lg" href="#red">Quiero recibir pedidos</a><a class="btn btn-outline btn-lg" href="#alta">Vender con catálogo</a><button class="btn btn-outline btn-lg" data-go="login">Ya tengo cuenta</button></div>'
     +'</div></section>'
     +'<section class="section"><div class="wrap"><div class="section-head"><h2 class="display">Cómo funciona</h2></div><div class="steps">'
-    +'<div class="step"><h3>Pedís el alta</h3><p class="muted">Completás tus datos y los revisamos antes de publicar.</p></div>'
-    +'<div class="step"><h3>Conectás tu Mercado Pago</h3><p class="muted">Disponible cuando se active la integración de pagos.</p></div>'
-    +'<div class="step"><h3>Cargá tu catálogo</h3><p class="muted">Importá tu catálogo y actualizá precios y stock.</p></div>'
-    +'<div class="step"><h3>Recibís pedidos</h3><p class="muted">Gestioná los pedidos desde tu panel.</p></div>'
+    +'<div class="step"><h3>Te sumás a la red</h3><p class="muted">Contás qué vendés y a qué zonas entregás. Un minuto, sin cuenta.</p></div>'
+    +'<div class="step"><h3>Te llega un pedido</h3><p class="muted">Cuando un comprador pide algo de tu rubro y tu zona, te mandamos un link privado.</p></div>'
+    +'<div class="step"><h3>Ofertás en privado</h3><p class="muted">Precio total, envío, plazo, cuotas y garantía. Nadie ve tu oferta salvo el comprador.</p></div>'
+    +'<div class="step"><h3>Si te eligen, vendés</h3><p class="muted">Recién ahí recibís los datos del comprador para coordinar entrega y pago.</p></div>'
     +'</div></div></section>'
-    +'<section class="section" style="padding-top:0"><div class="wrap split">'+simHTML()
+    +'<section class="section" style="padding-top:0" id="red"><div class="wrap">'+redJoinHTML()+'</div></section>'
+    +'<section class="section" style="padding-top:0"><div class="wrap section-head"><h2 class="display">¿Preferís vender con catálogo?</h2><p class="muted" style="max-width:62ch">También podés publicar tus productos con precio y stock para que te compren directo desde el Catálogo, con pago por Mercado Pago. Comisión del '+p+'% solo sobre ventas pagadas.</p></div>'
+    +'<div class="wrap split">'+simHTML()
     +'<div class="card side"><h2 class="display h-card">Reglas claras</h2>'
     +'<div><b>El orden no se compra</b><p class="muted">Pagar comisión no mejora tu posición.</p></div>'
     +'<div><b>Se compara lo mismo con lo mismo</b><p class="muted">Misma variante y misma presentación.</p></div>'
     +'<div><b>Comisión solo sobre ventas pagadas</b><p class="muted">Si no hay venta en el sitio, no hay cargo.</p></div></div>'
     +'</div></section>'
     +'<section class="section" style="padding-top:0" id="alta"><div class="wrap"><form id="apply" class="card" novalidate style="max-width:760px">'
-    +'<h2 class="display" style="font-size:1.9rem">Quiero participar</h2>'+done
+    +'<h2 class="display" style="font-size:1.9rem">Vender con catálogo</h2>'+done
     +(ui.formError?'<div class="alert bad" role="alert">'+esc(ui.formError)+'</div>':'')
     +'<div class="formgrid">'
     +'<div class="field"><label for="a-name">Razón social</label><input id="a-name" type="text" autocomplete="organization"></div>'
