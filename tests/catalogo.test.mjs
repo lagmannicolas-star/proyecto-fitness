@@ -15,4 +15,10 @@ assert(nav.indexOf('Pedir ofertas') < nav.indexOf('Armá tu espacio') && nav.ind
 assert.match(s, /location\.hash==='#catalogo'/);
 // Cada categoría del catálogo tiene su regla para encontrar productos.
 const cats = [...s.matchAll(/\{n:'([^']+)'/g)].map(m => m[1]);
+// En el celular el carrito va al lado del logo y las tres secciones entran en una línea.
+const pag = fs.readFileSync('assets/paginas.js', 'utf8'), pcss = fs.readFileSync('assets/paginas.css', 'utf8');
+assert.doesNotMatch(pag.match(/<nav class="nav"[\s\S]*?<\/nav>/)[0], /carrito/, 'el carrito no ocupa lugar en el menú');
+assert.match(pag, /class="top-cart" href="nicolas\.html#carrito"/);
+assert.match(pcss, /\.top-cart\{order:2/, 'en el celular el carrito sube a la fila del logo');
+assert.match(s, /<\/nav><div class="top-acts">/, 'la tienda separa cuenta y carrito del menú');
 console.log('OK: catálogo con productos reales, búsqueda ordenada y menú con la nueva jerarquía.');
