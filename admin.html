@@ -3010,9 +3010,12 @@ function redView(){
  return h+list.map(function(p){
   if(f===p.id)return form(p);
   var rub=RUBROS.filter(function(x){return (p.rubros||[]).indexOf(x[0])>=0;}).map(function(x){return x[1];}).join(' · ')||'Sin rubros';
-  return '<div class="card" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><div><b>'+esc(p.nombre)+'</b> '+(p.activo?'<span class="st ok">Activo</span>':'<span class="st neu">Pausado</span>')
+  var nuevo=p.origen==='web'&&!p.activo,wa=String(p.whatsapp||'').replace(/\D/g,'');
+  return '<div class="card" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center'+(nuevo?';border-color:var(--accent)':'')+'"><div><b>'+esc(p.nombre)+'</b> '+(nuevo?'<span class="st warn">Nuevo · se sumó desde la web</span>':p.activo?'<span class="st ok">Activo</span>':'<span class="st neu">Pausado</span>')
+   +(p.tipo||p.contacto||p.localidad||p.cuit?'<span class="rq-sub">'+esc([p.tipo,p.contacto,p.localidad,p.cuit&&'CUIT '+p.cuit,p.email].filter(Boolean).join(' · '))+'</span>':'')
    +'<span class="rq-sub">'+esc(rub)+'</span><span class="rq-sub">Entrega en: '+esc((p.zonas||[]).join(', '))+(p.whatsapp?' · WhatsApp '+esc(p.whatsapp):' · sin WhatsApp')+'</span></div>'
-   +'<button class="btn btn-outline btn-sm" data-act="red-edit" data-id="'+p.id+'">Editar</button></div>';
+   +'<div class="actions" style="margin:0">'+(nuevo?'<button class="btn btn-primary btn-sm" data-act="red-activar" data-id="'+p.id+'">Activar</button>'+(wa?'<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hola '+(p.contacto||'')+', te escribimos de Nexo Fit. Ya quedaste activo en la red de proveedores: cuando un comprador pida algo de tu rubro y tu zona, te mandamos el link para ofertar.')+'">Avisar por WhatsApp</a>':''):'')
+   +'<button class="btn btn-outline btn-sm" data-act="red-edit" data-id="'+p.id+'">Editar</button></div></div>';
  }).join('');
 }
 function invitesHTML(r){
@@ -3079,6 +3082,10 @@ document.addEventListener('click',function(ev){
  if(act==='red-new'){ui.redForm='new';rerender();return;}
  if(act==='red-edit'){ui.redForm=Number(t.dataset.id);rerender();return;}
  if(act==='red-cancel'){ui.redForm=null;rerender();return;}
+ if(act==='red-activar'){
+  var rp=(ui.red||[]).filter(function(x){return x.id===Number(t.dataset.id);})[0];if(!rp)return;
+  t.disabled=true;adminRpc('fitness_red_guardar',{p:{id:rp.id,nombre:rp.nombre,contacto:rp.contacto,whatsapp:rp.whatsapp,email:rp.email,notas:rp.notas,zonas:rp.zonas,rubros:rp.rubros,activo:true}}).then(function(){toast(rp.nombre+' ya recibe invitaciones');return loadRequests();}).catch(function(e){t.disabled=false;toast(e.message);});return;
+ }
  if(act==='red-save'){
   var box=t.closest('.card'),g=function(k){var el=box.querySelector('[data-red="'+k+'"]');return el?el.value:'';};
   var p={id:t.dataset.id||null,nombre:g('nombre'),contacto:g('contacto'),whatsapp:g('whatsapp'),email:g('email'),notas:g('notas'),
