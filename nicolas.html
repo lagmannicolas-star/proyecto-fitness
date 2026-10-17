@@ -792,7 +792,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .logo-frame{display:block;position:relative;width:240px;aspect-ratio:900 / 270;overflow:hidden;flex:none}
 .logo-frame img{position:absolute;width:139.333333%;max-width:none;height:auto;left:-20%;top:-183.333333%;display:block}
 .nav{gap:4px}.navlink{color:var(--ink);font-size:.92rem;padding-inline:12px}.navlink:hover{color:var(--ink);background:var(--accent-soft);border-radius:8px}
-.navlink[aria-current="page"]{color:var(--ink)}.top .btn-outline{border-color:var(--field-line);color:var(--ink)}
+.navlink[aria-current="page"]{color:var(--ink)}.nav{order:2;margin-left:auto}.top-acts{order:3;display:flex;align-items:center;gap:4px}.top .btn-outline{border-color:var(--field-line);color:var(--ink)}
 .btn{min-height:44px;padding-inline:16px;border-radius:9px}.btn-lg{min-height:46px;padding-inline:20px;font-size:1rem}.btn-sm{min-height:44px;padding-inline:12px;font-size:.88rem}
 .btn-accent{font-weight:700}.btn:hover{filter:none;box-shadow:0 0 0 2px var(--line)}.btn-outline:hover{background:var(--accent-soft)}
 .linkbtn{color:var(--ink);text-decoration:underline;text-underline-offset:3px}.btn-danger{border-style:dashed}
@@ -816,7 +816,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .led{--led-screen:#10171F;--led-r:#A5CC21;--led-b:#A5CC21;--led-y:#A5CC21;--led-g:#A5CC21;--led-w:#FDFAF5;--led-frame:#10171F;--led-edge:rgba(253,250,245,.25)}
 .led::after{height:2px;background:var(--accent)}.led-in{padding-block:2px}.led-tag{color:var(--bg)}.led-win{height:30px}.led-msg{font:500 .8rem / 30px var(--body);text-shadow:none;letter-spacing:.02em}.led-win::after{display:none}
 @media(min-width:900px){.hero-in{position:relative}.hero .actions{margin-top:4px}.category-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:680px){.wrap{padding-inline:16px}.top-in{gap:8px;padding-block:10px}.logo-frame{width:200px}.nav{width:100%;justify-content:space-between;gap:0}.navlink{padding-inline:8px;font-size:.85rem}.nav .btn{padding-inline:10px;font-size:.85rem}.hero{padding-block:24px 16px}.hero-in{gap:12px}.hero h1{max-width:22ch}.section{padding-block:18px}.choice-grid,.category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.space-card,.cat-card{padding:10px;min-height:48px}.space-card b,.cat-card b{font-size:.88rem}.actions{gap:8px}.actions .btn{white-space:normal}.brand-label{display:none}.band-in{padding-block:20px}.process-line{gap:6px 14px}.card,.model{padding:14px}.led-tag{display:none}.search{gap:10px}.search .btn{white-space:normal}.side .logo-frame{width:160px}}
+@media(max-width:680px){.wrap{padding-inline:16px}.top-in{gap:2px 8px;padding-block:10px}.logo-frame{width:170px}.top-acts{order:2}.nav{order:3;margin-left:0;width:100%;justify-content:space-between;gap:0}.navlink{padding-inline:8px;font-size:.85rem}.nav .btn{padding-inline:10px;font-size:.85rem}.hero{padding-block:24px 16px}.hero-in{gap:12px}.hero h1{max-width:22ch}.section{padding-block:18px}.choice-grid,.category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.space-card,.cat-card{padding:10px;min-height:48px}.space-card b,.cat-card b{font-size:.88rem}.actions{gap:8px}.actions .btn{white-space:normal}.brand-label{display:none}.band-in{padding-block:20px}.process-line{gap:6px 14px}.card,.model{padding:14px}.led-tag{display:none}.search{gap:10px}.search .btn{white-space:normal}.side .logo-frame{width:160px}}
 @media(prefers-reduced-motion:reduce){.led-track{animation:none}*{scroll-behavior:auto!important}}
 
 
@@ -1938,7 +1938,7 @@ function header(){
     +'<a class="navlink" href="solicitud.html" style="display:inline-flex;align-items:center;text-decoration:none">Pedir ofertas</a>'
     +'<a class="navlink" href="arma-tu-espacio.html" style="display:inline-flex;align-items:center;text-decoration:none">Armá tu espacio</a>'
     +'<button class="navlink" data-go="buscar"'+(r!=='carrito'&&r!=='ingresar'&&r!=='cuenta'&&r!=='pedido'?' aria-current="page"':'')+'>Catálogo</button>'
-    +accountBtn()+cartBtn()+'</nav></div></header>';
+    +'</nav><div class="top-acts">'+accountBtn()+cartBtn()+'</div></div></header>';
 }
 function footer(){
   return '<footer class="foot"><div class="wrap foot-in"><span>Nexo Fit · Comparación independiente. <button class="linkbtn small" data-go="pedido">Seguí tu pedido</button></span>'+demoLinks('buy')+'</div><div class="wrap">'+'<nav class="legal-links" aria-label="Para quién"><a href="gimnasios.html">Gimnasios</a> · <a href="clubes.html">Clubes</a> · <a href="colegios.html">Colegios</a> · <a href="proveedores.html">Vendé en Nexo Fit</a></nav><nav class="legal-links" aria-label="Información legal"><a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Privacidad</a> · <a class="arrepentimiento" href="arrepentimiento.html">Botón de arrepentimiento</a> · <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a></nav>'+'</div></footer>';
@@ -2248,7 +2248,7 @@ function vCompare(){
   var seg=[['total','Menor precio'],['lead','Entrega rápida'],['warranty','Mayor garantía']].map(function(s){ return '<button type="button" id="sort-'+s[0]+'" data-act="sort" data-sort="'+s[0]+'" aria-pressed="'+(ui.sort===s[0])+'">'+s[1]+'</button>'; }).join('');
   var unitSeg=d.us.length>1?'<div class="field"><span class="lab" id="lab-unit">Presentación</span><div class="seg" role="group" aria-labelledby="lab-unit">'+d.us.map(function(u){ return '<button type="button" data-act="unit" data-unit="'+esc(u)+'" aria-pressed="'+(u===d.unit)+'">'+esc(u)+'</button>'; }).join('')+'</div></div>':'';
   return '<div class="wrap page">'
-    +'<nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-go="buscar">Comparador</button><span>/</span><button class="linkbtn" data-go="cat" data-cat="'+esc(d.c.n)+'">'+esc(d.c.n)+'</button><span>/</span><span>'+esc(d.m[0])+'</span></nav>'
+    +'<nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-go="buscar">Catálogo</button><span>/</span><button class="linkbtn" data-go="cat" data-cat="'+esc(d.c.n)+'">'+esc(d.c.n)+'</button><span>/</span><span>'+esc(d.m[0])+'</span></nav>'
     +'<div style="display:flex;flex-direction:column;gap:10px"><div class="titlerow"><h1 class="display h-page">'+esc(d.m[0])+'</h1>'+favBtn(d)+'</div>'
     +'<div class="chips"><span class="chip">'+esc(d.c.n)+'</span><span class="chip">'+esc(ui.size)+(d.unit?' · '+perUnit(d.unit):'')+'</span><span class="chip">'+(n===0?'Sin ofertas todavía':(n===1?'1 oferta':n+(d.c.n==='Combos y kits'?' kits disponibles':' ofertas equivalentes')))+'</span></div>'
     +'<p class="lead">'+esc(d.m[2])+'</p></div>'

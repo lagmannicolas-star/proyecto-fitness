@@ -4,7 +4,9 @@
   var E = w.NEXOFIT_EMPRESA || {};
   var LOGO = '<a href="index.html" aria-label="Nexo Fit, ir al inicio"><span class="logo-frame"><img src="assets/nexofit-logo.png" alt="Nexo Fit" width="1254" height="1254"></span></a>';
   var top = d.getElementById('top');
-  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="nicolas.html#catalogo">Catálogo</a><a href="nicolas.html#carrito">Carrito</a></nav></div>';
+  var n = 0; try { n = (JSON.parse(w.localStorage.getItem('cf-cart') || '[]') || []).length; } catch (e) {}
+  var CART = '<a class="top-cart" href="nicolas.html#carrito" aria-label="Carrito' + (n ? ', ' + n + (n === 1 ? ' producto' : ' productos') : '') + '"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg><span class="cart-l">Carrito</span>' + (n ? '<span class="cart-n">' + n + '</span>' : '') + '</a>';
+  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="nicolas.html#catalogo">Catálogo</a></nav>' + CART + '</div>';
   var foot = d.getElementById('foot');
   if (foot) {
     var who = [E.razonSocial, E.cuit && 'CUIT ' + E.cuit, E.domicilio].filter(Boolean).join(' · ');
