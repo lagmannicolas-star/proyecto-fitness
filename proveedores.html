@@ -1545,6 +1545,7 @@ function pfApply(list){
     uup:function(a,b){ return (a.units==null?1e9:a.units)-(b.units==null?1e9:b.units); },upd:function(a,b){ return String(a.updated||'').localeCompare(String(b.updated||'')); }}[f.sort]||null;
   return by?out.sort(by):out;
 }
+function priceConfirmToken(list){ return 'prices-visible:'+list.map(function(o){ return o.id; }).sort().join('|'); }
 function sameF(a,b){ return ['q','cat','st','stock','sort'].every(function(k){ return String(a[k]||'')===String(b[k]||PF_DEF[k]||''); }); }
 function filterBar(v,mine){
   var cats=[]; mine.forEach(function(o){ if(cats.indexOf(o.category)<0) cats.push(o.category); }); cats.sort();
@@ -1568,10 +1569,11 @@ function newOfferForm(){
 }
 
 function productsView(v,mine,low,out){
-  var shown=pfApply(mine);
+  var shown=pfApply(mine), staleShown=shown.filter(priceIsStale), staleToken=priceConfirmToken(staleShown);
   var head=(ui.adding?newOfferForm():'')+'<div class="section-head" style="margin:0"><p class="note">Cargá tus productos y mantené precios, stock y mínimos actualizados. Los productos nuevos y los cambios comerciales se revisan antes de publicarse.</p><div class="actions">'
     +'<button class="btn btn-outline" data-act="sheet" aria-expanded="'+!!ui.sheet+'">'+ico('upload',18)+'Planilla</button>'
     +'<button class="btn '+(ui.bulk?'btn-primary':'btn-outline')+'" data-act="bulk">'+ico('edit',18)+(ui.bulk?'Salir de la edición':'Editar precios y stock')+'</button>'
+    +(staleShown.length?'<button class="btn '+(ui.confirm===staleToken?'btn-accent':'btn-outline')+'" data-act="price-confirm-visible">'+(ui.confirm===staleToken?'Confirmar ahora ':'Confirmar ')+staleShown.length+(staleShown.length===1?' precio visible':' precios visibles')+'</button>':'')
     +'<button class="btn btn-accent" data-act="new-offer">Agregar producto</button>'+'</div></div>';
   var lowdef='<div class="field lowdef"><label for="low-def">Avisarme con bajo stock cuando queden</label><div class="inline"><input id="low-def" type="number" min="0" inputmode="numeric" value="'+(v.lowAt!=null?v.lowAt:10)+'"><span>unidades o menos</span></div></div>';
   var table;
@@ -2100,6 +2102,11 @@ document.addEventListener('click',function(ev){
       break;
     case 'prod-edit': go('product',{editId:id}); break;
     case 'price-confirm': x=offer(id); if(x&&x.vendorId===ui.vendorId){ x.updated=today(); vact(me(),'confirmó el precio de '+x.model+' '+x.size); save(); rerender(); toast('Precio confirmado por 30 días.'); } break;
+    case 'price-confirm-visible':
+      var minePc=db.offers.filter(function(o){ return o.vendorId===ui.vendorId; }), targetsPc=pfApply(minePc).filter(priceIsStale), tokenPc=priceConfirmToken(targetsPc);
+      if(!targetsPc.length){ ui.confirm=null; rerender(); toast('Los precios visibles ya están vigentes.'); break; }
+      if(ui.confirm!==tokenPc){ ui.confirm=tokenPc; rerender(); toast('Revisá el filtro y confirmá nuevamente.'); break; }
+      targetsPc.forEach(function(o){ o.updated=today(); }); vact(me(),'confirmó '+targetsPc.length+(targetsPc.length===1?' precio visible':' precios visibles')+' por 30 días'); ui.confirm=null; save(); rerender(); toast(targetsPc.length+(targetsPc.length===1?' precio confirmado':' precios confirmados')+' por 30 días.'); break;
     case 'back-products': go('panel',{tab:'productos'}); break;
     case 'wa-missing': toast('Todavía falta cargar el WhatsApp del sitio. Escribinos por email.'); break;
     case 'refund':
