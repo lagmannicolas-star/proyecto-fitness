@@ -80,6 +80,8 @@
     } else if (R.mejor) {
       h += '<p class="muted small">' + esc(R.motivo) + ' Te avisamos si llegan más ofertas.</p>';
     }
+    h += '<div class="actions"><button class="btn btn-outline" type="button" data-cuadro="1">Descargar cuadro comparativo (PDF)</button></div>'
+      + '<p class="muted small">Sirve para adjuntar al expediente de compra: muestra todas las ofertas en el mismo formato y por qué se recomienda una.</p>';
     h += '<p class="muted small">Los nombres de los proveedores se muestran cuando elegís. Así cada uno ofrece su mejor condición sin copiar a los demás.</p><div class="of-list">';
     h += orden.map(function (o) {
       var marcas = (R.marcas[o.id] || []), esMejor = R.mejor && o.id === R.mejor.id && !elegida;
@@ -101,7 +103,47 @@
     return h + '</div></section>';
   }
 
+  // Cuadro comparativo para imprimir o guardar en PDF (expedientes de compra de colegios, clubes y municipios).
+  var PRIO = { equilibrio: 'Mejor equilibrio', precio: 'Menor costo total', rapidez: 'Entrega más rápida', financiacion: 'Financiación', calidad: 'Calidad y garantía' };
+  var PLAZO = { urgente: 'Lo antes posible', '7': 'Hasta 7 días', '15': 'Hasta 15 días', '30': 'Hasta 30 días', flexible: 'Sin apuro' };
+  function cuadroHTML(s) {
+    var ofs = (s.ofertas || []).slice().sort(function (a, b) { return a.letra < b.letra ? -1 : 1; });
+    var R = w.nfRecomendar ? w.nfRecomendar(s.ofertas || [], s.prioridad, s.plazo) : { mejor: null, motivo: '' };
+    var elegida = ofs.filter(function (o) { return o.elegida; })[0];
+    var hoy = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    var td = function (v) { return '<td>' + v + '</td>'; };
+    return '<header class="cq-h"><div><p class="cq-brand">NEXO FIT</p><h1>Cuadro comparativo de ofertas</h1></div><div class="cq-meta"><b>' + esc(s.code) + '</b><br>Emitido el ' + esc(hoy) + '</div></header>'
+      + '<p><b>Entrega en:</b> ' + esc(s.localidad) + (s.plazo ? ' · <b>Plazo pedido:</b> ' + esc(PLAZO[s.plazo] || s.plazo) : '') + ' · <b>Prioridad del comprador:</b> ' + esc(PRIO[s.prioridad] || s.prioridad || '-') + '</p>'
+      + '<h2>Lo que se pidió</h2><table class="cq-t"><thead><tr><th>Cantidad</th><th>Producto</th><th>Detalle</th></tr></thead><tbody>'
+      + (s.items || []).map(function (it) { return '<tr>' + td(esc(it.cantidad)) + td(esc(it.producto)) + td(esc(it.detalle || '')) + '</tr>'; }).join('') + '</tbody></table>'
+      + '<h2>Ofertas recibidas (' + ofs.length + ')</h2><table class="cq-t"><thead><tr><th>Oferta</th><th>Productos</th><th>Envío</th><th>Costo total</th><th>Entrega</th><th>Cuotas</th><th>Garantía</th><th>Cumple</th><th>Vale hasta</th></tr></thead><tbody>'
+      + ofs.map(function (o) {
+        var tag = (R.mejor && o.id === R.mejor.id ? ' · Recomendada' : '') + (o.elegida ? ' · Elegida' : '') + (o.vencida ? ' · Vencida' : '');
+        return '<tr' + (R.mejor && o.id === R.mejor.id ? ' class="cq-best"' : '') + '>' + td('<b>' + esc(o.letra) + '</b>' + (o.elegida && o.proveedor ? '<br>' + esc(o.proveedor) : '') + '<span class="cq-tag">' + esc(tag.replace(/^ · /, '')) + '</span>')
+          + td(money(o.precio)) + td(Number(o.envio) ? money(o.envio) : 'Incluido') + td('<b>' + money(o.total) + '</b>') + td(o.plazo + ' días hábiles')
+          + td(o.cuotas ? o.cuotas + ' sin interés' : 'No') + td(o.garantia ? o.garantia + ' meses' : 'No') + td(o.cumple === 'parcial' ? 'Parcial' : 'Total') + td(esc(dia(o.validaHasta))) + '</tr>'
+          + (o.notas ? '<tr class="cq-n"><td></td><td colspan="8">Notas de la oferta ' + esc(o.letra) + ': ' + esc(o.notas) + '</td></tr>' : '');
+      }).join('') + '</tbody></table>'
+      + (elegida ? '<p class="cq-box"><b>Oferta elegida: ' + esc(elegida.letra) + (elegida.proveedor ? ' (' + esc(elegida.proveedor) + ')' : '') + '</b> por ' + money(elegida.total) + '.</p>' : '')
+      + (R.mejor && ofs.length > 1 ? '<p class="cq-box"><b>Recomendación de Nexo Fit: Oferta ' + esc(R.mejor.letra) + '.</b> ' + esc(R.motivo) + '</p>' : '')
+      + '<p class="cq-foot">Las ofertas se presentaron en forma privada e independiente a través de Nexo Fit: ningún proveedor conoció las condiciones de los demás. Los importes son finales, con IVA y envío a la localidad indicada, según lo declarado por cada proveedor. '
+      + 'Los nombres de los proveedores se informan al elegir una oferta. Podés verificar este cuadro en nexofitt.com.ar/mi-solicitud.html con el número ' + esc(s.code) + '.</p>';
+  }
+  function imprimirCuadro() {
+    var box = d.getElementById('cuadro-print');
+    if (!box) { box = d.createElement('div'); box.id = 'cuadro-print'; box.className = 'cuadro-print'; d.body.appendChild(box); }
+    box.innerHTML = cuadroHTML(ultimo);
+    var titulo = d.title; d.title = 'Cuadro comparativo ' + ultimo.code + ' - Nexo Fit';
+    d.body.classList.add('imprimiendo');
+    var fin = function () { d.body.classList.remove('imprimiendo'); d.title = titulo; w.removeEventListener('afterprint', fin); };
+    w.addEventListener('afterprint', fin);
+    if (w.nfTrack) w.nfTrack('cuadro', { name: ultimo.code });
+    w.print();
+    setTimeout(fin, 1500);
+  }
+
   $('resultado').addEventListener('click', function (ev) {
+    if (ev.target.closest('[data-cuadro]')) { if (ultimo) imprimirCuadro(); return; }
     var c = ev.target.closest('[data-cancelar]');
     if (c) { confirmar = null; render(ultimo); return; }
     var b = ev.target.closest('[data-elegir]');

@@ -38,3 +38,14 @@ for (const fn of ['fitness_red_admin', 'fitness_red_guardar', 'fitness_invitar']
 assert.match(sql, /revoke all on table public\.fitness_red_proveedores, public\.fitness_invitaciones, public\.fitness_ofertas_solicitud from public,anon,authenticated/);
 assert.match(fs.readFileSync('mi-solicitud.html', 'utf8'), /assets\/recomendar\.js/);
 console.log('OK: recomendación, oferta del proveedor, privacidad y vencimientos.');
+
+// Cuadro comparativo para imprimir: sin datos de contacto de proveedores y solo visible al imprimir.
+{
+  const seg = fs.readFileSync('assets/mi-solicitud.js', 'utf8'), css = fs.readFileSync('assets/paginas.css', 'utf8');
+  const cuadro = seg.match(/function cuadroHTML\(s\) \{([\s\S]*?)\n  \}/)[1];
+  assert.match(seg, /data-cuadro="1">Descargar cuadro comparativo \(PDF\)/);
+  assert.doesNotMatch(cuadro, /whatsapp|telefono|email/i, 'el cuadro no expone contactos');
+  assert.match(cuadro, /o\.elegida && o\.proveedor/, 'el proveedor solo aparece si fue elegido');
+  assert.match(css, /\.cuadro-print\{display:none\}/);
+  assert.match(css, /body\.imprimiendo>\*:not\(\.cuadro-print\)\{display:none!important\}/);
+}

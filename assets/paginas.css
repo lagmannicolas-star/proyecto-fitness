@@ -186,3 +186,19 @@ main section{margin-bottom:48px}
 .path{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-radius:12px;background:var(--surface);text-decoration:none;border:1px solid var(--line)}
 .path b{font-size:1.05rem}.path:hover{border-color:var(--ink)}
 .door-ctas{display:flex;flex-direction:column;gap:8px;align-self:stretch}.door-ctas .btn{justify-content:center;text-align:center}
+
+/* Cuadro comparativo: solo existe al imprimir o guardar en PDF. */
+.cuadro-print{display:none}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body.imprimiendo>*:not(.cuadro-print){display:none!important}
+  body.imprimiendo .cuadro-print{display:block;font-size:11pt;line-height:1.4;color:#10171F}
+  .cuadro-print h1{font-size:18pt;margin:0}.cuadro-print h2{font-size:12pt;margin:14px 0 6px}
+  .cq-h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #A5CC21;padding-bottom:8px;margin-bottom:10px}
+  .cq-brand{margin:0;font-weight:700;letter-spacing:2px;font-size:9pt;color:#5E7A0E}.cq-meta{text-align:right;font-size:10pt}
+  .cq-t{width:100%;border-collapse:collapse}.cq-t th,.cq-t td{border:1px solid #CFCAC0;padding:5px 7px;text-align:left;vertical-align:top}
+  .cq-t th{background:#F1EEE6;font-size:9.5pt}.cq-best td{background:#EEF6D3}.cq-tag{display:block;font-size:8.5pt;color:#4F6A07}
+  .cq-n td{font-size:9.5pt;color:#444;border-top:0}.cq-box{border:1px solid #CFCAC0;border-radius:6px;padding:8px 10px}
+  .cq-foot{margin-top:14px;font-size:8.5pt;color:#555}
+  .cq-t tr{break-inside:avoid}
+}
