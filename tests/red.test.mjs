@@ -36,3 +36,11 @@ console.log('OK: red de proveedores con alta desde la web.');
   assert.match(of, /el 10% del precio de los productos \(el envío no paga comisión\)/);
   assert.match(prov, /Comisión del '\+p\+'% solo si vendés/);
 }
+
+// Para actualizar solo el stock no se pide la fuente oficial del precio (sí cuando cambia el precio).
+{
+  const prov2 = fs.readFileSync('proveedores.html', 'utf8');
+  assert.match(prov2, /if\(np!==cur\.price&&!safeUrl\(source\)\)/);
+  assert.match(prov2, /if\(source\)cur\.sourceUrl=source;/);
+  console.log('OK: stock sin fuente de precio.');
+}
