@@ -1207,7 +1207,8 @@ function pctOf(v){ return (v&&v.commission!=null)?v.commission:db.commission; }
 function vkey(cat,model,size){ return [cat,model,size].map(norm).join('|'); }
 function keyOf(o){ return vkey(o.category,o.model,o.size)+'|'+norm(o.unit); }
 function priceIsFresh(o){ if(!o) return false; if(!/^\d{4}-\d{2}-\d{2}$/.test(String(o.updated||''))) return today()<='2026-11-15'; var age=calDays(o.updated,today()); return age>=0&&age<=30; }
-function isLive(o){ var v=vendor(o.vendorId); return o.status==='published'&&o.stock!=='none'&&!!v&&v.status==='active'&&priceIsFresh(o); }
+function offerSourceReady(o){ return !!safeUrl(o&&o.sourceUrl)||today()<='2026-11-15'; }
+function isLive(o){ var v=vendor(o.vendorId); return o.status==='published'&&o.stock!=='none'&&!!v&&v.status==='active'&&priceIsFresh(o)&&offerSourceReady(o); }
 /* Ofertas publicadas agrupadas por variante del catálogo. */
 function liveIndex(){
   var map={};
@@ -2222,7 +2223,7 @@ function cmpResults(d){
       :(!ok?'<button class="btn btn-outline" disabled>Falta el código postal</button>'
       :'<button class="btn '+(r===cheap?'btn-accent':'btn-primary')+'" data-act="add-cart" data-id="'+o.id+'">'+(cartFind(o.id)?ico('check',18)+'En el carrito · actualizar':'Agregar al carrito')+'</button><button class="linkbtn small" data-act="buy" data-id="'+o.id+'">o comprar ahora</button>');
     return '<article class="offer'+(r===cheap?' best':'')+'">'
-      +'<div class="offer-v"><span class="k">Proveedor</span><b>'+esc(r.v.name)+'</b><span class="muted small">'+(o.brand?'Marca: '+esc(o.brand)+' · ':'')+esc(r.v.type)+' · Proveedor registrado</span>'+(o.detail?'<span class="small">'+esc(o.detail)+'</span>':'')+tags+'</div>'
+      +'<div class="offer-v"><span class="k">Proveedor</span><b>'+esc(r.v.name)+'</b><span class="muted small">'+(o.brand?'Marca: '+esc(o.brand)+' · ':'')+esc(r.v.type)+' · Proveedor registrado</span>'+(o.detail?'<span class="small">'+esc(o.detail)+'</span>':'')+(safeUrl(o.sourceUrl)?'<a class="linkbtn small" href="'+esc(safeUrl(o.sourceUrl))+'" target="_blank" rel="noopener">Ver fuente oficial</a>':'<span class="muted small">Fuente pendiente de completar</span>')+tags+'</div>'
       +benefitText(o)+'<dl class="facts">'
       +'<div><dt>Precio '+perUnit(o.unit)+'</dt><dd class="num">'+money(o.price)+'</dd></div>'
       +'<div><dt>Productos × '+qty+'</dt><dd class="num">'+money(r.q.subtotal)+'</dd></div>'

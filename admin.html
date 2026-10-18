@@ -2064,8 +2064,8 @@ function vendorFile(v){
     +((v.act||[]).length?'<ol class="log">'+(v.act||[]).slice(0,12).map(function(e){ return '<li class="two"><span class="log-t num">'+when(e.t)+'</span><span>'+esc(e.what)+'</span></li>'; }).join('')+'</ol>':'<div class="empty">Sin actividad todavía.</div>')+'</div>'
     +'<div class="section-head" style="margin:8px 0 0"><div class="ch"><span class="ic">'+ico('ventas')+'</span><h2 class="display h-card">Últimas ventas</h2></div></div>'+salesTable(S.orders.slice(0,5))
     +'<div class="section-head" style="margin:8px 0 0"><div class="ch"><span class="ic">'+ico('productos')+'</span><h2 class="display h-card">Sus productos</h2></div><button class="btn btn-accent btn-sm" data-act="o-new-for" data-id="'+v.id+'">Agregar producto</button></div>'
-    +(S.offs.length?'<div class="tablewrap"><table style="min-width:760px"><thead><tr><th>Modelo</th><th>Variante</th><th class="r">Precio</th><th>Stock</th><th>Estado</th><th>Precio actualizado</th></tr></thead><tbody>'
-      +S.offs.map(function(o){ var age=o.updated?calDays(o.updated,now):null; return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+'</span></td><td>'+esc(o.size)+'</td><td class="r num">'+money(o.price)+priceBadge(o)+'</td><td class="nw">'+stockBadge(o)+'</td><td>'+offerStatus(o)+'</td><td class="nw">'+(o.updated?fdate(o.updated):'<span class="st bad">Sin confirmar</span>')+(age!=null&&age>30?' <span class="st warn">Hace '+age+' días</span>':'')+'</td></tr>'; }).join('')+'</tbody></table></div>'
+    +(S.offs.length?'<div class="tablewrap"><table style="min-width:760px"><thead><tr><th>Modelo</th><th>Variante</th><th class="r">Precio</th><th>Stock</th><th>Estado</th><th>Fuente</th><th>Precio actualizado</th></tr></thead><tbody>'
+      +S.offs.map(function(o){ var age=o.updated?calDays(o.updated,now):null; return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+'</span></td><td>'+esc(o.size)+'</td><td class="r num">'+money(o.price)+priceBadge(o)+'</td><td class="nw">'+stockBadge(o)+'</td><td>'+offerStatus(o)+'</td><td>'+(safeUrl(o.sourceUrl)?'<a class="linkbtn small" href="'+esc(safeUrl(o.sourceUrl))+'" target="_blank" rel="noopener">Abrir</a>':'<span class="st bad">Falta</span>')+'</td><td class="nw">'+(o.updated?fdate(o.updated):'<span class="st bad">Sin confirmar</span>')+(age!=null&&age>30?' <span class="st warn">Hace '+age+' días</span>':'')+'</td></tr>'; }).join('')+'</tbody></table></div>'
       :'<div class="empty">Todavía no cargó productos.</div>');
 }
 
@@ -2335,7 +2335,7 @@ function vendorForm(){
 function offerForm(){
   var e=ui.oForm==='new'?null:offer(ui.oForm); if(ui.oForm!=='new'&&!e) return '';
   var v=vendor(e?e.vendorId:ui.stockVendor); if(!v) return '';
-  var d=e||ui.importOffer||{category:CATALOG[0].n,model:CATALOG[0].m[0][0],size:CATALOG[0].m[0][1][0],unit:'Unidad',brand:'',detail:'',price:0,stock:'stock',minQty:1,lead:5,warranty:12,shipAmba:0,shipInt:0,status:'published'};
+  var d=e||ui.importOffer||{category:CATALOG[0].n,model:CATALOG[0].m[0][0],size:CATALOG[0].m[0][1][0],unit:'Unidad',brand:'',detail:'',sourceUrl:'',price:0,stock:'stock',minQty:1,lead:5,warranty:12,shipAmba:0,shipInt:0,status:'published'};
   var fmt=function(n){return n===''?'':n?Number(n).toLocaleString('es-AR',{maximumFractionDigits:2}):'';};
   return '<form id="oform" class="card" novalidate><h2 class="display h-card">'+(e?'Editar producto de ':'Agregar producto a ')+esc(v.name)+'</h2>'
     +'<div id="o-err" class="alert bad" role="alert" hidden></div>'
@@ -2345,6 +2345,7 @@ function offerForm(){
     +fld('o-size','Variante','<select id="o-size">'+optSizes(d.category,d.model,d.size)+'</select>')
     +fld('o-unit','Se vende por',sel('o-unit',ui.importOffer?['','Unidad','Par','Kit']:['Unidad','Par','Kit'],d.unit))
     +fld('o-price','Precio con IVA ($)',inp('o-price',fmt(d.price),'type="text" inputmode="numeric"'))
+    +fld('o-source','Fuente oficial del precio',inp('o-source',d.sourceUrl||'','type="url" inputmode="url" placeholder="https://..."'),'Página oficial del producto o catálogo vigente.')
     +fld('o-stock','Stock',sel('o-stock',[{v:'stock',l:'En stock'},{v:'order',l:'A pedido'},{v:'none',l:'Sin stock'}],d.stock))
     +fld('o-units','Unidades disponibles',inp('o-units',d.units==null?'':d.units,'type="number" min="0" placeholder="Sin contar"'),'Vacío = no se lleva la cuenta.')
     +fld('o-low','Aviso de bajo stock',inp('o-low',d.lowAt==null?'':d.lowAt,'type="number" min="0" placeholder="'+(v.lowAt!=null?v.lowAt:10)+'"'),'Vacío = el aviso general del proveedor.')
@@ -2384,8 +2385,8 @@ function stockByVendor(){
   var of=function(id){ return db.offers.filter(function(o){ return o.vendorId===id; }); }, list=of(ui.stockVendor);
   return '<div class="section-head" style="margin:16px 0 0"><h2 class="display h-card">Stock por proveedor</h2><button class="btn btn-accent" data-act="o-new">Agregar producto a '+esc(vendor(ui.stockVendor).name)+'</button></div>'+(ui.oForm?offerForm():'')
     +'<div class="seg" role="group" aria-label="Proveedor">'+vs.map(function(v){ return '<button type="button" data-act="stock-v" data-id="'+v.id+'" aria-pressed="'+(v.id===ui.stockVendor)+'">'+esc(v.name)+' · '+of(v.id).length+'</button>'; }).join('')+'</div>'
-    +(list.length?'<div class="tablewrap"><table style="min-width:1100px"><thead><tr><th>Modelo</th><th>Variante</th><th>Marca</th><th class="r">Precio</th><th>Precio actualizado</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>'
-      +list.map(function(o){ var age=o.updated?calDays(o.updated,today()):null; return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+'</span></td><td>'+esc(o.size)+'</td><td>'+esc(o.brand||'—')+'</td><td class="r num">'+money(o.price)+priceBadge(o)+'</td><td class="nw">'+(o.updated?fdate(o.updated):'<span class="st bad">Sin confirmar</span>')+(age!=null&&age>30?' <span class="st warn">Hace '+age+' días</span>':'')+'</td><td class="nw">'+stockBadge(o)+'</td><td>'+offerStatus(o)+'</td>'
+    +(list.length?'<div class="tablewrap"><table style="min-width:1100px"><thead><tr><th>Modelo</th><th>Variante</th><th>Marca</th><th class="r">Precio</th><th>Precio actualizado</th><th>Fuente</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>'
+      +list.map(function(o){ var age=o.updated?calDays(o.updated,today()):null; return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+'</span></td><td>'+esc(o.size)+'</td><td>'+esc(o.brand||'—')+'</td><td class="r num">'+money(o.price)+priceBadge(o)+'</td><td class="nw">'+(o.updated?fdate(o.updated):'<span class="st bad">Sin confirmar</span>')+(age!=null&&age>30?' <span class="st warn">Hace '+age+' días</span>':'')+'</td><td>'+(safeUrl(o.sourceUrl)?'<a class="linkbtn small" href="'+esc(safeUrl(o.sourceUrl))+'" target="_blank" rel="noopener">Abrir</a>':'<span class="st bad">Falta</span>')+'</td><td class="nw">'+stockBadge(o)+'</td><td>'+offerStatus(o)+'</td>'
         +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn btn-primary btn-sm" data-act="o-edit" data-id="'+o.id+'">Editar</button>'
         +(o.status==='published'?'<button class="btn btn-outline btn-sm" data-act="o-pause" data-id="'+o.id+'">Pausar</button>':(o.status==='paused'?'<button class="btn btn-outline btn-sm" data-act="o-pause" data-id="'+o.id+'">Publicar</button>':''))
         +'<button class="btn '+(ui.confirm==='odel'+o.id?'btn-danger':'btn-outline')+' btn-sm" data-act="o-del" data-id="'+o.id+'">'+(ui.confirm==='odel'+o.id?'Confirmar':'Eliminar')+'</button></div></td></tr>'; }).join('')
@@ -2885,7 +2886,7 @@ document.addEventListener('submit',function(ev){
       if(['o-lead','o-warr'].some(function(id){return !Number.isInteger(Number(val(id)));}))return showErr('o-err','Entrega y garantía deben ser números enteros.','o-lead');
       db.catalog=JSON.parse(JSON.stringify(CATALOG));
     }
-    var od={category:val('o-cat'),model:val('o-model'),size:val('o-size'),unit:val('o-unit'),brand:val('o-brand').trim().slice(0,40),detail:val('o-detail').trim().slice(0,80),
+    var od={category:val('o-cat'),model:val('o-model'),size:val('o-size'),unit:val('o-unit'),brand:val('o-brand').trim().slice(0,40),detail:val('o-detail').trim().slice(0,80),sourceUrl:val('o-source').trim(),
       price:parseMoney(val('o-price')),stock:val('o-stock'),minQty:Math.max(1,digits(val('o-min'))),lead:digits(val('o-lead')),warranty:digits(val('o-warr')),
       shipAmba:parseMoney(val('o-amba'))||0,shipInt:parseMoney(val('o-int'))||0,status:val('o-status'),updated:today(),
       units:val('o-units').trim()===''?null:digits(val('o-units')),lowAt:val('o-low').trim()===''?null:digits(val('o-low'))};
@@ -2895,6 +2896,7 @@ document.addEventListener('submit',function(ev){
     var mm=modelBy(od.category,od.model);
     if(!mm||mm[1].indexOf(od.size)<0){ showErr('o-err','Elegí el modelo y la variante del catálogo.','o-model'); return; }
     if(od.price<=0){ showErr('o-err','El precio tiene que ser mayor a cero.','o-price'); return; }
+    if(!safeUrl(od.sourceUrl)){ showErr('o-err','Ingresá el enlace https:// de la fuente oficial del precio.','o-source'); return; }
     if(oe){ for(var k2 in od) oe[k2]=od[k2]; logAct('editó '+od.model+' '+od.size+' de '+((vendor(oe.vendorId)||{}).name||'')); toast('Producto actualizado'); }
     else { od.id='o'+(db.nextId++); od.vendorId=ui.stockVendor; db.offers.push(od); logAct('agregó '+od.model+' '+od.size+' a '+((vendor(ui.stockVendor)||{}).name||'')); vnotify(ui.stockVendor,'product','productos','Sumamos '+od.model+' '+od.size+' a tu catálogo a '+money(od.price)+'. Revisá que el precio y el stock estén bien.',od.id); toast('Producto agregado'); }
     save(); ui.importOffer=null; ui.oForm=null; rerender();
