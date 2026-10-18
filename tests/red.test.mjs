@@ -28,3 +28,11 @@ assert.doesNotMatch(sql, /grant[^;]*fitness_red_admin[^;]*anon/);
 assert.match(admin, /data-act="red-activar"/);
 assert.match(admin, /Nuevo · se sumó desde la web/);
 console.log('OK: red de proveedores con alta desde la web.');
+
+// La comisión del 10% está informada donde el proveedor decide.
+{
+  const ter = fs.readFileSync('terminos.html', 'utf8'), of = fs.readFileSync('oferta.html', 'utf8');
+  assert.match(ter, /comisión del 10% sobre el precio de los productos, sin contar el envío/);
+  assert.match(of, /el 10% del precio de los productos \(el envío no paga comisión\)/);
+  assert.match(prov, /Comisión del '\+p\+'% solo si vendés/);
+}

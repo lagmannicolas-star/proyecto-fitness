@@ -1801,7 +1801,7 @@ function redJoinHTML(){
     +'<fieldset class="red-fs"><legend>¿A dónde entregás?</legend><label class="red-opt"><input type="checkbox" id="r-todo" checked> Todo el país</label>'
     +'<div class="red-opts" id="r-provs" hidden>'+RED_PROV.map(function(v,i){ return '<label class="red-opt"><input type="checkbox" name="r-prov" value="'+esc(v)+'"> '+esc(v)+'</label>'; }).join('')+'</div></fieldset>'
     +'<div class="sr" aria-hidden="true"><label for="r-web">No completar</label><input id="r-web" tabindex="-1" autocomplete="off"></div>'
-    +'<p class="note small">Al enviar aceptás que guardemos estos datos para mandarte pedidos de oferta. Los compradores no ven tu contacto hasta elegir tu oferta. <a href="privacidad.html">Privacidad</a>.</p>'
+    +'<p class="note small">Sumarte no tiene costo: pagás una comisión del '+db.commission+'% solo cuando te eligen y la venta se concreta. Al enviar aceptás que guardemos estos datos para mandarte pedidos de oferta. Los compradores no ven tu contacto hasta elegir tu oferta. <a href="privacidad.html">Privacidad</a>.</p>'
     +'<div><button class="btn btn-primary btn-lg" type="submit">Sumarme a la red</button></div></form>';
 }
 document.addEventListener('change',function(ev){ if(ev.target&&ev.target.id==='r-todo'){ var b=document.getElementById('r-provs'); if(b) b.hidden=ev.target.checked; } });
@@ -1828,14 +1828,14 @@ function vLanding(){
     +'<p class="eyebrow">Para fabricantes, importadores, distribuidores y comercios</p>'
     +'<h1 class="display">Recibí pedidos de gimnasios, clubes y colegios. <em>Competí por ventas, no por visibilidad.</em></h1>'
     +'<p class="lead">Los compradores publican lo que necesitan. Te llega el pedido por WhatsApp y ofertás en privado desde un link. Sin abono y sin cargar catálogo.</p>'
-    +'<div class="chips"><span class="chip">Sin abono fijo</span><span class="chip">No ves las ofertas de los demás</span><span class="chip">Pedidos reales, con cantidades</span></div>'
+    +'<div class="chips"><span class="chip">Sin abono fijo</span><span class="chip">Comisión del '+p+'% solo si vendés</span><span class="chip">No ves las ofertas de los demás</span><span class="chip">Pedidos reales, con cantidades</span></div>'
     +'<div class="actions"><a class="btn btn-accent btn-lg" href="#red">Quiero recibir pedidos</a><a class="btn btn-outline btn-lg" href="#alta">Vender con catálogo</a><button class="btn btn-outline btn-lg" data-go="login">Ya tengo cuenta</button></div>'
     +'</div></section>'
     +'<section class="section"><div class="wrap"><div class="section-head"><h2 class="display">Cómo funciona</h2></div><div class="steps">'
     +'<div class="step"><h3>Te sumás a la red</h3><p class="muted">Contás qué vendés y a qué zonas entregás. Un minuto, sin cuenta.</p></div>'
     +'<div class="step"><h3>Te llega un pedido</h3><p class="muted">Cuando un comprador pide algo de tu rubro y tu zona, te mandamos un link privado.</p></div>'
     +'<div class="step"><h3>Ofertás en privado</h3><p class="muted">Precio total, envío, plazo, cuotas y garantía. Nadie ve tu oferta salvo el comprador.</p></div>'
-    +'<div class="step"><h3>Si te eligen, vendés</h3><p class="muted">Recién ahí recibís los datos del comprador para coordinar entrega y pago.</p></div>'
+    +'<div class="step"><h3>Si te eligen, vendés</h3><p class="muted">Recién ahí recibís los datos del comprador para coordinar entrega y pago. Comisión del '+p+'% sobre los productos, sin contar el envío.</p></div>'
     +'</div></div></section>'
     +'<section class="section" style="padding-top:0" id="red"><div class="wrap">'+redJoinHTML()+'</div></section>'
     +'<section class="section" style="padding-top:0"><div class="wrap section-head"><h2 class="display">¿Preferís vender con catálogo?</h2><p class="muted" style="max-width:62ch">También podés publicar tus productos con precio y stock para que te compren directo desde el Catálogo, con pago por Mercado Pago. Comisión del '+p+'% solo sobre ventas pagadas.</p></div>'
