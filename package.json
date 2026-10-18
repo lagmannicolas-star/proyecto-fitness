@@ -2,7 +2,7 @@
   "name": "nexofit",
   "private": true,
   "scripts": {
-    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs && node tests/supplier-catalog.test.cjs && node tests/payments.test.mjs && node tests/photos.test.mjs && node tests/social.test.mjs && node tests/referrals.test.mjs && node tests/solicitudes.test.mjs && node tests/price-freshness.test.mjs && node tests/ofertas.test.mjs && node tests/avisos.test.mjs && node tests/publicacion.test.mjs && node tests/catalogo.test.mjs && node tests/red.test.mjs && node tests/bulk-price-confirm.test.mjs"
+    "test": "node tests/pages.test.mjs && node tests/redesign.test.mjs && node tests/catalog-ab.test.mjs && node tests/ab-cart.test.mjs && node tests/supplier-catalog.test.cjs && node tests/payments.test.mjs && node tests/photos.test.mjs && node tests/social.test.mjs && node tests/referrals.test.mjs && node tests/solicitudes.test.mjs && node tests/price-freshness.test.mjs && node tests/ofertas.test.mjs && node tests/avisos.test.mjs && node tests/publicacion.test.mjs && node tests/catalogo.test.mjs && node tests/red.test.mjs && node tests/bulk-price-confirm.test.mjs && node tests/espacio3d.test.mjs"
   },
   "devDependencies": {
     "jsdom": "30.1.2",

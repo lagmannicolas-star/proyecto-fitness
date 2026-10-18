@@ -57,13 +57,44 @@
     <p id="kit-error" class="alert" role="alert" hidden></p>
     <div class="actions">
       <button class="btn btn-accent btn-big" type="button" id="pedir">Pedir ofertas por esta lista</button>
-      <a class="btn btn-outline" href="nicolas.html">Prefiero buscar en la tienda</a>
+      <a class="btn btn-outline" href="#e3d">Ver cómo queda en 3D ↓</a>
     </div>
+  </section>
+
+  <section class="e3d" id="e3d" aria-labelledby="e3d-t">
+    <div class="e3d-head">
+      <div><p class="eyebrow">Nuevo</p><h2 id="e3d-t" class="display">Tu espacio en 3D</h2>
+        <p class="muted">Poné las medidas de tu lugar y mirá cómo entra todo, a escala real. Arrastrá cada pieza para moverla y girala con el botón.</p></div>
+      <div class="e3d-medidas">
+        <label for="e3d-largo">Largo (m)<input id="e3d-largo" type="number" inputmode="decimal" min="2" max="60" step="0.5" value="14"></label>
+        <span aria-hidden="true">×</span>
+        <label for="e3d-ancho">Ancho (m)<input id="e3d-ancho" type="number" inputmode="decimal" min="2" max="40" step="0.5" value="9"></label>
+      </div>
+    </div>
+    <div class="e3d-stats" id="e3d-stats" aria-live="polite"></div>
+    <p id="e3d-alerta" class="alert" role="status" hidden></p>
+    <div class="e3d-stage" id="e3d-stage">
+      <canvas id="e3d-canvas" aria-label="Vista 3D del espacio con el equipamiento de la lista"></canvas>
+      <p class="e3d-cargando" id="e3d-cargando" hidden>Cargando la vista 3D…</p>
+      <div class="e3d-tools">
+        <button type="button" class="e3d-btn" data-e3d-vista="3d" aria-pressed="true">3D</button>
+        <button type="button" class="e3d-btn" data-e3d-vista="planta" aria-pressed="false">Desde arriba</button>
+        <button type="button" class="e3d-btn" id="e3d-reset">Reacomodar</button>
+      </div>
+      <div class="e3d-sel" id="e3d-sel" hidden>
+        <div><b id="e3d-sel-t"></b><span id="e3d-sel-d" class="small"></span></div>
+        <button type="button" class="e3d-btn" id="e3d-girar">Girar 90°</button>
+      </div>
+    </div>
+    <p class="note small">Las piezas son figuras genéricas a escala real, con lugar para usarlas. Sirven para planificar: el modelo final depende de la oferta que elijas.</p>
+    <div class="actions"><button class="btn btn-accent btn-big" type="button" id="e3d-pedir">Pedir ofertas por esta lista</button>
+      <a class="btn btn-outline" href="nicolas.html#catalogo">Prefiero buscar en el catálogo</a></div>
   </section>
 </main>
 <footer class="foot" id="foot"></footer>
 <script src="assets/empresa.js"></script>
 <script src="assets/paginas.js"></script>
+<script src="assets/espacio3d.js"></script>
 <script src="assets/espacio.js"></script>
 </body>
 </html>

@@ -202,3 +202,24 @@ main section{margin-bottom:48px}
   .cq-foot{margin-top:14px;font-size:8.5pt;color:#555}
   .cq-t tr{break-inside:avoid}
 }
+
+/* Armá tu espacio en 3D */
+.e3d{margin-top:40px;display:grid;gap:14px}
+.e3d-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.e3d-head h2{margin:0}.e3d-head p{margin:6px 0 0;max-width:62ch}
+.e3d-medidas{display:flex;align-items:flex-end;gap:8px}.e3d-medidas label{display:grid;gap:4px;font-weight:600;font-size:.9rem}
+.e3d-medidas input{width:96px;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:700;text-align:center;background:#fff}
+.e3d-medidas span{padding-bottom:10px;font-weight:700}
+.e3d-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.e3d-kpi{border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:grid}.e3d-kpi b{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;line-height:1.1}.e3d-kpi span{font-size:.82rem;color:var(--muted)}
+.e3d-stage{position:relative;height:min(62vh,560px);min-height:360px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#F4F1EA;touch-action:none}
+.e3d-stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.e3d-cargando{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:var(--muted);padding:20px;text-align:center}
+.e3d-tools{position:absolute;top:10px;left:10px;display:flex;gap:6px;flex-wrap:wrap}
+.e3d-btn{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:rgba(253,250,245,.94);font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;color:var(--ink)}
+.e3d-btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.e3d-sel{position:absolute;left:10px;right:10px;bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(16,23,31,.92);color:#FDFAF5;border-radius:14px;padding:10px 12px}
+.e3d-sel div{display:grid;min-width:0}.e3d-sel span{opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.e3d-sel .e3d-btn{background:var(--accent);border-color:var(--accent);color:var(--ink);flex:none}
+@media (max-width:560px){.e3d-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.e3d-kpi{padding:8px 10px}.e3d-kpi b{font-size:1.35rem}.e3d-stage{height:440px}}
+.e3d-cargando[hidden],.e3d-sel[hidden]{display:none}

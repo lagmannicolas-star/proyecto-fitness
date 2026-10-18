@@ -159,6 +159,11 @@
         + '<button type="button" class="kit-x" data-x="' + i + '" aria-label="Quitar ' + esc(it.p) + '">×</button></li>';
     }).join('') : '<li class="muted">Elegí al menos una opción para ver la lista.</li>';
     $('extra-add').disabled = st.kit.length >= MAX;
+    avisar3d();
+  }
+  // La vista 3D (espacio3d.js) se entera de cada cambio de la lista.
+  function avisar3d() {
+    try { w.dispatchEvent(new CustomEvent('nf-kit', { detail: { tipo: st.tipo, personas: st.personas[st.tipo], kit: st.kit.map(function (it) { return { p: it.p, q: it.q }; }) } })); } catch (e) { /* navegador sin CustomEvent */ }
   }
 
   form.addEventListener('change', function (ev) {
@@ -177,7 +182,7 @@
     var i = ev.target.getAttribute('data-i');
     if (i == null) return;
     var v = parseInt(ev.target.value, 10);
-    if (v > 0) st.kit[+i].q = v;
+    if (v > 0) { st.kit[+i].q = v; avisar3d(); }
   });
   $('kit').addEventListener('click', function (ev) {
     var b = ev.target.closest('[data-x]');
