@@ -208,18 +208,18 @@
       });
       sol.position.set(L * 0.2, Math.max(L, A) * 1.2, A * 1.4); sol.target.position.set(L / 2, 0, A / 2);
       var s = Math.max(L, A); sol.shadow.camera.left = -s; sol.shadow.camera.right = s; sol.shadow.camera.top = s; sol.shadow.camera.bottom = -s; sol.shadow.camera.far = s * 4; sol.shadow.camera.updateProjectionMatrix();
-      ctl.target.set(L / 2, 0, A / 2); vista(vistaActual);
       medidasRoom = { L: L, A: A };
+      ctl.target.set(L / 2, 0, A / 2); vista(vistaActual);
     }
     var medidasRoom = { L: 10, A: 8 }, vistaActual = '3d';
     function vista(v) {
       vistaActual = v; var L = medidasRoom.L || 10, A = medidasRoom.A || 8, s = Math.max(L, A);
       // Encuadra el ambiente completo según la forma del recuadro (en el celular es más alto que ancho).
       var R = Math.sqrt(L * L + A * A + 7.84) / 2, vf = cam.fov * Math.PI / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * cam.aspect);
-      var dist = R / Math.sin(Math.min(vf, hf) / 2) * (v === 'planta' ? 0.92 : 0.82);
+      var dist = R / Math.sin(Math.min(vf, hf) / 2) * (v === 'planta' ? 0.9 : 0.95);
       var dir = v === 'planta' ? new T.Vector3(0, 1, 0.0001) : new T.Vector3(0.5, 0.78, 1.05).normalize();
-      cam.position.set(L / 2 + dir.x * dist, dir.y * dist, A / 2 + dir.z * dist);
-      ctl.maxDistance = dist * 2.2; ctl.target.set(L / 2, 0, A / 2); ctl.update();
+      cam.position.set(L / 2 + dir.x * dist, 0.6 + dir.y * dist, A / 2 + dir.z * dist);
+      ctl.maxDistance = dist * 2.2; ctl.target.set(L / 2, 0.6, A / 2); ctl.update();
       [].forEach.call(d.querySelectorAll('[data-e3d-vista]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-e3d-vista') === v); });
     }
     function tam() { var wd = stage.clientWidth || 1, h = stage.clientHeight || 1; r.setSize(wd, h, false); cam.aspect = wd / h; cam.updateProjectionMatrix(); }
