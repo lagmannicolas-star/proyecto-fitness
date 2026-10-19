@@ -3121,7 +3121,7 @@ function avisosView(){
  var st=function(ok,txt){return '<span class="st '+(ok?'ok':'neu')+'">'+txt+'</span>';};
  var h='<div class="card">'+chead('bell','Avisos de solicitudes y ofertas','Te avisamos por email y por WhatsApp cuando entra una solicitud, cuando llega o se corrige una oferta y cuando un comprador elige. Al comprador le mandamos por email la confirmación, la primera oferta y su elección.')
   +(ui.avisosErr?'<p class="alert bad">'+esc(ui.avisosErr)+'</p>':'')
-  +'<p>'+st(a.resend&&a.admin_email,a.resend&&a.admin_email?'Email activo':'Email sin configurar')+' '+st(a.callmebot&&a.admin_whatsapp,a.callmebot&&a.admin_whatsapp?'WhatsApp activo':'WhatsApp sin configurar')+' '+st(a.resend&&domainOk&&a.comprador_email,a.resend&&domainOk&&a.comprador_email?'Emails a compradores activos':'Emails a compradores en pausa')+'</p></div>';
+  +'<p>'+st(a.resend&&a.admin_email,a.resend&&a.admin_email?'Email activo':'Email sin configurar')+' '+st(a.callmebot&&a.admin_whatsapp,a.callmebot&&a.admin_whatsapp?'WhatsApp activo':'WhatsApp sin configurar')+' '+st(!!a.push,a.push?'Celular (app ntfy) activo':'Celular sin configurar')+' '+st(a.resend&&domainOk&&a.comprador_email,a.resend&&domainOk&&a.comprador_email?'Emails a compradores activos':'Emails a compradores en pausa')+'</p></div>';
  h+='<div class="card"><h3 style="margin-top:0">Email (Resend)</h3>'
   +'<ol class="rq-steps"><li>Creá una cuenta gratis en <a href="https://resend.com" target="_blank" rel="noopener">resend.com</a> con el email donde querés recibir los avisos.</li>'
   +'<li>En <b>API Keys</b> creá una llave con permiso de envío y pegala abajo. Se guarda cifrada: después no se muestra más.</li>'
@@ -3142,7 +3142,7 @@ function avisosView(){
  var list=a.avisos||[];
  h+='<div class="card"><h3 style="margin-top:0">Últimos avisos</h3>'+(list.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Aviso</th><th>Canal</th><th>Para</th><th>Estado</th><th></th></tr></thead><tbody>'+list.map(function(x){
   var s=x.estado==='enviado'?['ok','Enviado']:x.estado==='error'?['bad','Falló']:['warn',x.intentos?'Reintentando':'En cola'];
-  return '<tr><td class="nw">'+esc(new Date(x.creado).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</td><td>'+esc(AV_TIPO[x.tipo]||x.tipo)+'<span class="rq-sub">'+esc(x.asunto||'')+'</span></td><td>'+(x.canal==='email'?'Email':'WhatsApp')+'</td><td>'+esc(x.destino)+'</td><td><span class="st '+s[0]+'">'+s[1]+'</span>'+(x.error?'<span class="rq-sub">'+esc(x.error)+'</span>':'')+'</td><td>'+(x.estado!=='enviado'?'<button class="btn btn-outline btn-sm" data-act="av-retry" data-id="'+x.id+'">Reintentar</button>':'')+'</td></tr>';
+  return '<tr><td class="nw">'+esc(new Date(x.creado).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</td><td>'+esc(AV_TIPO[x.tipo]||x.tipo)+'<span class="rq-sub">'+esc(x.asunto||'')+'</span></td><td>'+(x.canal==='email'?'Email':(x.canal==='push'?'Celular (app ntfy)':'WhatsApp'))+'</td><td>'+esc(x.destino)+'</td><td><span class="st '+s[0]+'">'+s[1]+'</span>'+(x.error?'<span class="rq-sub">'+esc(x.error)+'</span>':'')+'</td><td>'+(x.estado!=='enviado'?'<button class="btn btn-outline btn-sm" data-act="av-retry" data-id="'+x.id+'">Reintentar</button>':'')+'</td></tr>';
  }).join('')+'</tbody></table></div>':'<p class="muted">Todavía no salió ningún aviso.</p>')+'</div>';
  return h;
 }
