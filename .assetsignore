@@ -25,3 +25,5 @@
 !redes/publicar/**
 redes/publicar/**/*.json
 assets/**/*.md
+!favicon.ico
+!favicon.png

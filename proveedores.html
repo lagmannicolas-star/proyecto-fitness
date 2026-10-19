@@ -842,6 +842,8 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon.png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><meta name="theme-color" content="#10171F">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:title" content="Nexo Fit · Proveedores"><meta property="og:description" content="Vendé tu equipamiento deportivo en Nexo Fit: llegá a gimnasios, clubes y colegios de todo el país. Sin abono fijo."><meta property="og:image" content="https://nexofitt.com.ar/assets/og-proveedores.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 <div id="app"></div>
@@ -1359,7 +1361,7 @@ function toast(msg){
 
 var LOGO='<span class="logo-frame"><img src="assets/nexofit-logo.png" alt="Nexo Fit — Compará, elegí, entrená" width="1254" height="1254"></span>';
 /* Enlaces entre los tres sitios: van chicos y al pie, solo para recorrer la demo. */
-function demoLinks(cur){var items=[['nicolas.html','Compradores','buy'],['proveedores.html','Proveedores','sell'],['admin.html','Administrador','admin']];return '<span class="demolinks"><button type="button" class="linkbtn" data-act="fitness-refresh">Actualizar datos</button> · '+items.filter(function(i){return i[2]!==cur;}).map(function(i){return '<a href="'+i[0]+'">'+i[1]+'</a>';}).join(' · ')+'</span>';}
+function demoLinks(cur){var items=[['index.html','Volver a Nexo Fit','buy']];return '<span class="demolinks"><button type="button" class="linkbtn" data-act="fitness-refresh">Actualizar datos</button> · '+items.filter(function(i){return i[2]!==cur;}).map(function(i){return '<a href="'+i[0]+'">'+i[1]+'</a>';}).join(' · ')+'</span>';}
 var CHAT='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>';
 /* Consultas centralizadas con contexto de empresa y producto. */
 function contactMessage(company,product,text){
