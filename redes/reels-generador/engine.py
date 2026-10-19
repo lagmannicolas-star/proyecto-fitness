@@ -151,7 +151,9 @@ def sc_checklist(d, t, sc, bg):
         if r > 0:
             d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=GREEN)
             if q > 0.7: d.line([(cx - 18, cy), (cx - 5, cy + 14), (cx + 20, cy - 14)], fill=BLACK, width=9)
-        d.text((250, y + 46), it, font=F(FB, 50), fill=mix(bg, WHITE, p))
+        fs = 50
+        while d.textlength(it, font=F(FB, fs)) > W - 90 - 250 - 40: fs -= 2
+        d.text((250, y + 75 - fs * 0.62), it, font=F(FB, fs), fill=mix(bg, WHITE, p))
 
 def sc_split(d, t, sc, bg):
     headline(d, t, sc["text"], 200, sc.get("size", 84), WHITE, bg, 0, sc.get("hl"))
