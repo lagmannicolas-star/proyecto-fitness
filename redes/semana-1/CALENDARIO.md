@@ -34,6 +34,7 @@ Se publica solo cuando Instagram está conectado (ver `../CONECTAR-INSTAGRAM.md`
 |---|---|---|
 | 08:30 | Historia | historia producto |
 | 09:00 | Post | producto medicine ball |
+| 10:00 | Reel (IG + TikTok) | reel pedir ofertas (57 s) |
 | 11:00 | Historia | historia encuesta |
 | 13:00 | Carrusel (7) | tips clase de funcional |
 | 15:00 | Historia | historia tip |
