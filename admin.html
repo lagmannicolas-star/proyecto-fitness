@@ -2553,7 +2553,7 @@ function vAdmin(){
   } else if(ui.tab==='vendedores'){
     var sv=ui.vSel?vendor(ui.vSel):null; if(!sv) ui.vSel=null;
     body=sv?vendorFile(sv):vendorList()+'<div class="card">'+chead('pct','Comisión por proveedor','Si dejás el campo vacío, se aplica la general ('+db.commission+'%).')
-      +'<div class="list">'+db.vendors.filter(function(v){ return v.status!=='rejected'; }).map(function(v){ return '<div><div class="who2"><b>'+esc(v.name)+'</b></div><div class="pctbox"><label class="small muted" for="vc-'+v.id+'">Comisión %</label><input id="vc-'+v.id+'" data-vc="'+v.id+'" type="number" min="0" max="100" placeholder="'+db.commission+'" value="'+(v.commission==null?'':v.commission)+'"></div></div>'; }).join('')+'</div></div>';
+      +'<div class="list">'+db.vendors.filter(function(v){ return v.status!=='rejected'; }).map(function(v){ return '<div><div class="who2"><b>'+esc(v.name)+'</b></div><div class="pctbox"><label class="small muted" for="vc-'+v.id+'">Comisión %</label><input id="vc-'+v.id+'" data-vc="'+v.id+'" type="number" min="0" max="100" placeholder="'+db.commission+'" value="'+(v.commission==null?'':v.commission)+'"></div></div>'; }).join('')+'</div>'+redCommissionList()+'</div>';
   } else if(ui.tab==='productos'){
     var q=db.offers.filter(function(o){ return o.status==='review'; });
     var subs=[['ranking','Más vendidos'],['aprobar','Por aprobar'+(q.length?' · '+q.length:'')],['stock','Stock por proveedor']];
@@ -2963,6 +2963,11 @@ document.addEventListener('change',function(ev){
   else if(t.id==='demo-traffic'){ db.traffic.demo=t.checked; logAct((t.checked?'prendió':'apagó')+' las visitas de ejemplo'); save(); rerender(t.id); toast(t.checked?'Se muestran visitas de ejemplo':'Solo visitas reales'); }
   else if(t.dataset&&t.dataset.where){ var it=(db.ad.items||[]).filter(function(i){ return i.id===t.dataset.where; })[0]; if(it){ it.where=t.value; logAct('cambió dónde se muestra un mensaje del cartel'); save(); rerender(); toast('Ahora se muestra en: '+adWhere(it.where).toLowerCase()); } }
   else if(t.id==='ad-on'){ db.ad.on=t.checked; logAct((t.checked?'prendió':'apagó')+' el cartel LED'); save(); rerender(t.id); toast(db.ad.on?'Cartel encendido':'Cartel apagado'); }
+  else if(t.dataset&&t.dataset.rc){
+    var rp=(ui.red||[]).filter(function(x){ return String(x.id)===t.dataset.rc; })[0]; if(!rp) return;
+    var pc=t.value===''?null:Math.min(100,Math.max(0,Number(String(t.value).replace(',','.'))||0));
+    adminRpc('fitness_red_comision',{p_id:rp.id,p_pct:pc}).then(function(){ rp.comision=pc; logAct('cambió la comisión de '+rp.nombre+' (red) a '+(pc==null?db.commission:pc)+'%'); toast('Comisión de '+rp.nombre+': '+(pc==null?db.commission+'% (la general)':pc+'%')); }).catch(function(e){ toast(e.message); });
+  }
   else if(t.dataset&&t.dataset.vc){
     var v=vendor(t.dataset.vc); if(!v) return;
     v.commission=t.value===''?null:Math.min(100,Math.max(0,digits(t.value))); logAct('cambió la comisión de '+v.name+' a '+pctOf(v)+'%'); vnotify(v.id,'account','mp','Tu comisión ahora es del '+pctOf(v)+'% de los productos. Se aplica a las próximas ventas.');
@@ -2975,6 +2980,15 @@ function orderOrigin(o){var u=o.ship&&o.ship.utm;if(!u)return '';var src=[u.utm_
 var SOL_ST={nueva:['warn','Nueva'],enviada:['neu','Consultando proveedores'],con_ofertas:['ok','Con ofertas'],elegida:['ok','Oferta elegida'],cerrada:['ok','Cerrada'],descartada:['bad','Descartada'],vencida:['bad','Vencida']};
 var SOL_PRIO={equilibrio:'Mejor equilibrio',precio:'Menor costo total',rapidez:'Entrega más rápida',financiacion:'Financiación',calidad:'Calidad y garantía'};
 var SOL_PLAZO={urgente:'Lo antes posible','7':'Hasta 7 días','15':'Hasta 15 días','30':'Hasta 30 días',flexible:'Sin apuro'};
+/* Proveedores de la red de "Pedí ofertas": aparecen todos aunque no tengan catálogo cargado. */
+function redCommissionList(){
+ if(!ui.red){ if(!ui.redLoading){ ui.redLoading=true; setTimeout(function(){ loadRequests().then(function(){ ui.redLoading=false; }); },0); } return '<p class="muted small" style="margin-top:14px">Cargando la red de proveedores…</p>'; }
+ var cat=db.vendors.map(function(v){ return String(v.name||'').toLowerCase().trim(); });
+ var list=ui.red.filter(function(p){ return cat.indexOf(String(p.nombre||'').toLowerCase().trim())<0; });
+ if(!list.length) return '';
+ return '<h3 style="margin:18px 0 4px">Red de proveedores (Pedí ofertas)</h3><p class="muted small" style="margin:0 0 8px">Se sumaron a la red aunque todavía no cargaron catálogo. La comisión se les muestra en el link para ofertar y se cobra solo si la venta se concreta.</p>'
+  +'<div class="list">'+list.map(function(p){ return '<div><div class="who2"><b>'+esc(p.nombre)+'</b> '+(p.activo?'<span class="st ok">Activo</span>':'<span class="st warn">Pausado</span>')+' <span class="muted small">'+esc([p.contacto,p.localidad].filter(Boolean).join(' · ')||'Sin catálogo')+'</span></div><div class="pctbox"><label class="small muted" for="rc-'+p.id+'">Comisión %</label><input id="rc-'+p.id+'" data-rc="'+p.id+'" type="number" min="0" max="100" step="0.5" placeholder="'+db.commission+'" value="'+(p.comision==null?'':Number(p.comision))+'"></div></div>'; }).join('')+'</div>';
+}
 var RUBROS=[['musculacion','Musculación',/mancuern|disco|barra|banco|rack|jaula/],['funcional','Funcional',/rusa|kettlebell|caj[oó]n|banda|corebag|medicine|soga|suspensi|step|bumper/],['colchonetas','Colchonetas, yoga y pilates',/colchonet|mat|yoga|pilates|bloque/],['deportes','Deportes y pelotas',/pelota|red de|arco|palo|bocha|hockey|f[uú]tbol|b[aá]squet|v[oó]ley/],['entrenamiento','Conos, escaleras y vallas',/cono|escalera|valla|aro|pechera|cron[oó]metro/],['atletismo','Atletismo',/atletismo|taco|cron[oó]metro/],['escolar','Psicomotricidad y escolar',/psicomotric|blanda|escolar|t[uú]nel/],['boxeo','Boxeo y artes marciales',/guante|boxeo|venda|bolsa/],['natacion','Natación',/nataci|antiparra|tabla de nado/],['rehabilitacion','Protección y rehabilitación',/rehabilit|tobillera|protecci/]];
 function solPlain(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
 async function loadRequests(){try{var out=await Promise.all([adminRpc('fitness_solicitudes_admin'),adminRpc('fitness_red_admin')]);ui.requests=out[0];ui.red=out[1];ui.requestsErr='';}catch(e){ui.requests=[];ui.red=ui.red||[];ui.requestsErr=e.message;}rerender();}
@@ -3018,6 +3032,7 @@ function redView(){
    +'<p class="rq-sub" style="margin-top:12px"><b>Rubros que vende</b></p><div style="display:flex;flex-wrap:wrap;gap:6px 14px">'+RUBROS.map(function(x){return '<label style="display:inline-flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" data-red-rubro="'+x[0]+'"'+((p.rubros||[]).indexOf(x[0])>=0?' checked':'')+'>'+x[1]+'</label>';}).join('')+'</div>'
    +'<label class="rq-l" style="margin-top:12px">Zonas a las que entrega<input data-red="zonas" maxlength="400" value="'+esc((p.zonas||['todo']).join(', '))+'"><span class="rq-sub">Escribí "todo" para todo el país, o provincias separadas por coma (ej.: Buenos Aires, Ciudad de Buenos Aires).</span></label>'
    +'<label class="rq-l">Notas internas<input data-red="notas" maxlength="500" value="'+esc(p.notas||'')+'"></label>'
+   +'<label class="rq-l">Comisión %<input data-red="comision" type="number" min="0" max="100" step="0.5" placeholder="'+db.commission+' (la general)" value="'+(p.comision==null?'':Number(p.comision))+'"><span class="rq-sub">Vacío = la general ('+db.commission+'%). Se le muestra en el link para ofertar.</span></label>'
    +'<label style="display:inline-flex;gap:6px;align-items:center;font-weight:600;margin-top:8px"><input type="checkbox" data-red="activo"'+(p.activo!==false?' checked':'')+'> Activo (recibe invitaciones)</label>'
    +'<div class="actions" style="margin-top:12px"><button class="btn btn-primary btn-sm" data-act="red-save" data-id="'+(p.id||'')+'">Guardar</button><button class="btn btn-outline btn-sm" data-act="red-cancel">Cancelar</button></div></div>';};
  var h='<div class="card">'+chead('users','Red de proveedores','Las empresas a las que podés pedirles oferta. No necesitan tener catálogo cargado: alcanza con que reciban el link por WhatsApp. Marcá bien rubros y zonas para que el sistema te sugiera a quién invitar.')
@@ -3030,7 +3045,7 @@ function redView(){
   var nuevo=p.origen==='web'&&!p.activo,wa=String(p.whatsapp||'').replace(/\D/g,'');
   return '<div class="card" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center'+(nuevo?';border-color:var(--accent)':'')+'"><div><b>'+esc(p.nombre)+'</b> '+(nuevo?'<span class="st warn">Nuevo · se sumó desde la web</span>':p.activo?'<span class="st ok">Activo</span>':'<span class="st neu">Pausado</span>')
    +(p.tipo||p.contacto||p.localidad||p.cuit?'<span class="rq-sub">'+esc([p.tipo,p.contacto,p.localidad,p.cuit&&'CUIT '+p.cuit,p.email].filter(Boolean).join(' · '))+'</span>':'')
-   +'<span class="rq-sub">'+esc(rub)+'</span><span class="rq-sub">Entrega en: '+esc((p.zonas||[]).join(', '))+(p.whatsapp?' · WhatsApp '+esc(p.whatsapp):' · sin WhatsApp')+'</span></div>'
+   +'<span class="rq-sub">'+esc(rub)+'</span><span class="rq-sub">Comisión: '+(p.comision==null?db.commission+'% (la general)':Number(p.comision)+'%')+'</span><span class="rq-sub">Entrega en: '+esc((p.zonas||[]).join(', '))+(p.whatsapp?' · WhatsApp '+esc(p.whatsapp):' · sin WhatsApp')+'</span></div>'
    +'<div class="actions" style="margin:0">'+(nuevo?'<button class="btn btn-primary btn-sm" data-act="red-activar" data-id="'+p.id+'">Activar</button>'+(wa?'<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hola '+(p.contacto||'')+', te escribimos de Nexo Fit. Ya quedaste activo en la red de proveedores: cuando un comprador pida algo de tu rubro y tu zona, te mandamos el link para ofertar.')+'">Avisar por WhatsApp</a>':''):'')
    +'<button class="btn btn-outline btn-sm" data-act="red-edit" data-id="'+p.id+'">Editar</button></div></div>';
  }).join('');
@@ -3105,7 +3120,7 @@ document.addEventListener('click',function(ev){
  }
  if(act==='red-save'){
   var box=t.closest('.card'),g=function(k){var el=box.querySelector('[data-red="'+k+'"]');return el?el.value:'';};
-  var p={id:t.dataset.id||null,nombre:g('nombre'),contacto:g('contacto'),whatsapp:g('whatsapp'),email:g('email'),notas:g('notas'),
+  var p={id:t.dataset.id||null,nombre:g('nombre'),contacto:g('contacto'),whatsapp:g('whatsapp'),email:g('email'),notas:g('notas'),comision:g('comision')===''?null:Number(g('comision').replace(',','.')),
    zonas:g('zonas').split(',').map(function(z){return z.trim();}).filter(Boolean),activo:box.querySelector('[data-red="activo"]').checked,
    rubros:[].slice.call(box.querySelectorAll('[data-red-rubro]:checked')).map(function(x){return x.dataset.redRubro;})};
   t.disabled=true;adminRpc('fitness_red_guardar',{p:p}).then(function(){toast('Proveedor guardado');ui.redForm=null;return loadRequests();}).catch(function(e){t.disabled=false;toast(e.message);});return;

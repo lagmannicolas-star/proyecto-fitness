@@ -43,6 +43,7 @@
   $('envio-incl').addEventListener('change', function () { $('envio').disabled = this.checked; if (this.checked) $('envio').value = ''; totalPreview(); });
 
   function render(o) {
+    if (o.comision != null && $('of-comision')) $('of-comision').textContent = String(Number(o.comision)).replace('.', ',');
     $('of-titulo').textContent = 'Pedido ' + o.code + ' para ' + o.proveedor;
     d.title = 'Pedido ' + o.code + ' · Nexo Fit';
     $('of-items').innerHTML = (o.items || []).map(function (it) {

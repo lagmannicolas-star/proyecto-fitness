@@ -33,7 +33,9 @@ console.log('OK: red de proveedores con alta desde la web.');
 {
   const ter = fs.readFileSync('terminos.html', 'utf8'), of = fs.readFileSync('oferta.html', 'utf8');
   assert.match(ter, /comisión del 10% sobre el precio de los productos, sin contar el envío/);
-  assert.match(of, /el 10% del precio de los productos \(el envío no paga comisión\)/);
+  assert.match(of, /el <span id=\"of-comision\">10<\/span>% del precio de los productos \(el envío no paga comisión\)/);
+  // La comisión del link sale de la base: cada proveedor de la red puede tener la suya.
+  assert.match(fs.readFileSync('assets/oferta.js', 'utf8'), /o\.comision/);
   assert.match(prov, /Comisión del '\+p\+'% solo si vendés/);
 }
 
