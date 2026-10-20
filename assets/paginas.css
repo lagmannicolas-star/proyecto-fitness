@@ -233,3 +233,5 @@ main section{margin-bottom:48px}
 .ej-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:0}
 .tag-ej{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:2px dashed var(--ink)}
 .red-stat{margin:14px 0 0;font-weight:600}
+/* Catálogo oculto: bloques marcados con data-catalogo (ver CATALOGO_VISIBLE en paginas.js). */
+[data-catalogo][hidden]{display:none!important}
