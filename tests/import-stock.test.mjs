@@ -30,7 +30,7 @@ const vendor={id:'v1',name:'Proveedor',catalogDrafts:[
 let plan=ctx.bulkPlan(vendor,cond);
 assert.equal(plan.n.missingStock,1);
 assert.equal(plan.n.create,2);
-assert.deepEqual(plan.ops.filter(x=>x.kind==='create').map(x=>x.f.stock),['none','stock']);
+assert.equal(plan.ops.filter(x=>x.kind==='create').map(x=>x.f.stock).join(','),'none,stock');
 assert.equal(plan.ops.some(x=>x.f.model==='Sin stock informado'),false);
 
 offers.push({id:'old',vendorId:'v1',sourceKey:'sin-stock',sourceUrl:'https://proveedor.example/productos/fuente/',status:'published'});
