@@ -3,8 +3,11 @@
   'use strict';
   var SITIO = 'https://nexofitt.com.ar';
   // Códigos de medición. Vacíos = no se carga nada de terceros. Completar para activar.
-  var GA4_ID = '';          // Google Analytics 4, por ejemplo 'G-XXXXXXXXXX'
+  var GA4_ID = 'G-2EWW1D70MR';          // Google Analytics 4, por ejemplo 'G-XXXXXXXXXX'
   var META_PIXEL_ID = '';   // Píxel de Meta (Facebook / Instagram), solo números
+
+  // El panel de administración y las páginas privadas de ofertas no se miden.
+  if (/\/(admin|oferta)(\.html)?$/.test(w.location.pathname)) { GA4_ID = ''; META_PIXEL_ID = ''; }
 
   // Una sola dirección para Google, los anuncios y los compradores.
   var host = w.location.hostname;
