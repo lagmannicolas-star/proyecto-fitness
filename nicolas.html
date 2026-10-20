@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nexo Fit · Compará y comprá equipamiento deportivo</title>
 <meta name="description" content="Compará y comprá equipamiento deportivo y de fitness de distintas empresas en un solo carrito. Para gimnasios, clubes y colegios de todo el país.">
-<link rel="canonical" href="https://nexofitt.com.ar/nicolas">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/nicolas">
+<link rel="canonical" href="https://nexofitt.com.ar/catalogo">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/catalogo">
 <meta property="og:title" content="Nexo Fit · Compará y comprá equipamiento deportivo"><meta property="og:description" content="Distintas empresas, un solo carrito. Mancuernas, colchonetas, pesas, kits y más para gimnasios, clubes y colegios.">
 <meta property="og:image" content="https://nexofitt.com.ar/assets/og-home.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <script src="assets/sitio.js"></script>
@@ -2748,7 +2748,7 @@ document.addEventListener('change',function(ev){if(ev.target.id==='ab-category')
 /* Link de pago: index.html#pagar-<id> abre directo el pago de esa oferta. */
 function fromHash(){
   if(location.hash==='#carrito'){ui.route='carrito';ui.cartMode=false;return true;}
-  if(location.hash==='#catalogo'){ui.route='buscar';return true;}
+  if(location.hash==='#catalogo'||(!location.hash&&/\/catalogo\/?$/.test(location.pathname))){ui.route='buscar';return true;}
   var m=/^#pagar-([A-Za-z0-9]+)$/.exec(location.hash||''); if(!m) return false;
   var o=offer(m[1]); ui.route='checkout'; ui.offerId=m[1]; ui.cartMode=false; ui.doneOrders=null; ui.pay=false; ui.payError='';
   if(o){ ui.qty=Math.max(1,o.minQty); ui.cat=o.category; ui.model=o.model; ui.size=o.size; ui.unit=o.unit; track('v',o.vendorId); }

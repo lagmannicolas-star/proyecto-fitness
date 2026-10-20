@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="nexofit-build" content="20261016-portada-equipar">
-<title>Nexo Fit · Equipá tu espacio con las mejores ofertas</title>
+<meta name="nexofit-build" content="20261020-portada-ajustes">
+<title>Nexo Fit · Pedí ofertas y compará equipamiento deportivo</title>
 <meta name="description" content="Contanos qué querés equipar: gimnasio, club, colegio o tu casa. Armamos la lista, consultamos a proveedores y comparamos las ofertas por vos.">
 <link rel="canonical" href="https://nexofitt.com.ar/">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/">
-<meta property="og:title" content="Nexo Fit · Equipá tu espacio con las mejores ofertas"><meta property="og:description" content="Vos decís qué necesitás. Los proveedores ofertan. Nosotros comparamos y te ayudamos a elegir.">
+<meta property="og:title" content="Nexo Fit · Pedí ofertas y compará equipamiento deportivo"><meta property="og:description" content="Vos decís qué necesitás. Los proveedores ofertan. Nosotros comparamos y te ayudamos a elegir.">
 <meta property="og:image" content="https://nexofitt.com.ar/assets/og-home.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <script>
 /* Los enlaces de pago (#pagar-…), el carrito y las vueltas de Mercado Pago (?pago=, ?mp=) siguen abriendo la tienda. */
@@ -31,12 +31,13 @@
     <a class="choice" href="arma-tu-espacio.html?tipo=club"><span class="choice-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40"><path d="M24 6 34 40H14z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" fill="none"/><path d="M10 40h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span><b>Club</b><span>Entrenamiento por disciplina y categoría</span></a>
     <a class="choice" href="arma-tu-espacio.html?tipo=colegio"><span class="choice-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40"><circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="4" fill="none"/><path d="M8 24h32M24 8c6 5 6 27 0 32M24 8c-6 5-6 27 0 32" stroke="currentColor" stroke-width="3" fill="none"/></svg></span><b>Colegio</b><span>Educación física para todos los cursos</span></a>
     <a class="choice" href="arma-tu-espacio.html?tipo=casa"><span class="choice-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40"><path d="M8 22 24 9l16 13v17H8z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" fill="none"/><path d="M18 32h12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span><b>Mi casa</b><span>Un rincón para entrenar</span></a>
-    <a class="choice choice-alt" href="nicolas.html#catalogo"><span class="choice-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="4" fill="none"/><path d="m30 30 10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span><b>Busco un producto</b><span>Ver el catálogo con precios y variantes</span></a>
+    <a class="choice choice-alt" href="catalogo"><span class="choice-ico" aria-hidden="true"><svg viewBox="0 0 48 48" width="40" height="40"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="4" fill="none"/><path d="m30 30 10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span><b>Busco un producto</b><span>Ver el catálogo con precios y variantes</span></a>
   </nav>
   <div class="paths">
     <a class="path" href="solicitud.html"><span class="muted small">¿Ya sabés qué necesitás?</span><b>Pedí ofertas →</b></a>
     <a class="path" href="arma-tu-espacio.html"><span class="muted small">¿No sabés por dónde empezar?</span><b>Armá tu espacio →</b></a>
   </div>
+  <p class="red-stat small muted" id="red-stat" hidden></p>
 </div></section>
 
 <main class="wrap">
@@ -47,7 +48,7 @@
       <article class="door door-main">
         <p class="door-tag">Volumen o espacio completo</p>
         <h3>Pedí ofertas</h3>
-        <p>Nos decís qué necesitás. Los proveedores que pueden cumplir te ofertan en privado y comparamos por costo total, plazo y garantía.</p>
+        <p>Nos decís qué necesitás y los proveedores que pueden cumplirlo te mandan sus ofertas.</p>
         <ol class="flow"><li>Pedir</li><li>Recibir ofertas</li><li>Elegir</li></ol>
         <div class="door-ctas">
           <a class="btn btn-dark" href="solicitud.html">Ya sé qué necesito: pedir ofertas</a>
@@ -57,10 +58,16 @@
       <article class="door">
         <p class="door-tag">¿Buscás algo puntual?</p>
         <h3>Catálogo</h3>
-        <p class="muted">Buscás el producto, comparás precios de distintas empresas y pagás todo en un solo carrito.</p>
-        <ol class="flow"><li>Buscar</li><li>Comparar</li><li>Pagar</li></ol>
-        <a class="btn btn-outline" href="nicolas.html#catalogo">Ver el catálogo</a>
+        <p class="muted">Buscás el producto y comparás precios de distintas empresas. Cada empresa confirma, envía y factura su parte del pedido.</p>
+        <ol class="flow"><li>Buscar</li><li>Comparar</li><li>Pedir</li></ol>
+        <a class="btn btn-outline" href="catalogo">Ver el catálogo</a>
       </article>
+    </div>
+    <div class="grid4 benefits">
+      <div class="card benefit"><b>Costo total, no solo precio</b><span class="muted">Comparamos producto, envío a tu localidad, cuotas y factura.</span></div>
+      <div class="card benefit"><b>Ofertas privadas</b><span class="muted">Cada proveedor oferta sin ver lo que ofrecen los demás.</span></div>
+      <div class="card benefit"><b>Recomendación explicada</b><span class="muted">Te decimos qué oferta conviene según tus prioridades, y por qué.</span></div>
+      <div class="card benefit"><b>Gratis y sin compromiso</b><span class="muted">Si ninguna oferta te convence, no comprás. Tu contacto no se comparte hasta que elegís.</span></div>
     </div>
   </section>
 
@@ -68,7 +75,7 @@
     <p class="eyebrow">Así comparamos</p>
     <h2 id="ejemplo" class="display">No gana el más barato: gana el que mejor resuelve tu pedido</h2>
     <div class="card sample">
-      <p class="small muted">Ejemplo ilustrativo · 100 colchonetas profesionales · entrega en Quilmes · prioridad: mejor equilibrio</p>
+      <p class="ej-head"><span class="tag-ej">Ejemplo</span><span class="small muted">Proveedores y precios ficticios, solo para mostrar cómo comparamos · 100 colchonetas · entrega en Quilmes · prioridad: equilibrio</span></p>
       <div class="table-wrap"><table class="cmp">
         <thead><tr><th scope="col">Oferta</th><th scope="col">Costo total</th><th scope="col">Entrega</th><th scope="col">Diferencial</th></tr></thead>
         <tbody>
@@ -81,18 +88,6 @@
     </div>
   </section>
 
-  <section aria-labelledby="diferente">
-    <p class="eyebrow">Lo que nos hace distintos</p>
-    <h2 id="diferente" class="display">Pensado para comprar bien, no solo para vender</h2>
-    <div class="grid3">
-      <div class="card benefit"><b>Precio puesto en tu puerta</b><span class="muted">Comparamos el costo total: producto, envío a tu localidad, cuotas y factura.</span></div>
-      <div class="card benefit"><b>Ofertas privadas</b><span class="muted">Cada proveedor presenta su mejor condición sin ver la de los demás.</span></div>
-      <div class="card benefit"><b>Recomendación explicada</b><span class="muted">Te decimos qué oferta conviene según tus prioridades, y por qué.</span></div>
-      <div class="card benefit"><b>Seguimiento con código</b><span class="muted">Cada solicitud tiene un número para ver en qué etapa está.</span></div>
-      <div class="card benefit"><b>Sin compromiso</b><span class="muted">Pedir ofertas es gratis. Si ninguna te convence, no comprás.</span></div>
-      <div class="card benefit"><b>Tus datos protegidos</b><span class="muted">Los proveedores no reciben tu contacto hasta que elegís una oferta.</span></div>
-    </div>
-  </section>
 
   <section class="split">
     <div class="card track-card">
@@ -102,7 +97,7 @@
     </div>
     <div class="card track-card dark">
       <h2>¿Vendés equipamiento?</h2>
-      <p>Recibí pedidos de gimnasios, clubes y colegios que buscan exactamente lo que vendés. Competí por ventas, no por visibilidad.</p>
+      <p>Recibí pedidos de gimnasios, clubes y colegios de tu rubro y tu zona. Ofertás solo en los que te interesan, sin abono.</p>
       <a class="btn btn-accent" href="proveedores.html">Sumarme como proveedor</a>
     </div>
   </section>
@@ -110,5 +105,12 @@
 <footer class="foot" id="foot"></footer>
 <script src="assets/empresa.js"></script>
 <script src="assets/paginas.js"></script>
+<script>
+/* Tamaño real de la red: se muestra solo cuando ya es representativo. */
+(function(){var el=document.getElementById('red-stat');if(!el||!window.fetch)return;
+fetch('https://ecdaxdqvdwplhovcmnxr.supabase.co/rest/v1/rpc/fitness_red_resumen',{method:'POST',headers:{apikey:'sb_publishable_QnPox0ljM1hZ_l4VFiqeYg_K_9KR65-','Content-Type':'application/json'},body:'{}'})
+.then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||!(d.proveedores>=15))return;
+el.textContent='Ya son '+d.proveedores+' proveedores en la red'+(d.rubros?', en '+d.rubros+' rubros':'')+'.';el.hidden=false;}).catch(function(){});})();
+</script>
 </body>
 </html>

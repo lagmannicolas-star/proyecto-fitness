@@ -15,7 +15,7 @@ assert.equal(go('', '#carrito'), 'nicolas.html#carrito', 'carrito');
 assert.equal(go('?pago=ok', ''), 'nicolas.html?pago=ok', 'vuelta de Mercado Pago');
 assert.equal(go('', ''), null, 'la portada se muestra');
 assert.equal(go('?utm_source=instagram&utm_medium=bio', ''), null, 'las campañas ven la portada');
-for (const href of ['arma-tu-espacio.html?tipo=gimnasio', 'arma-tu-espacio.html?tipo=club', 'arma-tu-espacio.html?tipo=colegio', 'arma-tu-espacio.html?tipo=casa', 'nicolas.html#catalogo', 'solicitud.html', 'mi-solicitud.html'])
+for (const href of ['arma-tu-espacio.html?tipo=gimnasio', 'arma-tu-espacio.html?tipo=club', 'arma-tu-espacio.html?tipo=colegio', 'arma-tu-espacio.html?tipo=casa', 'catalogo', 'solicitud.html', 'mi-solicitud.html'])
   assert(home.includes('href="' + href + '"'), 'portada enlaza ' + href);
 
 // Los archivos enlazados existen.
@@ -48,3 +48,10 @@ for (const fn of ['fitness_solicitudes_admin', 'fitness_solicitud_actualizar']) 
 assert.match(sql, /revoke all on table public\.fitness_solicitudes from public,anon,authenticated/);
 
 console.log('OK: portada, Armá tu espacio, solicitud, seguimiento, puentes y panel de solicitudes.');
+
+// El catálogo tiene dirección propia: /catalogo sirve nicolas.html y abre directo en la búsqueda.
+const redirects = read('_redirects');
+assert.match(redirects, /^\/catalogo \/nicolas 200$/m, '/catalogo sirve el catálogo');
+assert.match(read('.assetsignore'), /^!_redirects$/m, '_redirects se publica');
+assert.match(read('nicolas.html'), /\\\/catalogo\\\/\?\$\/\.test\(location\.pathname\)/, '/catalogo abre la búsqueda');
+assert.doesNotMatch(home, /mejores ofertas/, 'sin superlativos en la portada');

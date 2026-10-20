@@ -6,7 +6,7 @@
   var top = d.getElementById('top');
   var n = 0; try { n = (JSON.parse(w.localStorage.getItem('cf-cart') || '[]') || []).length; } catch (e) {}
   var CART = '<a class="top-cart" href="nicolas.html#carrito" aria-label="Carrito' + (n ? ', ' + n + (n === 1 ? ' producto' : ' productos') : '') + '"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg><span class="cart-l">Carrito</span>' + (n ? '<span class="cart-n">' + n + '</span>' : '') + '</a>';
-  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="nicolas.html#catalogo">Catálogo</a></nav>' + CART + '</div>';
+  if (top) top.innerHTML = '<div class="wrap top-in">' + LOGO + '<nav class="nav" aria-label="Secciones"><a href="solicitud.html" title="Ya sé qué necesito">Pedir ofertas</a><a href="arma-tu-espacio.html" title="No sé por dónde empezar">Armá tu espacio</a><a href="catalogo">Catálogo</a><a href="proveedores.html" title="Sumate como proveedor">Vendé</a></nav>' + CART + '</div>';
   var foot = d.getElementById('foot');
   if (foot) {
     var who = [E.razonSocial, E.cuit && 'CUIT ' + E.cuit, E.domicilio].filter(Boolean).join(' · ');
@@ -16,6 +16,8 @@
       + '<a class="arrepentimiento" href="arrepentimiento.html">Botón de arrepentimiento</a>'
       + '<a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a>'
       + '<a href="proveedores.html">Vendé en Nexo Fit</a>'
+      + '<a href="https://www.instagram.com/nexofitt.arg/" target="_blank" rel="noopener">Instagram</a><a href="https://www.tiktok.com/@nexofitt.arg" target="_blank" rel="noopener">TikTok</a>'
+      + (E.email ? '<a href="mailto:' + esc(E.email) + '">' + esc(E.email) + '</a>' : '')
       + (E.dataFiscalUrl ? '<a href="' + esc(E.dataFiscalUrl) + '" target="_blank" rel="noopener">Data fiscal</a>' : '') + '</nav></div>';
   }
   // Datos del titular en el texto legal: solo se muestran si están completos.
