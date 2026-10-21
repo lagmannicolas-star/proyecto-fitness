@@ -43,6 +43,13 @@ assert.match(prov, /meta\.vendor_alta=vendorAlta/);
 const alta = fs.readFileSync('supabase/migrations/20261021200000_alta_pendiente_y_whatsapp_ar.sql', 'utf8');
 assert.match(alta, /create trigger fitness_zz_alta_pendiente after insert or update of email_confirmed_at on auth\.users/);
 assert.match(alta, /create trigger fitness_red_wa before insert or update of whatsapp on public\.fitness_red_proveedores/);
+// Cada pedido sale a toda la red activa y los proveedores con catálogo lo ven en su panel.
+const toda = fs.readFileSync('supabase/migrations/20261021220000_pedido_a_toda_la_red.sql', 'utf8');
+assert.match(toda, /create trigger fitness_zz_invitar_red after insert on public\.fitness_solicitudes/);
+assert.match(toda, /from public\.fitness_red_proveedores r where r\.activo\s+on conflict/);
+assert.match(toda, /grant execute on function public\.fitness_mis_pedidos\(\) to authenticated/);
+assert.match(prov, /\{id:'pedidos',label:'Pedidos para cotizar'\}/);
+assert.match(prov, /rpc\/fitness_mis_pedidos/);
 console.log('OK: red de proveedores con alta desde la web.');
 
 // La comisión del 10% está informada donde el proveedor decide.

@@ -1922,6 +1922,27 @@ function mpPreview(v){
     +'<button class="btn '+(v.mpTest?'btn-outline':'btn-primary')+'" data-act="mp-test"'+(v.mp?'':' disabled')+'>'+(v.mpTest?'Hacer otro pago de prueba':'Hacer un pago de prueba')+'</button></div>'
     +(v.mp?'':'<p class="note">Primero conectá tu Mercado Pago.</p>')+'</div>';
 }
+/* Pedidos de compradores (Pedí ofertas) a los que está invitado este proveedor. Cada uno se oferta en privado desde su link. */
+var PED_PLAZO={urgente:'Urgente',7:'En 7 días',15:'En 15 días',30:'En 30 días',flexible:'Plazo flexible'};
+function loadPedidos(){
+  if(ui.pedLoading) return; ui.pedLoading=true;
+  var t=null; try{ t=FC.token(); }catch(e){}
+  if(!t){ ui.pedidos=[]; ui.pedLoading=false; return; }
+  fetch(FITNESS_CONFIG.url+'/rest/v1/rpc/fitness_mis_pedidos',{method:'POST',headers:{apikey:FITNESS_CONFIG.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:'{}'})
+    .then(function(r){ return r.ok?r.json():[]; }).then(function(d){ ui.pedidos=Array.isArray(d)?d:[]; })
+    .catch(function(){ ui.pedidos=ui.pedidos||[]; }).then(function(){ ui.pedLoading=false; render(); });
+}
+function pedidosView(){
+  if(!ui.pedidos) return '<div class="card"><p class="muted">Cargando pedidos…</p></div>';
+  var head='<p class="note">Gimnasios, clubes y colegios que pidieron ofertas. Cargás precio total, envío, plazo, cuotas y garantía en privado: el comprador no ve tu nombre ni el de los demás hasta elegir.</p>';
+  if(!ui.pedidos.length) return head+'<div class="card"><p class="muted">Ahora no hay pedidos abiertos. Cuando entre uno te aparece acá.</p></div>';
+  return head+'<div class="vcards">'+ui.pedidos.map(function(p){
+    var its=(p.items||[]).slice(0,6).map(function(it){ return '<li>'+esc(it.cantidad)+' × '+esc(it.producto)+(it.detalle?' <span class="muted small">'+esc(it.detalle)+'</span>':'')+'</li>'; }).join('')+((p.items||[]).length>6?'<li class="muted">y '+((p.items||[]).length-6)+' productos más</li>':'');
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+esc(p.code)+' · '+esc(p.tipo||'')+'</b>'+(p.ofertada?'<span class="st ok">Ya ofertaste</span>':'<span class="st warn">Sin ofertar</span>')+'</div>'
+      +'<p class="muted small" style="margin:4px 0 8px">Entrega en '+esc(p.localidad)+', '+esc(p.provincia)+' · '+esc(PED_PLAZO[p.plazo]||p.plazo||'')+'</p><ul style="margin:0 0 12px;padding-left:18px">'+its+'</ul>'
+      +'<a class="btn '+(p.ofertada?'btn-outline':'btn-primary')+' btn-sm" href="oferta.html#t='+encodeURIComponent(p.token)+'" target="_blank" rel="noopener">'+(p.ofertada?'Ver o cambiar mi oferta':'Cargar mi oferta')+'</a></div>';
+  }).join('')+'</div>';
+}
 function vPanel(){
   var v=me(), mine=db.offers.filter(function(o){ return o.vendorId===v.id; }), sales=db.orders.filter(function(o){ return o.vendorId===v.id; });
   var ok=sales.filter(function(o){ return o.status==='approved'; });
@@ -1929,22 +1950,26 @@ function vPanel(){
   var toShip=ok.filter(function(o){ return !o.shipped; }).length;
   var cp=vComplete(v), low=mine.filter(function(o){ return stockState(o)==='low'; }), out=mine.filter(function(o){ return stockState(o)==='none'&&o.status!=='rejected'; });
   checkLateV(v);
-  var list=[{id:'resumen',label:'Resumen'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'}];
-  list.forEach(function(t){ t.count=vUnread(v,t.id); });
-  if(!list[4].count&&cp.pct<100) list[4].count='!';
+  if(!ui.pedidos) loadPedidos();
+  var pend=(ui.pedidos||[]).filter(function(x){ return !x.ofertada; }).length;
+  var list=[{id:'resumen',label:'Resumen'},{id:'pedidos',label:'Pedidos para cotizar'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'}];
+  list.forEach(function(t){ t.count=t.id==='pedidos'?(pend||0):vUnread(v,t.id); });
+  if(!list[5].count&&cp.pct<100) list[5].count='!';
   if(!list.some(function(t){ return t.id===ui.tab; })) ui.tab='resumen';
   var warn=(low.length||out.length)&&ui.tab!=='productos'?'<div class="alert">'+(low.length?'Tenés '+low.length+(low.length===1?' producto con bajo stock':' productos con bajo stock'):'')+(low.length&&out.length?' y ':'')+(out.length?(low.length?'':'Tenés ')+out.length+' sin stock':'')+'. <button class="linkbtn" data-act="stock-filter" data-f="'+(low.length?'low':'none')+'">Ver y reponer</button></div>':'';
   if(v.status==='suspended') warn='<div class="alert bad">Tu cuenta está suspendida. Tus productos no se muestran en el sitio.</div>';
   else if(!v.mp) warn='<div class="alert">Tus productos aprobados pueden compararse. Mercado Pago todavía no está conectado; no se realizan cobros. <button class="linkbtn" data-act="tab" data-tab="mp">Conectar ahora</button></div>';
   var body='';
   if(ui.tab==='resumen'){
-    body='<div class="tiles">'
+    body=(pend?'<div class="alert ok" role="status">Tenés '+(pend===1?'1 pedido de un comprador':pend+' pedidos de compradores')+' para cotizar. <button class="linkbtn" data-act="tab" data-tab="pedidos">Ver y ofertar</button></div>':'')+'<div class="tiles">'
       +'<div class="tile"><span class="k">Ventas aprobadas</span><span class="v num">'+money(sum(function(o){ return o.subtotal+o.shipping; }))+'</span><span class="s">'+(ok.length===1?'1 venta':ok.length+' ventas')+'</span></div>'
       +'<div class="tile main"><span class="k">Recibiste</span><span class="v num">'+money(sum(net))+'</span><span class="s">Antes del costo de Mercado Pago</span></div>'
       +'<div class="tile"><span class="k">Comisión del sitio</span><span class="v num">'+money(sum(function(o){ return o.commission; }))+'</span><span class="s">'+pctOf(v)+'% de los productos</span></div>'
       +'<div class="tile"><span class="k">Por enviar</span><span class="v num">'+toShip+'</span><span class="s">'+(toShip?'<button class="linkbtn" data-act="tab" data-tab="ventas">Ver pedidos</button>':'Estás al día')+'</span></div>'
       +'<div class="tile'+(low.length?' warnt':'')+'"><span class="k">Bajo stock</span><span class="v num">'+low.length+'</span><span class="s">'+(low.length||out.length?'<button class="linkbtn" data-act="stock-filter" data-f="'+(low.length?'low':'none')+'">Ver productos</button>'+(out.length?' · '+out.length+' sin stock':''):'Todo con stock')+'</span></div></div>'
       +'<div class="section-head" style="margin:8px 0 0"><h2 class="display h-card">Últimas ventas</h2></div>'+salesTable(sales.slice(0,5));
+  } else if(ui.tab==='pedidos'){
+    body=pedidosView();
   } else if(ui.tab==='productos'){
     body=productsView(v,mine,low,out);
   } else if(ui.tab==='ventas'){
