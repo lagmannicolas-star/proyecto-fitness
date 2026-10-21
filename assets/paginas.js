@@ -14,7 +14,7 @@
   if (foot) {
     var who = [E.razonSocial, E.cuit && 'CUIT ' + E.cuit, E.domicilio].filter(Boolean).join(' · ');
     foot.innerHTML = '<div class="wrap foot-in"><span>Nexo Fit' + (who ? ' · ' + esc(who) : '') + '</span><nav aria-label="Información legal">'
-      + (CATALOGO_VISIBLE ? '<a href="gimnasios.html">Gimnasios</a><a href="clubes.html">Clubes</a><a href="colegios.html">Colegios</a>' : '') + '<a href="mi-solicitud.html">Seguir mi solicitud</a>'
+      + (CATALOGO_VISIBLE ? '<a href="gimnasios.html">Gimnasios</a><a href="clubes.html">Clubes</a><a href="colegios.html">Colegios</a>' : '<a href="catalogo">Catálogo de productos</a>') + '<a href="mi-solicitud.html">Seguir mi solicitud</a>'
       + '<a href="terminos.html">Términos y condiciones</a><a href="privacidad.html">Privacidad</a>'
       + '<a class="arrepentimiento" href="arrepentimiento.html">Botón de arrepentimiento</a>'
       + '<a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener">Defensa de las y los consumidores</a>'
