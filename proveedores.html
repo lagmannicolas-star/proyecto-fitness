@@ -1574,12 +1574,13 @@ function productsView(v,mine,low,out){
   var shown=pfApply(mine), staleShown=shown.filter(priceIsStale), staleToken=priceConfirmToken(staleShown);
   var head=(ui.adding?newOfferForm():'')+'<div class="section-head" style="margin:0"><p class="note">Cargá tus productos y mantené precios, stock y mínimos actualizados. Los productos nuevos y los cambios comerciales se revisan antes de publicarse.</p><div class="actions">'
     +'<button class="btn btn-outline" data-act="sheet" aria-expanded="'+!!ui.sheet+'">'+ico('upload',18)+'Planilla</button>'
-    +'<button class="btn '+(ui.bulk?'btn-primary':'btn-outline')+'" data-act="bulk">'+ico('edit',18)+(ui.bulk?'Salir de la edición':'Editar precios y stock')+'</button>'
+    +(mine.length?'<button class="btn '+(ui.bulk?'btn-primary':'btn-outline')+'" data-act="bulk">'+ico('edit',18)+(ui.bulk?'Salir de la edición':'Editar precios y stock')+'</button>':'')
     +(staleShown.length?'<button class="btn '+(ui.confirm===staleToken?'btn-accent':'btn-outline')+'" data-act="price-confirm-visible">'+(ui.confirm===staleToken?'Confirmar ahora ':'Confirmar ')+staleShown.length+(staleShown.length===1?' precio visible':' precios visibles')+'</button>':'')
     +'<button class="btn btn-accent" data-act="new-offer">Agregar producto</button>'+'</div></div>';
   var lowdef='<div class="field lowdef"><label for="low-def">Avisarme con bajo stock cuando queden</label><div class="inline"><input id="low-def" type="number" min="0" inputmode="numeric" value="'+(v.lowAt!=null?v.lowAt:10)+'"><span>unidades o menos</span></div></div>';
   var table;
-  if(!mine.length) table='<div class="empty">Todavía no tenés productos publicados. Pasanos tu catálogo y lo cargamos.</div>';
+  // Sin productos no hay precio ni stock para editar: se explica y se ofrecen los dos caminos para cargarlos.
+  if(!mine.length) table='<div class="empty"><b>Todavía no tenés productos cargados.</b> El precio y el stock se editan producto por producto, así que primero hay que cargarlos.<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn btn-accent" data-act="new-offer">Agregar producto</button><button class="btn btn-outline" data-act="sheet">'+ico('upload',18)+'Subir planilla de Tiendanube</button></div><p class="muted small" style="margin-top:12px">¿Tenés muchos productos o no encontrás el tuyo en la lista? Pasanos tu catálogo y lo cargamos nosotros.</p>'+contactCtas(v.name,'Quiero cargar mi catálogo').replace('class="actions"','class="actions" style="justify-content:center"')+'</div>';
   else if(!shown.length) table='<div class="empty">Ningún producto coincide con el filtro. <button class="linkbtn" data-act="pf-clear">Ver todos</button></div>';
   else if(ui.bulk) table=bulkTable(shown);
   else table='<p class="muted small">Mostrando '+shown.length+' de '+mine.length+'. Las unidades se descuentan solas con cada venta; si llegan a cero, el producto deja de mostrarse hasta que repongas.</p>'
@@ -1588,7 +1589,7 @@ function productsView(v,mine,low,out){
       return '<tr><td><b>'+esc(o.model)+'</b> · '+esc(o.size)+'<span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+' · entrega '+days(o.lead)+(o.brand?' · Marca: '+esc(o.brand):'')+(o.detail?' · '+esc(o.detail):'')+'</span></td><td class="r num">'+money(o.price)+(priceBadge(o)?'<span class="sub">'+priceBadge(o)+'</span>':'')+'</td><td><div class="ustack"><label class="sr" for="un-'+o.id+'">Unidades de '+esc(o.model+' '+o.size)+'</label><input class="cell-in units" id="un-'+o.id+'" data-units="'+o.id+'" type="number" min="0" inputmode="numeric" placeholder="—" value="'+(o.units==null?'':o.units)+'">'+stockBadge(o)+'</div></td><td>'+offerStatus(o)+'</td>'
         +'<td><div class="actions nw" style="justify-content:flex-end">'+(priceIsStale(o)?'<button class="btn btn-accent btn-sm" data-act="price-confirm" data-id="'+o.id+'">Confirmar precio</button>':'')+'<button class="btn btn-outline btn-sm" data-act="prod-edit" data-id="'+o.id+'">Precio y stock</button>'+(o.status==='published'&&!priceIsStale(o)?'<button class="btn btn-primary btn-sm" data-act="paylink" data-id="'+o.id+'">Link de pago</button>':'')+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
-  return head+vendorPhotosPanel(v)+catalogDraftPanel(v)+linkBox()+(ui.sheet?sheetPanel(v,mine):'')+filterBar(v,mine)+'<div class="stockbar">'+lowdef+'</div>'+table;
+  return head+vendorPhotosPanel(v)+catalogDraftPanel(v)+linkBox()+(ui.sheet?sheetPanel(v,mine):'')+(mine.length?filterBar(v,mine)+'<div class="stockbar">'+lowdef+'</div>':'')+table;
 }
 function bulkTable(list){
   var vals=ui.bulkVals||{}, odd=ui.bulkOdd||[];
