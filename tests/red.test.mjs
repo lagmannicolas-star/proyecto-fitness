@@ -30,6 +30,19 @@ assert.match(admin, /Nuevo · se sumó desde la web/);
 // La pestaña Proveedores muestra también a los que se sumaron a la red sin catálogo.
 assert.match(admin, /vendorList\(\)\+redVendorCards\(\)/);
 assert.match(admin, /act==='red-ver'\)\{ui\.tab='solicitudes';ui\.reqView='red'/);
+// WhatsApp argentino: +54 9 fijo y normalización a 549 + 10 dígitos.
+const waSrc = prov.match(/function waAR\(t\)\{[\s\S]*?return d\.length===10\?'549'\+d:''; \}/)[0];
+const waAR = new Function(waSrc + '; return waAR;')();
+for (const [inp, out] of [['11 2345 6789','5491123456789'],['011 15 2345-6789','5491123456789'],['+54 9 11 2345 6789','5491123456789'],['0351 15 123 4567','5493511234567'],['3537 15 442888','5493537442888'],['+54 353 7442888','5493537442888'],['12345','']]) assert.equal(waAR(inp), out, inp);
+assert.match(prov, /waField\('r-wa','WhatsApp'\)/);
+assert.match(prov, /whatsapp:waAR\(val\('r-wa'\)\)/);
+assert.match(prov, /<span class="wa-pre" aria-hidden="true">\+54 9<\/span>/);
+// El alta con catálogo viaja con la cuenta: no se pierde si confirman el email en otro dispositivo.
+assert.match(prov, /FC\.signup\(details\.email,val\('a-pass'\),details\.name,details\)/);
+assert.match(prov, /meta\.vendor_alta=vendorAlta/);
+const alta = fs.readFileSync('supabase/migrations/20261021200000_alta_pendiente_y_whatsapp_ar.sql', 'utf8');
+assert.match(alta, /create trigger fitness_zz_alta_pendiente after insert or update of email_confirmed_at on auth\.users/);
+assert.match(alta, /create trigger fitness_red_wa before insert or update of whatsapp on public\.fitness_red_proveedores/);
 console.log('OK: red de proveedores con alta desde la web.');
 
 // La comisión del 10% está informada donde el proveedor decide.

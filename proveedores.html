@@ -840,6 +840,7 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
+.wa-in{display:flex;align-items:stretch}.wa-in .wa-pre{display:flex;align-items:center;padding:0 12px;border:1px solid var(--field-line);border-right:0;border-radius:8px 0 0 8px;background:var(--surface-2,#F1ECE3);color:var(--ink);font-weight:600;white-space:nowrap}.field .wa-in input{border-radius:0 8px 8px 0!important;min-width:0}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon.png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><meta name="theme-color" content="#10171F">
@@ -869,7 +870,7 @@ var FC=(function(){
  function clone(){return JSON.parse(JSON.stringify(state));}
  function save(data){ensureSession();if(!state._identity)throw Error('Iniciá sesión para guardar cambios');state=sync('/rest/v1/rpc/fitness_save',{payload:clean(data),expected_revision:data._revision},true);return clone();}
  async function login(email,password){putSession(await request('/auth/v1/token?grant_type=password',{email:email,password:password},false));state=await request('/rest/v1/rpc/fitness_snapshot',{},true);return clone();}
- async function signup(email,password,name){var out=await request('/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+location.pathname),{email:email,password:password,data:{name:name}},false);if(out.access_token){putSession(out);state=await request('/rest/v1/rpc/fitness_snapshot',{},true);}return out;}
+ async function signup(email,password,name,vendorAlta){var meta={name:name};if(vendorAlta)meta.vendor_alta=vendorAlta;var out=await request('/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+location.pathname),{email:email,password:password,data:meta},false);if(out.access_token){putSession(out);state=await request('/rest/v1/rpc/fitness_snapshot',{},true);}return out;}
  async function recover(email){return request('/auth/v1/recover?redirect_to='+encodeURIComponent(new URL('nicolas.html',location.href).href),{email:email},false);}
  async function password(oldPassword,newPassword){if(!state._identity)throw Error('Iniciá sesión.');await login(state._identity.email,oldPassword);return request('/auth/v1/user',{password:newPassword},true,'PUT');}
  function logout(){try{if(session)sync('/auth/v1/logout',{},true);}finally{putSession(null);state=sync('/rest/v1/rpc/fitness_snapshot',{},false);}return clone();}
@@ -1186,6 +1187,11 @@ function plain(s){ var t=norm(s); try{ t=t.normalize('NFD').replace(/[̀-ͯ]/g,'
 function parseMoney(s){s=String(s==null?'':s).trim().replace(/[$\s]/g,'');if(!s)return null;if(/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(s))s=s.replace(/\./g,'').replace(',','.');else if(/^\d+(,\d{1,2})$/.test(s))s=s.replace(',','.');else if(!/^\d+(\.\d{1,2})?$/.test(s))return NaN;var n=Number(s);return Number.isFinite(n)?n:NaN;}
 function digits(s){ var n=parseInt(String(s==null?'':s).replace(/\D/g,''),10); return isNaN(n)?0:n; }
 function val(id){ var el=document.getElementById(id); return el?el.value:''; }
+/* WhatsApp argentino: devuelve 549 + código de área + número (13 dígitos) o '' si no alcanza. Acepta 0, 15, +54 y espacios. */
+function waAR(t){ var d=String(t||'').replace(/\D/g,'').replace(/^00/,''); if(/^549\d{10}$/.test(d)) return d; if(/^54/.test(d)) d=d.slice(2); if(/^9\d{10}$/.test(d)) d=d.slice(1); d=d.replace(/^0/,'');
+ if(d.length===12){ if(/^1115/.test(d)) d='11'+d.slice(4); else if(d.substr(3,2)==='15') d=d.slice(0,3)+d.slice(5); else if(d.substr(4,2)==='15') d=d.slice(0,4)+d.slice(6); else if(d.substr(2,2)==='15') d=d.slice(0,2)+d.slice(4); }
+ return d.length===10?'549'+d:''; }
+function waField(id,label,cur){ var loc=waAR(cur); loc=loc?loc.slice(3):String(cur||''); return '<div class="field"><label for="'+id+'">'+label+'</label><div class="wa-in"><span class="wa-pre" aria-hidden="true">+54 9</span><input id="'+id+'" type="tel" inputmode="numeric" maxlength="20" autocomplete="tel-national" placeholder="11 2345 6789" value="'+esc(loc)+'" aria-describedby="'+id+'-h"></div><span class="hint" id="'+id+'-h">Código de área y número. El +54 9 ya está puesto.</span></div>'; }
 function setText(id,t){ var el=document.getElementById(id); if(el) el.textContent=t; }
 function vendor(id){ return db.vendors.filter(function(v){ return v.id===id; })[0]; }
 function offer(id){ return db.offers.filter(function(o){ return o.id===id; })[0]; }
@@ -1795,7 +1801,7 @@ function redJoinHTML(){
     +'<div class="field"><label for="r-nombre">Empresa</label><input id="r-nombre" maxlength="120" autocomplete="organization"></div>'
     +'<div class="field"><label for="r-tipo">Tipo</label><select id="r-tipo"><option>Distribuidor</option><option>Fabricante</option><option>Importador</option><option>Comercio</option></select></div>'
     +'<div class="field"><label for="r-contacto">Persona de contacto</label><input id="r-contacto" maxlength="120" autocomplete="name"></div>'
-    +'<div class="field"><label for="r-wa">WhatsApp</label><input id="r-wa" type="tel" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="11 2345 6789"><span class="hint">Con código de área, sin 0 ni 15.</span></div>'
+    +waField('r-wa','WhatsApp')
     +'<div class="field"><label for="r-email">Email</label><input id="r-email" type="email" maxlength="160" autocomplete="email"></div>'
     +'<div class="field"><label for="r-loc">Localidad <span class="hint">(opcional)</span></label><input id="r-loc" maxlength="80" autocomplete="address-level2"></div>'
     +'<div class="field"><label for="r-cuit">CUIT <span class="hint">(opcional)</span></label><input id="r-cuit" inputmode="numeric" maxlength="13" placeholder="11 dígitos"></div>'
@@ -1813,8 +1819,8 @@ document.addEventListener('submit',async function(ev){
   var err=document.getElementById('red-err'), btn=f.querySelector('[type="submit"]');
   var pick=function(n){ return [].slice.call(f.querySelectorAll('input[name="'+n+'"]:checked')).map(function(i){ return i.value; }); };
   var todo=document.getElementById('r-todo').checked, zonas=todo?['todo']:pick('r-prov');
-  var p={nombre:val('r-nombre').trim(),tipo:val('r-tipo'),contacto:val('r-contacto').trim(),whatsapp:val('r-wa'),email:val('r-email').trim(),localidad:val('r-loc').trim(),cuit:val('r-cuit'),rubros:pick('r-rubro'),zonas:zonas,web:val('r-web')};
-  var msg=!p.nombre?'Escribí el nombre de tu empresa':!p.contacto?'Escribí el nombre de la persona de contacto':p.whatsapp.replace(/\D/g,'').length<8?'Revisá el WhatsApp':!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)?'Revisá el email':!p.rubros.length?'Marcá al menos un rubro':(!todo&&!zonas.length)?'Elegí al menos una provincia o marcá Todo el país':'';
+  var p={nombre:val('r-nombre').trim(),tipo:val('r-tipo'),contacto:val('r-contacto').trim(),whatsapp:waAR(val('r-wa')),email:val('r-email').trim(),localidad:val('r-loc').trim(),cuit:val('r-cuit'),rubros:pick('r-rubro'),zonas:zonas,web:val('r-web')};
+  var msg=!p.nombre?'Escribí el nombre de tu empresa':!p.contacto?'Escribí el nombre de la persona de contacto':!p.whatsapp?'Revisá el WhatsApp: código de área y número, 10 dígitos (ej. 11 2345 6789)':!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)?'Revisá el email':!p.rubros.length?'Marcá al menos un rubro':(!todo&&!zonas.length)?'Elegí al menos una provincia o marcá Todo el país':'';
   if(msg){ err.textContent=msg; err.hidden=false; err.scrollIntoView({block:'center'}); return; }
   err.hidden=true; btn.disabled=true; btn.textContent='Enviando…';
   try{
@@ -1857,7 +1863,7 @@ function vLanding(){
     +'<div class="field"><label for="a-type">Tipo de proveedor</label><select id="a-type"><option>Fabricante</option><option>Importador</option><option>Distribuidor</option></select></div>'
     +'<div class="field"><label for="a-contact">Nombre de contacto</label><input id="a-contact" type="text" autocomplete="name"></div>'
     +'<div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email"></div>'
-    +'<div class="field"><label for="a-phone">Teléfono</label><input id="a-phone" type="tel" autocomplete="tel"></div>'
+    +waField('a-phone','WhatsApp')
     +'<div class="field"><label for="a-pass">Elegí una clave</label><input id="a-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 8 caracteres. Entrás con tu email y esta clave cuando te aprueben.</span></div>'
     +'</div><div><button class="btn btn-primary btn-lg" type="submit">Enviar solicitud</button></div></form></div></section>';
 }
@@ -1896,6 +1902,7 @@ function dataForm(v,cp){
     +VFIELDS.map(function(g){ return '<fieldset><legend>'+g[0]+'</legend><div class="formgrid">'+g[1].map(function(f){
       var id='d-'+f[0], cur=v[f[0]]||'';
       if(f[2]==='sel') return '<div class="field"><label for="'+id+'">'+f[1]+'</label><select id="'+id+'">'+f[3].map(function(o){ return '<option value="'+esc(o)+'"'+(o===cur?' selected':'')+'>'+(o||'Elegí una opción')+'</option>'; }).join('')+'</select></div>';
+      if(f[0]==='wa') return waField(id,f[1],cur);
       if(f[2]==='area') return '<div class="field" style="grid-column:1 / -1"><label for="'+id+'">'+f[1]+'</label><textarea id="'+id+'" rows="3" maxlength="400">'+esc(cur)+'</textarea></div>';
       return '<div class="field"><label for="'+id+'">'+f[1]+'</label><input id="'+id+'" type="'+(f[2]||'text')+'" value="'+esc(cur)+'"'+(f[0]==='name'?' maxlength="40"':' maxlength="120"')+'></div>';
     }).join('')+'</div></fieldset>'; }).join('')
@@ -2026,7 +2033,7 @@ document.addEventListener('submit',async function(ev){
   }else if(f.id==='f-register'){
    var pass=val('r-pass');if(pass!==val('r-pass2'))throw Error('Las claves no coinciden.');if(pass.length<8||!val('r-name').trim())throw Error('Ingresá el nombre y una clave de al menos 8 caracteres.');var res=await FC.signup(val('r-email').trim(),pass,val('r-name').trim());if(res.access_token){db=load();loginDone(acct(),'Cuenta creada.');}else{ui.authTab='login';ui.authErr='Revisá tu email y confirmá la cuenta antes de ingresar.';rerender();}
   }else if(f.id==='apply'){
-   var details={name:val('a-name').trim(),email:val('a-email').trim(),cuit:val('a-cuit'),contact:val('a-contact'),phone:val('a-phone'),type:val('a-type')};var existing=FC.identity()&&norm(FC.identity().email)===norm(details.email);if(!details.name||details.cuit.replace(/\D/g,'').length!==11||(!existing&&val('a-pass').length<8))throw Error('Revisá nombre, CUIT y clave de al menos 8 caracteres.');var res=existing?{access_token:true}:await FC.signup(details.email,val('a-pass'),details.name);if(res.access_token){db=FC.apply(details);ui.vendorId=db._identity.vendorId;ui.formError='';go('panel',{tab:'resumen'});}else{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));ui.formError='Confirmá tu email y luego ingresá con tu email y clave para enviar la solicitud.';render();}
+   var details={name:val('a-name').trim(),email:val('a-email').trim(),cuit:val('a-cuit'),contact:val('a-contact'),phone:waAR(val('a-phone'))||val('a-phone'),wa:waAR(val('a-phone')),type:val('a-type')};var existing=FC.identity()&&norm(FC.identity().email)===norm(details.email);if(!details.name||details.cuit.replace(/\D/g,'').length!==11||(!existing&&val('a-pass').length<8))throw Error('Revisá nombre, CUIT y clave de al menos 8 caracteres.');if(val('a-phone').trim()&&!details.wa)throw Error('Revisá el WhatsApp: código de área y número, 10 dígitos (ej. 11 2345 6789).');var res=existing?{access_token:true}:await FC.signup(details.email,val('a-pass'),details.name,details);if(res.access_token){db=FC.apply(details);ui.vendorId=db._identity.vendorId;ui.formError='';go('panel',{tab:'resumen'});}else{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));ui.formError='Te mandamos un email para confirmar la cuenta. Cuando lo confirmes (desde cualquier dispositivo), tu alta queda activa sola y ya podés ingresar con tu email y clave.';render();}
   }else if(f.id==='f-forgot'){await FC.recover(val('fg-email').trim());ui.forgotSent=val('fg-email').trim();ui.authErr='';rerender();}
   else if(f.id==='f-pass'){if(val('pw-new').length<8||val('pw-new')!==val('pw-new2'))throw Error('Usá al menos 8 caracteres y repetí la misma clave.');await FC.password(val('pw-old'),val('pw-new'));toast('Clave actualizada.');}
   else if(f.id==='uform'){if(ui.uForm!==db._identity.id)throw Error('Para agregar administradores, creá la cuenta en Supabase Auth y asigná el permiso desde SQL.');if(val('u-pass').length<8||val('u-pass')!==val('u-pass2'))throw Error('Las claves deben coincidir y tener al menos 8 caracteres.');await FC.setPassword(val('u-pass'));ui.uForm=null;rerender();toast('Clave actualizada.');}
@@ -2183,7 +2190,7 @@ document.addEventListener('submit',function(ev){
     var v=me(), ch=[], em=val('d-email').trim(), nm=val('d-name').trim().slice(0,40);
     if(!nm){ var eb=document.getElementById('d-err'); eb.textContent='Falta el nombre de la marca.'; eb.hidden=false; document.getElementById('d-name').focus(); return; }
     if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ var eb2=document.getElementById('d-err'); eb2.textContent='Revisá el email: no parece válido.'; eb2.hidden=false; document.getElementById('d-email').focus(); return; }
-    VFIELDS.forEach(function(g){ g[1].forEach(function(fl){ var nv=val('d-'+fl[0]).trim(); if(fl[0]==='name') nv=nm; if(nv!==String(v[fl[0]]||'')){ ch.push(fl[1].toLowerCase()); v[fl[0]]=nv; } }); });
+    VFIELDS.forEach(function(g){ g[1].forEach(function(fl){ var nv=val('d-'+fl[0]).trim(); if(fl[0]==='name') nv=nm; if(fl[0]==='wa'&&nv) nv=waAR(nv)||nv; if(nv!==String(v[fl[0]]||'')){ ch.push(fl[1].toLowerCase()); v[fl[0]]=nv; } }); });
     var zs=[].slice.call(document.querySelectorAll('[data-zone]')).filter(function(c){ return c.checked; }).map(function(c){ return c.getAttribute('data-zone'); });
     if(zs.join()!==(v.zones||[]).join()){ ch.push('zonas de envío'); v.zones=zs; }
     if(ch.length){ notify('data','vendedores',v.name+' actualizó sus datos: '+ch.join(', '),v.id); vact(v,'actualizó sus datos ('+ch.join(', ')+')'); }

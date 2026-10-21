@@ -3048,7 +3048,7 @@ function redView(){
    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">'
    +'<label class="rq-l">Empresa<input data-red="nombre" maxlength="120" value="'+esc(p.nombre||'')+'"></label>'
    +'<label class="rq-l">Persona de contacto<input data-red="contacto" maxlength="120" value="'+esc(p.contacto||'')+'"></label>'
-   +'<label class="rq-l">WhatsApp<input data-red="whatsapp" maxlength="30" value="'+esc(p.whatsapp||'')+'" placeholder="5491112345678"></label>'
+   +'<label class="rq-l">WhatsApp<input data-red="whatsapp" maxlength="30" value="'+esc(p.whatsapp||'')+'" placeholder="11 2345 6789 · se guarda con +54 9"></label>'
    +'<label class="rq-l">Email<input data-red="email" maxlength="160" value="'+esc(p.email||'')+'"></label></div>'
    +'<p class="rq-sub" style="margin-top:12px"><b>Rubros que vende</b></p><div style="display:flex;flex-wrap:wrap;gap:6px 14px">'+RUBROS.map(function(x){return '<label style="display:inline-flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" data-red-rubro="'+x[0]+'"'+((p.rubros||[]).indexOf(x[0])>=0?' checked':'')+'>'+x[1]+'</label>';}).join('')+'</div>'
    +'<label class="rq-l" style="margin-top:12px">Zonas a las que entrega<input data-red="zonas" maxlength="400" value="'+esc((p.zonas||['todo']).join(', '))+'"><span class="rq-sub">Escribí "todo" para todo el país, o provincias separadas por coma (ej.: Buenos Aires, Ciudad de Buenos Aires).</span></label>'
