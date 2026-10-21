@@ -2553,7 +2553,7 @@ function vAdmin(){
     body=usersView();
   } else if(ui.tab==='vendedores'){
     var sv=ui.vSel?vendor(ui.vSel):null; if(!sv) ui.vSel=null;
-    body=sv?vendorFile(sv):vendorList()+'<div class="card">'+chead('pct','Comisión por proveedor','Si dejás el campo vacío, se aplica la general ('+db.commission+'%).')
+    body=sv?vendorFile(sv):vendorList()+redVendorCards()+'<div class="card">'+chead('pct','Comisión por proveedor','Si dejás el campo vacío, se aplica la general ('+db.commission+'%).')
       +'<div class="list">'+db.vendors.filter(function(v){ return v.status!=='rejected'; }).map(function(v){ return '<div><div class="who2"><b>'+esc(v.name)+'</b></div><div class="pctbox"><label class="small muted" for="vc-'+v.id+'">Comisión %</label><input id="vc-'+v.id+'" data-vc="'+v.id+'" type="number" min="0" max="100" placeholder="'+db.commission+'" value="'+(v.commission==null?'':v.commission)+'"></div></div>'; }).join('')+'</div>'+redCommissionList()+'</div>';
   } else if(ui.tab==='productos'){
     var q=db.offers.filter(function(o){ return o.status==='review'; });
@@ -2981,6 +2981,22 @@ function orderOrigin(o){var u=o.ship&&o.ship.utm;if(!u)return '';var src=[u.utm_
 var SOL_ST={nueva:['warn','Nueva'],enviada:['neu','Consultando proveedores'],con_ofertas:['ok','Con ofertas'],elegida:['ok','Oferta elegida'],cerrada:['ok','Cerrada'],descartada:['bad','Descartada'],vencida:['bad','Vencida']};
 var SOL_PRIO={equilibrio:'Mejor equilibrio',precio:'Menor costo total',rapidez:'Entrega más rápida',financiacion:'Financiación',calidad:'Calidad y garantía'};
 var SOL_PLAZO={urgente:'Lo antes posible','7':'Hasta 7 días','15':'Hasta 15 días','30':'Hasta 30 días',flexible:'Sin apuro'};
+/* Pestaña Proveedores: también muestra a quienes se sumaron a la red de "Pedí ofertas" sin catálogo (antes solo aparecían en Solicitudes → Red de proveedores). */
+function redVendorCards(){
+ if(!ui.red) return '';
+ var cat=db.vendors.map(function(v){ return String(v.name||'').toLowerCase().trim(); });
+ var list=ui.red.filter(function(p){ return cat.indexOf(String(p.nombre||'').toLowerCase().trim())<0; });
+ if(!list.length) return '';
+ var lab={}; RUBROS.forEach(function(r){ lab[r[0]]=r[1]; });
+ return '<div class="section-head" style="margin:22px 0 0"><p class="note"><b>Red de Pedí ofertas ('+list.length+')</b> · Se sumaron desde la web para recibir pedidos y ofertar en privado, sin catálogo cargado.</p><button class="btn btn-outline" data-act="red-ver">Gestionar la red</button></div>'
+  +'<div class="vcards">'+list.map(function(p){
+   var rub=(p.rubros||[]).map(function(r){ return lab[r]||r; }).join(', ');
+   return '<div class="vcard"><div class="vc-h"><span class="avatar lg" aria-hidden="true">'+esc(String(p.nombre||'?').charAt(0).toUpperCase())+'</span><div class="vc-t"><b>'+esc(p.nombre)+'</b><span class="muted small">'+esc([p.tipo,p.localidad].filter(Boolean).join(' · ')||'Red de Pedí ofertas')+'</span></div>'+(p.activo?'<span class="st ok">Activo</span>':'<span class="st warn">Pausado</span>')+'</div>'
+    +'<div class="vc-meta small"><span>'+ico('users',16)+esc(p.contacto||'Sin contacto')+'</span>'+(p.whatsapp?'<span>WhatsApp '+esc(p.whatsapp)+'</span>':'')+(p.email?'<span>'+esc(p.email)+'</span>':'')+'</div>'
+    +'<div class="vc-meta small"><span>'+ico('productos',16)+esc(rub||'Sin rubros')+'</span><span>'+ico('truck',16)+esc((p.zonas||[]).indexOf('todo')>=0?'Todo el país':(p.zonas||[]).join(', '))+'</span></div>'
+    +'<div class="actions"><button class="btn btn-primary btn-sm" data-act="red-ver">Ver en la red</button></div></div>';
+  }).join('')+'</div>';
+}
 /* Proveedores de la red de "Pedí ofertas": aparecen todos aunque no tengan catálogo cargado. */
 function redCommissionList(){
  if(!ui.red){ if(!ui.redLoading){ ui.redLoading=true; setTimeout(function(){ loadRequests().then(function(){ ui.redLoading=false; }); },0); } return '<p class="muted small" style="margin-top:14px">Cargando la red de proveedores…</p>'; }
@@ -3112,6 +3128,7 @@ document.addEventListener('click',function(ev){
  var act=t.dataset.act;
  if(act==='req-filter'){ui.reqFilter=t.dataset.f;rerender();return;}
  if(act==='req-view'){ui.reqView=t.dataset.v;ui.redForm=null;rerender();return;}
+ if(act==='red-ver'){ui.tab='solicitudes';ui.reqView='red';ui.redForm=null;rerender();try{window.scrollTo(0,0);}catch(e){}return;}
  if(act==='red-new'){ui.redForm='new';rerender();return;}
  if(act==='red-edit'){ui.redForm=Number(t.dataset.id);rerender();return;}
  if(act==='red-cancel'){ui.redForm=null;rerender();return;}

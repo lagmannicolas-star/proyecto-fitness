@@ -27,6 +27,9 @@ assert.doesNotMatch(sql, /grant[^;]*fitness_red_admin[^;]*anon/);
 // El panel muestra la postulación y permite activarla.
 assert.match(admin, /data-act="red-activar"/);
 assert.match(admin, /Nuevo · se sumó desde la web/);
+// La pestaña Proveedores muestra también a los que se sumaron a la red sin catálogo.
+assert.match(admin, /vendorList\(\)\+redVendorCards\(\)/);
+assert.match(admin, /act==='red-ver'\)\{ui\.tab='solicitudes';ui\.reqView='red'/);
 console.log('OK: red de proveedores con alta desde la web.');
 
 // La comisión del 10% está informada donde el proveedor decide.
