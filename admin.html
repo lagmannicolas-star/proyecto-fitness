@@ -1711,6 +1711,10 @@ function exportBar(kind){
 }
 function exportData(kind){
   var st=function(o){ return o.status==='refunded'?'Devuelto':(lateDays(o)>0?'Demorado':(o.shipped?'Enviado':'Por enviar')); }, vn=function(id){ var v=vendor(id); return v?v.name:''; };
+  if(kind.indexOf('stock-pendiente:')===0){
+    var pv=vendor(kind.slice('stock-pendiente:'.length)); if(!pv)return [];
+    return [['Proveedor','Producto','Variante','SKU','Precio informado $','Fuente oficial','Stock confirmado','Observación']].concat((pv.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&d.units===null;}).map(function(d){return [pv.name,d.name,(d.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · ')||'Única',d.sku||'',d.price,tiendanubeSource(pv,d),'',''];}));
+  }
   if(kind==='ventas') return [['Venta','Fecha','Comprador','Código referido','Proveedor','Producto','Cantidad','Productos $','Envío $','Total $','Comisión %','Comisión $','Al proveedor $','Estado']].concat(salesRows().map(function(o){ var r=o.status==='refunded'; return [o.id,o.date,o.buyer,orderReferral(o),vn(o.vendorId),o.desc,o.qty,o.subtotal,o.shipping,o.subtotal+o.shipping,o.pct,r?0:o.commission,r?0:net(o),st(o)]; }));
   if(kind==='comisiones'){ var c=commissionRows(); return [['Mes','Proveedor','CUIT','Ventas','Productos vendidos $','Comisión $','Devoluciones','Factura']].concat(c.rows.map(function(r){ return [monthName(c.m),r.name,r.cuit,r.n,r.sub,r.com,r.ref,r.inv?'Facturada':'A facturar']; })); }
   if(kind==='compradores') return [['Comprador','Cuenta','Email','CUIT','Compras','Unidades','Total comprado $','Primera compra','Última compra','Proveedores']].concat(buyerRows().map(function(b){ return [b.name,b.acc?'Sí':'No',b.acc?b.acc.email:'',b.acc?b.acc.cuit||'':'',b.n,b.units,b.total,b.first,b.last,b.vendors.join(', ')]; }));
@@ -1722,7 +1726,7 @@ function exportData(kind){
   if(kind==='historial') return [['Fecha y hora','Quién','Qué hizo']].concat((db.log||[]).map(function(e){ return [when(e.t),e.who,e.what]; }));
   return [];
 }
-function exportName(kind){ return {ventas:'ventas',comisiones:'comisiones',compradores:'compradores',stock:'stock',ranking:'mas-vendidos',visitas:'visitas',historial:'historial'}[kind]||kind; }
+function exportName(kind){ if(kind.indexOf('stock-pendiente:')===0)return 'stock-pendiente'; return {ventas:'ventas',comisiones:'comisiones',compradores:'compradores',stock:'stock',ranking:'mas-vendidos',visitas:'visitas',historial:'historial'}[kind]||kind; }
 function doExport(kind,copy){
   var rows=exportData(kind); if(rows.length<2){ toast('No hay datos para exportar.'); return; }
   if(copy){
@@ -2024,8 +2028,8 @@ function bulkPanel(v){
 }
 function catalogDraftPanel(v){
   var items=v&&v.catalogDrafts||[];if(!items.length)return '';
-  var sourced=items.filter(function(x){return !!tiendanubeSource(v,x);}).length,stocked=items.filter(function(x){return x.units!==null;}).length;
-  return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. '+sourced+' tienen enlace oficial generado y '+stocked+' informan stock. Las variantes sin fuente o sin stock confirmado quedan fuera de la publicación masiva.</p>'+bulkPanel(v)
+  var sourced=items.filter(function(x){return !!tiendanubeSource(v,x);}).length,stocked=items.filter(function(x){return x.units!==null;}).length,pending=items.filter(function(x){return !x.hidden&&x.price>0&&x.units===null;});
+  return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. '+sourced+' tienen enlace oficial generado y '+stocked+' informan stock. Las variantes sin fuente o sin stock confirmado quedan fuera de la publicación masiva.</p>'+(pending.length?'<div class="actions"><button type="button" class="btn btn-primary btn-sm" data-act="xls" data-kind="stock-pendiente:'+esc(v.id)+'">Descargar '+pending.length+' pendientes de stock</button><button type="button" class="btn btn-outline btn-sm" data-act="xcopy" data-kind="stock-pendiente:'+esc(v.id)+'">Copiar para planilla</button></div>':'')+bulkPanel(v)
     +'<div class="tablewrap"><table style="min-width:820px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Fuente</th><th>Estado de origen</th></tr></thead><tbody>'
     +items.map(function(x,index){var src=tiendanubeSource(v,x);return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(src?'<a class="linkbtn small" href="'+esc(src)+'" target="_blank" rel="noopener">Abrir oficial</a>':'<span class="st bad">Falta</span>')+'</td><td>'+(x.hidden?'Oculto':'Visible')+' · Borrador'+(!x.hidden&&x.price>0?'<br><button type="button" class="btn btn-primary btn-sm" data-act="draft-prepare" data-id="'+esc(v.id)+'" data-index="'+index+'">Completar y publicar</button>':'')+'</td></tr>';}).join('')
     +'</tbody></table></div></section>';
