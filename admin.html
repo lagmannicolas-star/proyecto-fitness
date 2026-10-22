@@ -3025,6 +3025,37 @@ function requestBrief(r){
  return l.join('\n');
 }
 function offerLink(token){return location.origin+'/oferta.html#t='+token;}
+/* Cierre de un pedido con oferta elegida: comisión a cobrar y mensajes listos para el proveedor y el comprador. */
+function redDe(inv){ return (ui.red||[]).filter(function(x){return x.id===inv.proveedorId;})[0]||{}; }
+function comisionDe(inv){ var p=redDe(inv), pct=p.comision!=null?Number(p.comision):Number(db.commission||0), base=Number(inv.oferta.precio_total)||0; return {pct:pct,base:base,monto:Math.round(base*pct)/100}; }
+function itemsTxt(r){ return (r.items||[]).map(function(it){return '• '+it.cantidad+' × '+it.producto+(it.detalle?' ('+it.detalle+')':'');}).join('\n'); }
+function ganadorMsg(r,inv){
+ var p=redDe(inv), o=inv.oferta, c=comisionDe(inv);
+ return 'Hola'+(p.contacto?' '+p.contacto:'')+', ¡buenas noticias! El comprador del pedido '+r.code+' eligió tu oferta en Nexo Fit por '+money(Number(o.precio_total)+Number(o.envio))+' ('+money(o.precio_total)+' de productos + '+money(o.envio)+' de envío, '+o.plazo_dias+' días hábiles).\n\n'
+  +'Pedido:\n'+itemsTxt(r)+'\n\nDatos del comprador para coordinar pago y entrega:\n'+r.nombre+(r.empresa?' · '+r.empresa:'')+'\nWhatsApp: '+r.telefono+'\nEmail: '+r.email+'\nEntrega en: '+r.localidad+', '+r.provincia
+  +'\nFactura: '+(r.factura==='no'?'no necesita':r.factura)+(r.pagos&&r.pagos.length?' · Prefiere pagar con: '+r.pagos.join(', '):'')
+  +'\n\nTe recordamos la comisión de Nexo Fit: '+c.pct+'% sobre los productos ('+money(c.monto)+'), que te facturamos cuando se concreta la venta. Avisanos cuando entregues así lo cerramos. ¡Gracias!';
+}
+function compradorMsg(r,inv){
+ var p=redDe(inv), o=inv.oferta, w=String(inv.whatsapp||p.whatsapp||'').replace(/\D/g,'');
+ return 'Hola '+r.nombre+', te escribimos de Nexo Fit por tu pedido '+r.code+'. Ya le avisamos a '+inv.proveedor+' que elegiste su oferta por '+money(Number(o.precio_total)+Number(o.envio))+' (entrega en '+o.plazo_dias+' días hábiles).\n\n'
+  +'Te va a contactar para coordinar el pago y la entrega. Sus datos:\n'+inv.proveedor+(p.contacto?' · '+p.contacto:'')+(w?'\nWhatsApp: +'+w:'')+(p.email?'\nEmail: '+p.email:'')
+  +'\n\nEl pago lo hacés directo al proveedor. Cualquier problema con el pedido, escribinos por acá. ¡Gracias por usar Nexo Fit!';
+}
+function noElegidaMsg(r,inv){
+ var p=redDe(inv);
+ return 'Hola'+(p.contacto?' '+p.contacto:'')+', te escribimos de Nexo Fit. Gracias por cotizar el pedido '+r.code+': esta vez el comprador eligió otra oferta. Te vamos a seguir mandando los pedidos de tu rubro. ¡Gracias!';
+}
+function cierreHTML(r,eleg,waComprador){
+ var c=comisionDe(eleg), p=redDe(eleg), wp=String(eleg.whatsapp||p.whatsapp||'').replace(/\D/g,'');
+ return '<div class="alert ok" style="margin-top:10px"><b>Eligió la oferta de '+esc(eleg.proveedor)+'</b> por '+money(Number(eleg.oferta.precio_total)+Number(eleg.oferta.envio))+'.'
+  +'<span class="rq-sub">Comisión a cobrarle: <b>'+money(c.monto)+'</b> ('+c.pct+'% sobre '+money(c.base)+' de productos, sin el envío).</span>'
+  +'<span class="rq-sub">1) Avisale al proveedor y pasale los datos del comprador. 2) Avisale al comprador quién lo va a contactar. 3) Avisá a los que no ganaron. 4) Cuando entreguen, marcala como Cerrada y facturá la comisión.</span>'
+  +'<span class="actions" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">'
+  +(wp?'<a class="btn btn-primary btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wp+'?text='+encodeURIComponent(ganadorMsg(r,eleg))+'">1 · WhatsApp al proveedor</a>':'<button class="btn btn-outline btn-sm" type="button" data-act="req-copytxt" data-txt="'+esc(ganadorMsg(r,eleg))+'">1 · Copiar mensaje al proveedor</button>')
+  +(waComprador?'<a class="btn btn-primary btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+waComprador+'?text='+encodeURIComponent(compradorMsg(r,eleg))+'">2 · WhatsApp al comprador</a>':'')
+  +'</span></div>';
+}
 function inviteMsg(r,inv){
  var p=(ui.red||[]).filter(function(x){return x.id===inv.proveedorId;})[0]||{};
  var items=(r.items||[]).slice(0,4).map(function(it){return '• '+it.cantidad+' × '+it.producto;}).join('\n')+((r.items||[]).length>4?'\n• y '+((r.items||[]).length-4)+' productos más':'');
@@ -3079,6 +3110,7 @@ function invitesHTML(r){
    var ofe=o?'<b>'+money(Number(o.precio_total)+Number(o.envio))+'</b><span class="rq-sub">'+o.plazo_dias+' días hábiles · '+(o.cuotas?o.cuotas+' cuotas':'sin cuotas')+' · garantía '+o.garantia_meses+' m · vale hasta '+fdate(o.valida_hasta)+(o.cumple==='parcial'?' · PARCIAL':'')+'</span>'+(o.notas?'<span class="rq-sub">'+esc(o.notas)+'</span>':'')+(r.oferta_elegida===o.id?'<span class="st ok">Elegida</span>':''):'<span class="muted">Sin oferta</span>';
    return '<tr><td>'+esc(i.proveedor)+'</td><td>'+(i.visto?'<span class="st ok">Abrió el link</span>':'<span class="st neu">No lo abrió</span>')+'</td><td>'+ofe+'</td><td class="nw">'
     +(abierta&&wa?'<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(inviteMsg(r,i))+'">WhatsApp</a>':'')
+    +(r.oferta_elegida&&o&&o.id!==r.oferta_elegida&&wa?'<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(noElegidaMsg(r,i))+'">Avisar que no ganó</a>':'')
     +'<button class="btn btn-outline btn-sm" data-act="req-link" data-code="'+esc(r.code)+'" data-inv="'+i.id+'">Copiar link</button></td></tr>';
   }).join('')+'</tbody></table></div>';
  }else h+='<p class="rq-sub">Todavía no invitaste a ningún proveedor.</p>';
@@ -3111,7 +3143,7 @@ function requestsView(){
   var eleg=r.oferta_elegida?(r.invitaciones||[]).filter(function(i){return i.oferta&&i.oferta.id===r.oferta_elegida;})[0]:null;
   return '<div class="card" id="'+id+'"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><b class="mono">'+esc(r.code)+'</b> <span class="st '+s2[0]+'">'+s2[1]+'</span><span class="rq-sub">'+fdate(String(r.created_at).slice(0,10))+' · '+esc(r.tipo)+' · '+esc(r.localidad)+', '+esc(r.provincia)+'</span></div>'
    +'<div><b>'+esc(r.nombre)+'</b>'+(r.empresa?' · '+esc(r.empresa):'')+'<span class="rq-sub">'+esc(r.email)+' · '+esc(r.telefono)+'</span></div></div>'
-   +(eleg?'<div class="alert ok" style="margin-top:10px"><b>Eligió la oferta de '+esc(eleg.proveedor)+'</b> por '+money(Number(eleg.oferta.precio_total)+Number(eleg.oferta.envio))+'. Coordiná pago y entrega con los dos'+(eleg.whatsapp?' (proveedor: WhatsApp '+esc(eleg.whatsapp)+')':'')+' y después marcala como Cerrada.</div>':'')
+   +(eleg?cierreHTML(r,eleg,wa):'')
    +'<ul style="margin:10px 0">'+(r.items||[]).map(function(it){return '<li><b>'+esc(it.cantidad)+' ×</b> '+esc(it.producto)+(it.detalle?' <span class="muted">('+esc(it.detalle)+')</span>':'')+'</li>';}).join('')+'</ul>'
    +'<p class="rq-sub">Plazo: '+esc(SOL_PLAZO[r.plazo]||r.plazo)+' · Factura '+esc(r.factura==='no'?'no':r.factura)+' · Pago: '+esc((r.pagos||[]).join(', ')||'—')+' · Prioridad: '+esc(SOL_PRIO[r.prioridad]||r.prioridad)+(r.presupuesto?' · Presupuesto aprox.: '+money(r.presupuesto)+' (no compartir)':'')+'</p>'
    +(r.detalles?'<p class="rq-sub">'+esc(r.detalles)+'</p>':'')
@@ -3131,6 +3163,7 @@ document.addEventListener('click',function(ev){
  var t=ev.target.closest&&ev.target.closest('[data-act^="req-"],[data-act^="red-"]');if(!t||t.disabled)return;
  var act=t.dataset.act;
  if(act==='req-filter'){ui.reqFilter=t.dataset.f;rerender();return;}
+ if(act==='req-copytxt'){solCopy(t.dataset.txt,'Mensaje copiado');return;}
  if(act==='req-view'){ui.reqView=t.dataset.v;ui.redForm=null;rerender();return;}
  if(act==='red-ver'){ui.tab='solicitudes';ui.reqView='red';ui.redForm=null;rerender();try{window.scrollTo(0,0);}catch(e){}return;}
  if(act==='red-new'){ui.redForm='new';rerender();return;}
