@@ -3164,7 +3164,7 @@ document.addEventListener('click',function(ev){
 });
 
 /* ---------- Avisos por email y WhatsApp ---------- */
-var AV_TIPO={solicitud_nueva:'Solicitud nueva',solicitud_nueva_comprador:'Confirmación al comprador',oferta_nueva:'Oferta nueva',oferta_nueva_comprador:'Primera oferta (comprador)',oferta_corregida:'Oferta corregida',oferta_elegida:'Oferta elegida',oferta_elegida_comprador:'Elección (comprador)',prueba:'Prueba'};
+var AV_TIPO={solicitud_nueva:'Solicitud nueva',solicitud_nueva_comprador:'Confirmación al comprador',oferta_nueva:'Oferta nueva',oferta_nueva_comprador:'Primera oferta (comprador)',oferta_corregida:'Oferta corregida',oferta_elegida:'Oferta elegida',oferta_elegida_comprador:'Elección (comprador)',pedido_proveedor:'Pedido al proveedor',oferta_recibida_proveedor:'Oferta recibida (proveedor)',oferta_corregida_proveedor:'Oferta corregida (proveedor)',oferta_ganadora:'Oferta elegida (proveedor)',oferta_no_elegida:'Otra oferta elegida (proveedor)',pedido_cerrado_proveedor:'Pedido cerrado (proveedor)',proveedor_nuevo:'Proveedor nuevo',prueba:'Prueba'};
 async function loadAvisos(){try{ui.avisos=await adminRpc('fitness_avisos_admin');ui.avisosErr='';}catch(e){ui.avisos={avisos:[]};ui.avisosErr=e.message;}rerender();}
 function avisosView(){
  if(!ui.avisos){setTimeout(loadAvisos,0);return '<div class="card"><p class="muted">Cargando avisos…</p></div>';}

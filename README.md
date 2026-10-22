@@ -42,6 +42,7 @@ La suite utiliza datos de ejemplo y respuestas de API simuladas; no confirma pag
 - `solicitud.html`: el comprador pide ofertas y recibe un número SOL-.
 - Admin → Solicitudes: red de proveedores (rubros y zonas), invitaciones con link privado y estado de cada oferta.
 - Aviso automático: cada proveedor activo de la red recibe un email con su link privado cuando entra un pedido (cola de avisos, cada minuto). Requiere la llave de Resend y el remitente con dominio verificado (no @resend.dev); los pedidos abiertos que todavía no se avisaron salen solos apenas se activa.
+- Ciclo de avisos al proveedor (email): pedido nuevo, confirmación al cargar o corregir su oferta, "Eligieron su oferta" al ganador, "El comprador eligió otra oferta" al resto y aviso si el pedido se cierra sin elegir. Las respuestas a los emails de Nexo Fit llegan al email del administrador.
 - `oferta.html#t=<token>`: el proveedor ve el pedido sin datos del comprador y carga su oferta (precio, envío, plazo, cuotas, garantía, validez).
 - `mi-solicitud.html`: el comprador ve las ofertas comparadas (sin nombres hasta elegir), la recomendación según sus prioridades (`assets/recomendar.js`) y elige una.
 - Vencimientos: una solicitud abierta sin movimiento por 30 días queda vencida; una oferta vale hasta la fecha que puso el proveedor (máximo 90 días).

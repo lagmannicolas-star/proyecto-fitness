@@ -16,3 +16,20 @@ const run = sql.match(/procedure public\.fitness_avisos_run[\s\S]*?end \$\$;/)[0
 assert.match(run, /perform public\.fitness_avisar_invitaciones\(\);\s+exception when others then\s+raise warning/);
 assert.match(sql, /revoke all on function public\.fitness_avisar_invitaciones\(\) from public, anon, authenticated/);
 console.log('OK: aviso automático por email a cada proveedor invitado.');
+
+// Ciclo completo: confirmación de oferta, ganador, no elegidos, cierre sin elegir y reply_to al admin.
+const ciclo = fs.readFileSync('supabase/migrations/20261022233000_avisos_ciclo_completo.sql', 'utf8');
+const mail = ciclo.match(/function public\.fitness_aviso_mail[\s\S]*?end \$\$;/)[0];
+assert.match(mail, /email_from ilike '%@resend\.dev%' then return/, 'sin dominio propio no se escribe a terceros');
+for (const t of ['oferta_recibida_proveedor', 'oferta_corregida_proveedor', 'oferta_ganadora', 'oferta_no_elegida', 'pedido_cerrado_proveedor']) assert.match(ciclo, new RegExp("'" + t + "'"), t);
+assert.match(ciclo, /new\.status in \('cerrada','descartada'\) and old\.status in \('nueva','enviada','con_ofertas'\) and new\.oferta_elegida is null/);
+assert.match(ciclo, /jsonb_build_object\('reply_to',c\.admin_email\)/);
+// Los avisos a proveedores nunca llevan datos de contacto del comprador.
+for (const fn of ['fitness_aviso_tr_solicitud', 'fitness_aviso_tr_oferta']) {
+  const body = ciclo.match(new RegExp('function public\\.' + fn + '[\\s\\S]*?end \\$\\$;'))[0];
+  for (const call of body.match(/fitness_aviso_mail\([\s\S]*?\)\);/g)) for (const campo of ['new.telefono', 'new.email', 's.email', 's.telefono', 'new.nombre||']) assert.ok(!call.includes(campo), fn + ' no expone ' + campo);
+  assert.match(body, /exception when others then\s+raise warning/);
+}
+const admin2 = fs.readFileSync('admin.html', 'utf8');
+assert.match(admin2, /oferta_ganadora:'Oferta elegida \(proveedor\)'/);
+console.log('OK: ciclo completo de avisos a proveedores.');
