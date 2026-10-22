@@ -65,8 +65,19 @@
         hockey: ['Hockey', function (n, full) { var l = [['Bochas de hockey', n, '']]; if (full) l.push(['Palos de hockey', C(n / 4), 'Para préstamo']); return l; }],
         basquet: ['Básquet', function (n) { return [['Pelotas de básquet', C(n / 2), 'Número 7']]; }],
         voley: ['Vóley', function (n) { return [['Pelotas de vóley', C(n / 2), ''], ['Red de vóley', 1, '']]; }],
-        atletismo: ['Atletismo', function (n, full) { var l = [['Vallas de atletismo', C(n / 2), ''], ['Cronómetro', 1, '']]; if (full) l.push(['Medicine balls', C(n / 3), '2 a 5 kg']); return l; }]
-      }
+        atletismo: ['Atletismo', function (n, full) { var l = [['Vallas de atletismo', C(n / 2), ''], ['Cronómetro', 1, '']]; if (full) l.push(['Medicine balls', C(n / 3), '2 a 5 kg']); return l; }],
+        natacion: ['Natación / pileta', function (n, full) {
+          var l = [
+            ['Tablas de natación', n, ''],
+            ['Pullboys', n, ''],
+            ['Sumergibles (sets)', C(n / 5), 'Para juegos en el fondo'],
+            ['Gorras de natación', n, '']];
+          if (full) l.push(['Andariveles', 1, 'Indicar largo de la pileta y cantidad de carriles'], ['Manoplas (pares)', n, ''], ['Flota flota', n, ''], ['Cronómetro', 1, '']);
+          return l;
+        }]
+      },
+      // Si solo se eligen estas disciplinas no se suma el material de cancha (conos, vallas, pecheras).
+      sinBase: ['natacion']
     },
     colegio: {
       n: 'Colegio', personas: ['Alumnos por clase', 10, 40, 25],
@@ -144,7 +155,9 @@
       if (!map[k]) { map[k] = { p: row[0], q: row[1], d: row[2] }; order.push(k); }
       else if (row[1] > map[k].q) { map[k].q = row[1]; if (row[2]) map[k].d = row[2]; }
     };
-    if (T.base) T.base(n, full).forEach(add);
+    var elegidos = st.usos[st.tipo], sinBase = T.sinBase || [];
+    var soloSinBase = elegidos.length > 0 && elegidos.every(function (u) { return sinBase.indexOf(u) >= 0; });
+    if (T.base && !soloSinBase) T.base(n, full).forEach(add);
     st.usos[st.tipo].forEach(function (u) { if (T.usos[u]) T.usos[u][1](n, full).forEach(add); });
     st.kit = order.map(function (k) { return map[k]; }).concat(st.extras);
     render();
