@@ -33,3 +33,13 @@ for (const fn of ['fitness_aviso_tr_solicitud', 'fitness_aviso_tr_oferta']) {
 const admin2 = fs.readFileSync('admin.html', 'utf8');
 assert.match(admin2, /oferta_ganadora:'Oferta elegida \(proveedor\)'/);
 console.log('OK: ciclo completo de avisos a proveedores.');
+
+// Recordatorios: idempotentes (marcas), sin tocar updated_at y con fecha de Argentina.
+const rec = fs.readFileSync('supabase/migrations/20261023000000_avisos_recordatorios.sql', 'utf8');
+const fr = rec.match(/function public\.fitness_avisos_recordatorios[\s\S]*?end \$\$;/)[0];
+for (const m of ['aviso_ofertas_at=now()', 'recordado_at=now()', 'aviso_vence_at=now()', 'vencida_avisada_at=now()']) assert.ok(fr.includes(m), m);
+assert.ok(!/updated_at\s*=/.test(fr), 'los recordatorios no mueven el vencimiento');
+assert.match(rec, /perform public\.fitness_avisos_recordatorios\(\);\s+exception when others then\s+raise warning/);
+const tz = fs.readFileSync('supabase/migrations/20261023001000_ofertas_fecha_argentina.sql', 'utf8');
+for (const f of ['fitness_avisos_recordatorios', 'fitness_oferta_elegir', 'fitness_oferta_enviar']) assert.match(tz, new RegExp(f + "\\([^)]*\\) set timezone to 'America/Argentina/Buenos_Aires'"));
+console.log('OK: recordatorios a comprador y proveedores.');
