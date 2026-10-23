@@ -38,6 +38,8 @@ async function api(request, env, url) {
   if (url.pathname.startsWith('/api/fotos')) return photosApi(request, env, url, route, headers);
   if (!configured(env)) return json({ error: 'Mercado Pago todavía no está configurado.' }, 503, headers);
   if (route === 'POST /api/pagos/conectar') return connectStart(request, env, headers);
+  if (route === 'POST /api/pagos/red/conectar') return connectRedStart(request, env, headers);
+  if (route === 'POST /api/pagos/oferta') return createOfferPreference(request, env, headers);
   if (route === 'GET /api/pagos/conectado') return connectFinish(request, env, url);
   if (route === 'POST /api/pagos/desconectar') return disconnect(request, env, headers);
   if (route === 'POST /api/pagos/preferencia') return createPreference(request, env, headers);
@@ -161,9 +163,39 @@ async function connectFinish(request, env, url) {
   });
   const t = await r.json().catch(() => ({}));
   if (!r.ok || !t.access_token || !t.user_id) { console.error('oauth token', r.status, JSON.stringify(t).slice(0, 300)); return back('error'); }
+  if (state.p) {
+    // Proveedor de la red: vuelve a su link privado (el token viaja cifrado dentro del state).
+    const tok = state.k ? await unseal(env, state.k).catch(() => '') : '';
+    const hash = /^[0-9a-f]{64}$/.test(String(tok)) ? '#t=' + tok : '';
+    const ok = await storeRedAccount(env, state.p, t);
+    return Response.redirect(state.r + '?mp=' + (ok ? 'ok' : 'error') + hash, 302);
+  }
   const saved = await storeAccount(env, state.v, t);
   if (!saved) return back('error');
   return back('ok');
+}
+
+// Proveedor de la red (sin cuenta en el sitio): se identifica con su link privado de la oferta.
+async function connectRedStart(request, env, headers) {
+  const body = await request.json().catch(() => ({}));
+  const token = String(body.token || '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: 'El link no es válido.' }, 400, headers);
+  const back = checkReturn(request, env, body.returnUrl);
+  if (!back) return json({ error: 'Dirección de regreso no permitida.' }, 400, headers);
+  const who = await rpc(env, 'fitness_red_por_token', { p_token: token }, { service: true });
+  if (!who.ok || !who.data || !who.data.proveedor_id) return json({ error: 'El link no es válido o fue reemplazado.' }, 404, headers);
+  const state = await sign(env, { p: Number(who.data.proveedor_id), k: await seal(env, token), r: back, exp: Date.now() + 15 * 60 * 1000 });
+  const auth = new URL(env.MP_AUTH_URL || MP_AUTH);
+  auth.search = new URLSearchParams({ client_id: env.MP_CLIENT_ID, response_type: 'code', platform_id: 'mp', state, redirect_uri: new URL(request.url).origin + '/api/pagos/conectado' }).toString();
+  return json({ url: auth.href }, 200, headers);
+}
+
+async function storeRedAccount(env, proveedorId, t) {
+  const secret = await seal(env, { access_token: t.access_token, refresh_token: t.refresh_token });
+  const expires = new Date(Date.now() + (Number(t.expires_in) || 15552000) * 1000).toISOString();
+  const r = await rpc(env, 'fitness_mp_red_link', { p_proveedor: proveedorId, p_mp_user_id: String(t.user_id), p_secret: secret, p_expires_at: expires }, { service: true });
+  if (!r.ok) console.error('supabase mp red link', r.status, JSON.stringify(r.data).slice(0, 300));
+  return r.ok;
 }
 
 async function storeAccount(env, vendorId, t) {
@@ -182,8 +214,12 @@ async function disconnect(request, env, headers) {
 }
 
 // Devuelve la llave vigente del proveedor; la renueva si vence en menos de 30 días.
-async function vendorAccount(env, vendorId) {
-  const r = await rpc(env, 'fitness_mp_account', { p_vendor_id: vendorId }, { service: true });
+async function vendorAccount(env, vendorId) { return mpAccount(env, 'v', vendorId); }
+async function redAccount(env, proveedorId) { return mpAccount(env, 'r', proveedorId); }
+async function mpAccount(env, kind, id) {
+  const r = kind === 'r'
+    ? await rpc(env, 'fitness_mp_red_account', { p_proveedor: Number(id) }, { service: true })
+    : await rpc(env, 'fitness_mp_account', { p_vendor_id: id }, { service: true });
   if (!r.ok || !r.data || !r.data.secret) return null;
   const tokens = await unseal(env, r.data.secret);
   const account = { userId: String(r.data.mp_user_id), token: tokens.access_token };
@@ -193,7 +229,11 @@ async function vendorAccount(env, vendorId) {
       body: JSON.stringify({ client_id: env.MP_CLIENT_ID, client_secret: env.MP_CLIENT_SECRET, grant_type: 'refresh_token', refresh_token: tokens.refresh_token }),
     });
     const t = await f.json().catch(() => ({}));
-    if (f.ok && t.access_token) { await storeAccount(env, vendorId, { ...t, user_id: t.user_id || account.userId }); account.token = t.access_token; }
+    if (f.ok && t.access_token) {
+      const fresh = { ...t, user_id: t.user_id || account.userId };
+      await (kind === 'r' ? storeRedAccount(env, Number(id), fresh) : storeAccount(env, id, fresh));
+      account.token = t.access_token;
+    }
     else console.error('oauth refresh', f.status);
   }
   return account;
@@ -257,6 +297,46 @@ async function createPreference(request, env, headers) {
   return json({ url: data.init_point || data.sandbox_init_point, preferenceId: data.id, fee }, 200, headers);
 }
 
+// ---------- Cobro de la oferta elegida en "Pedí ofertas" ----------
+// El comprador se identifica con su número de solicitud y su email. El monto y la comisión salen de la base.
+async function createOfferPreference(request, env, headers) {
+  const body = await request.json().catch(() => ({}));
+  const code = String(body.code || '').trim().toUpperCase(), email = String(body.email || '').trim().toLowerCase();
+  if (!/^SOL-[A-Z0-9]{4,8}$/.test(code) || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'Revisá el número de solicitud y el email.' }, 400, headers);
+  const back = checkReturn(request, env, body.returnUrl);
+  if (!back) return json({ error: 'Dirección de regreso no permitida.' }, 400, headers);
+  const q = await rpc(env, 'fitness_sol_pago_datos', { p_code: code, p_email: email }, { service: true });
+  if (!q.ok || !q.data) return json({ error: (q.data && q.data.message) || 'No pudimos preparar el pago.' }, q.status === 400 ? 409 : 404, headers);
+  const d = q.data;
+  const account = d.mp ? await redAccount(env, d.proveedor_id) : null;
+  if (!account) return json({ error: 'El proveedor todavía no activó su cobro con Mercado Pago. Te avisamos por email apenas puedas pagar.' }, 409, headers);
+  const total = round2(d.total), fee = round2(d.comision);
+  const self = new URL(request.url).origin;
+  const ret = back + '?codigo=' + encodeURIComponent(code) + '&pago=';
+  const preference = {
+    items: [{ id: code, title: ('Compra ' + code + ' · ' + d.proveedor + (Number(d.envio) ? ' (incluye envío)' : '')).slice(0, 250), description: 'Oferta elegida en Nexo Fit', quantity: 1, unit_price: total, currency_id: 'ARS' }],
+    marketplace_fee: fee,
+    external_reference: code,
+    payer: { email },
+    notification_url: self + '/api/pagos/aviso?r=' + encodeURIComponent(d.proveedor_id),
+    back_urls: { success: ret + 'ok', pending: ret + 'pendiente', failure: ret + 'error' },
+    auto_return: 'approved',
+    statement_descriptor: ('NEXO*' + String(d.proveedor).normalize('NFD').replace(/[^A-Za-z0-9]/g, '').toUpperCase()).slice(0, 13),
+    metadata: { solicitud: code, oferta: d.oferta_id, proveedor: d.proveedor_id },
+  };
+  const r = await fetch(mpApi(env) + '/checkout/preferences', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + account.token, 'Content-Type': 'application/json', 'X-Idempotency-Key': code + '-' + d.oferta_id + '-' + Math.round(total * 100) },
+    body: JSON.stringify(preference),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !(data.init_point || data.sandbox_init_point)) {
+    console.error('mercadopago preference oferta', r.status, JSON.stringify(data).slice(0, 500));
+    return json({ error: 'Mercado Pago no pudo crear el cobro. Probá de nuevo en unos minutos.' }, 502, headers);
+  }
+  return json({ url: data.init_point || data.sandbox_init_point, total }, 200, headers);
+}
+
 // Verifica la firma de Mercado Pago (cabecera x-signature) según su documentación de Webhooks.
 export async function validSignature(secret, signature, requestId, dataId) {
   const parts = Object.fromEntries(String(signature || '').split(',').map(p => p.split('=').map(s => s.trim())).filter(p => p.length === 2));
@@ -277,20 +357,28 @@ async function paymentNotice(request, env, url) {
   const body = await request.json().catch(() => ({}));
   const type = url.searchParams.get('type') || url.searchParams.get('topic') || body.type;
   const dataId = String(url.searchParams.get('data.id') || url.searchParams.get('id') || (body.data && body.data.id) || '');
-  const vendorId = url.searchParams.get('v');
-  if (type !== 'payment' || !dataId || !vendorId) return json({ ok: true, ignored: true }, 200, {});
+  const vendorId = url.searchParams.get('v'), redId = url.searchParams.get('r');
+  if (type !== 'payment' || !dataId || !(vendorId || /^\d+$/.test(String(redId || '')))) return json({ ok: true, ignored: true }, 200, {});
   const signature = request.headers.get('x-signature');
   // Mercado Pago firma cada webhook. La ausencia de firma se rechaza igual que una firma incorrecta.
   if (!signature || !(await validSignature(env.MP_WEBHOOK_SECRET, signature, request.headers.get('x-request-id'), dataId))) {
     return json({ error: 'Firma inválida' }, 401, {});
   }
-  const account = await vendorAccount(env, vendorId);
+  const account = vendorId ? await vendorAccount(env, vendorId) : await redAccount(env, redId);
   if (!account) return json({ ok: true, ignored: true }, 200, {});
   const r = await fetch(mpApi(env) + '/v1/payments/' + encodeURIComponent(dataId), { headers: { Authorization: 'Bearer ' + account.token } });
   if (!r.ok) { console.error('mercadopago payment', r.status); return json({ error: 'No se pudo consultar el pago' }, 502, {}); }
   const p = await r.json();
   if (p.collector_id != null && String(p.collector_id) !== account.userId) return json({ ok: true, ignored: true }, 200, {});
   const fee = (p.fee_details || []).filter(f => f.type === 'application_fee').reduce((s, f) => s + Number(f.amount || 0), 0);
+  if (!vendorId) {
+    const reg = await rpc(env, 'fitness_sol_registrar_pago', {
+      p_code: String(p.external_reference || ''), p_proveedor: Number(redId),
+      payment: { id: String(p.id), status: p.status, statusDetail: p.status_detail, amount: p.transaction_amount, currency: p.currency_id, approvedAt: p.date_approved || null, marketplaceFee: round2(fee) },
+    }, { service: true });
+    if (!reg.ok) { console.error('supabase registrar pago oferta', reg.status, JSON.stringify(reg.data).slice(0, 300)); return json({ error: 'No se pudo registrar el pago' }, 500, {}); }
+    return json({ ok: true }, 200, {});
+  }
   const saved = await rpc(env, 'fitness_register_payment', {
     pay_ref: String(p.external_reference || ''),
     p_vendor_id: vendorId,

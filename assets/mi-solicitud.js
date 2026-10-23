@@ -7,10 +7,11 @@
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var fecha = function (iso) { try { return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
   var PASOS = [
-    ['nueva', 'Recibida', 'Revisamos tu pedido y elegimos a qué proveedores consultar.'],
+    ['nueva', 'Recibida', 'Ya se la enviamos a los proveedores de nuestra red.'],
     ['enviada', 'Consultando proveedores', 'Los proveedores que pueden cumplirlo están preparando su oferta.'],
     ['con_ofertas', 'Ofertas listas', 'Compará las ofertas abajo y elegí la que más te convenga.'],
-    ['elegida', 'Oferta elegida', 'Nexo Fit te contacta para coordinar el pago y la entrega.'],
+    ['elegida', 'Oferta elegida', 'Pagá con Mercado Pago para confirmar la compra.'],
+    ['pagada', 'Pagada', 'El proveedor te contacta para coordinar la entrega y te envía la factura.'],
     ['cerrada', 'Compra cerrada', '¡Gracias por comprar en Nexo Fit!']
   ];
   var money = function (n) { return '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 }); };
@@ -26,8 +27,11 @@
     if (ult && (!$('codigo').value || ult.code === $('codigo').value)) { $('codigo').value = ult.code; $('email').value = ult.email; }
   } catch (e) { /* sin almacenamiento */ }
 
+  var pagoQS = q.get('pago');
   function render(s) {
-    var idx = PASOS.map(function (p) { return p[0]; }).indexOf(s.status);
+    var pago = s.pago || {};
+    var etapa = s.status === 'elegida' && pago.estado === 'aprobado' ? 'pagada' : s.status;
+    var idx = PASOS.map(function (p) { return p[0]; }).indexOf(etapa);
     var html = '<div class="card seg-card"><div class="seg-head"><div><p class="eyebrow">Solicitud</p><p class="code">' + esc(s.code) + '</p></div>'
       + '<p class="muted small">Creada el ' + esc(fecha(s.createdAt)) + '<br>' + esc(s.productos) + (s.productos === 1 ? ' producto' : ' productos') + ' · entrega en ' + esc(s.localidad) + '</p></div>';
     if (s.status === 'descartada') {
@@ -46,6 +50,11 @@
       }).join('') + '</ol>';
     }
     if (s.nota) html += '<p class="note"><b>Mensaje de Nexo Fit:</b> ' + esc(s.nota) + '</p>';
+    if (pagoQS && pago.estado !== 'aprobado') {
+      html += pagoQS === 'ok' || pagoQS === 'pendiente'
+        ? '<p class="alert">Mercado Pago está procesando tu pago. Apenas se acredite, esta página y tu email lo confirman.</p>'
+        : '<p class="alert">El pago no se completó. Podés intentarlo de nuevo con otro medio de pago.</p>';
+    }
     html += ofertasHTML(s);
     if (Array.isArray(s.items) && s.items.length) {
       html += '<details class="seg-items"><summary>Ver lo que pediste</summary><ul>' + s.items.map(function (it) {
@@ -72,8 +81,19 @@
     });
     var h = '<section class="cmp-of" aria-labelledby="cmp-t"><h2 id="cmp-t">' + (elegida ? 'Tu elección' : 'Compará las ofertas') + '</h2>';
     if (elegida) {
-      h += '<div class="alert ok"><b>Elegiste la Oferta ' + esc(elegida.letra) + (elegida.proveedor ? ' de ' + esc(elegida.proveedor) : '') + '</b> por ' + money(elegida.total)
-        + '. Nexo Fit te va a contactar para coordinar el pago y la entrega. Elegir no te cobró nada.</div>';
+      var pg = s.pago || {}, quien = elegida.proveedor ? esc(elegida.proveedor) : 'el proveedor';
+      h += '<div class="alert ok"><b>Elegiste la Oferta ' + esc(elegida.letra) + (elegida.proveedor ? ' de ' + esc(elegida.proveedor) : '') + '</b> por ' + money(elegida.total) + '.</div>';
+      if (pg.estado === 'aprobado') {
+        h += '<div class="alert ok"><b>Pago acreditado</b>' + (pg.monto ? ' por ' + money(pg.monto) : '') + '. ' + quien + ' te va a contactar para coordinar la entrega y te envía la factura.</div>';
+      } else if (pg.estado === 'devuelto') {
+        h += '<div class="alert">Mercado Pago informa este pago como devuelto. Si fue un error, escribinos.</div>';
+      } else if (pg.disponible) {
+        h += '<div class="pay-box"><p>Pagás <b>' + money(elegida.total) + '</b> con Mercado Pago (tarjeta, débito, dinero en cuenta o efectivo). El pago va directo a ' + quien + ' y la compra queda confirmada cuando se acredita.</p>'
+          + '<div class="actions"><button class="btn btn-accent btn-big" type="button" data-pagar="1">Pagar con Mercado Pago</button></div>'
+          + (elegida.cuotas ? '<p class="muted small">Las ' + esc(elegida.cuotas) + ' cuotas sin interés de la oferta se eligen dentro de Mercado Pago, si el proveedor las tiene habilitadas.</p>' : '') + '</div>';
+      } else {
+        h += '<p class="muted small">' + quien + ' está activando su cobro con Mercado Pago. Te avisamos por email apenas puedas pagar desde esta página. Todavía no se te cobró nada.</p>';
+      }
     } else if (R.mejor && ofs.length > 1) {
       h += '<div class="reco"><p class="eyebrow">Recomendación de Nexo Fit</p><p><b>Oferta ' + esc(R.mejor.letra) + '.</b> ' + esc(R.motivo) + '</p>'
         + '<p class="muted small">La calculamos con las prioridades que marcaste. Es una ayuda: la decisión es tuya.</p></div>';
@@ -90,7 +110,7 @@
       var btn = '';
       if (puedeElegir && !o.vencida) {
         btn = confirmar === o.id
-          ? '<div class="confirm"><p>¿Elegís la <b>Oferta ' + esc(o.letra) + '</b> por <b>' + money(o.total) + '</b>? Te contactamos para coordinar pago y entrega. Elegir no te cobra nada todavía.</p><div class="actions"><button class="btn btn-accent" type="button" data-elegir="' + o.id + '" data-ok="1">Sí, elegir esta oferta</button><button class="btn btn-outline" type="button" data-cancelar="1">Volver</button></div></div>'
+          ? '<div class="confirm"><p>¿Elegís la <b>Oferta ' + esc(o.letra) + '</b> por <b>' + money(o.total) + '</b>? Después de elegir pagás con Mercado Pago desde esta página. Elegir no te cobra nada todavía.</p><div class="actions"><button class="btn btn-accent" type="button" data-elegir="' + o.id + '" data-ok="1">Sí, elegir esta oferta</button><button class="btn btn-outline" type="button" data-cancelar="1">Volver</button></div></div>'
           : '<button class="btn ' + (esMejor ? 'btn-accent' : 'btn-outline') + '" type="button" data-elegir="' + o.id + '">Elegir esta oferta</button>';
       }
       return '<article class="' + cls + '"><div class="of-h"><b>Oferta ' + esc(o.letra) + '</b>' + (esMejor ? '<span class="pill">Recomendada</span>' : '') + (o.elegida ? '<span class="pill">Elegida</span>' : '') + '</div>'
@@ -144,6 +164,16 @@
 
   $('resultado').addEventListener('click', function (ev) {
     if (ev.target.closest('[data-cuadro]')) { if (ultimo) imprimirCuadro(); return; }
+    var pb = ev.target.closest('[data-pagar]');
+    if (pb) {
+      if (pb.disabled) return;
+      pb.disabled = true; pb.textContent = 'Abriendo Mercado Pago…';
+      fetch('/api/pagos/oferta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: actual.code, email: actual.email, returnUrl: w.location.origin + w.location.pathname }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.url) throw new Error(j.error || 'No pudimos abrir Mercado Pago. Probá de nuevo en unos minutos.'); return j; }); })
+        .then(function (j) { if (w.nfTrack) w.nfTrack('InitiateCheckout', { name: 'pago oferta ' + actual.code }); w.location.href = j.url; })
+        .catch(function (e) { var err = $('seg-error'); err.textContent = e && e.message && !/fetch|network/i.test(e.message) ? e.message : 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.'; err.hidden = false; pb.disabled = false; pb.textContent = 'Pagar con Mercado Pago'; });
+      return;
+    }
     var c = ev.target.closest('[data-cancelar]');
     if (c) { confirmar = null; render(ultimo); return; }
     var b = ev.target.closest('[data-elegir]');

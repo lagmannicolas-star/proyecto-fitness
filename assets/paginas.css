@@ -167,6 +167,7 @@ main section{margin-bottom:48px}
 /* Comparación de ofertas para el comprador */
 .cmp-of{display:flex;flex-direction:column;gap:12px}.cmp-of h2{margin:8px 0 0}
 .reco{border:2px solid var(--accent);background:var(--soft);border-radius:14px;padding:14px 16px}.reco p{margin:0 0 4px}
+.pay-box{border:2px solid var(--accent);background:var(--soft);border-radius:14px;padding:14px 16px;margin:12px 0}.pay-box p{margin:0 0 8px}
 .of-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}
 .of-card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--bg)}
 .of-card.best{border:2px solid var(--accent);box-shadow:0 6px 20px rgba(16,23,31,.08)}

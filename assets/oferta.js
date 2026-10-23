@@ -27,9 +27,10 @@
   }
 
   var token = (new URLSearchParams((w.location.hash || '').slice(1)).get('t') || '').toLowerCase();
+  var mpQS = new URLSearchParams(w.location.search).get('mp');
   var err = $('of-error'), form = $('of-form');
   function fail(msg) { err.textContent = msg; err.hidden = false; }
-  if (!/^[0-9a-f]{64}$/.test(token)) { $('of-titulo').textContent = 'Pedido de oferta'; fail('El link está incompleto. Abrilo tal cual te lo enviamos por WhatsApp o pedinos uno nuevo.'); return; }
+  if (!/^[0-9a-f]{64}$/.test(token)) { $('of-titulo').textContent = 'Pedido de oferta'; fail('El link está incompleto. Abrilo tal cual te lo enviamos por email o WhatsApp, o pedinos uno nuevo.'); return; }
 
   var hoy = new Date(), max = new Date(); max.setDate(max.getDate() + 90);
   var def = new Date(); def.setDate(def.getDate() + 15);
@@ -68,18 +69,37 @@
       $('notas').value = of.notas || '';
       $('of-enviar').textContent = 'Actualizar oferta';
     }
+    var mpMsg = { ok: '<div class="alert ok"><b>Mercado Pago quedó conectado.</b> Los pagos de tus ventas en Nexo Fit llegan a esa cuenta.</div>', error: '<div class="alert">No pudimos conectar Mercado Pago. Probá de nuevo o escribinos.</div>', cancelado: '<div class="alert">Cancelaste la conexión con Mercado Pago.</div>' }[mpQS] || '';
+    var conectar = '<div class="actions"><button class="btn btn-accent" type="button" data-mp="1">Conectar Mercado Pago</button></div>';
     if (o.elegida) {
-      est.innerHTML = '<div class="alert ok"><b>¡El comprador eligió tu oferta!</b> Nexo Fit te va a contactar para coordinar el pago y la entrega.</div>';
+      var pagoTxt = o.pago === 'aprobado' ? '<div class="alert ok"><b>El comprador ya pagó.</b> Te mandamos por email sus datos para coordinar la entrega y la factura.</div>'
+        : o.pago === 'devuelto' ? '<div class="alert">Mercado Pago informa el pago como devuelto. No entregues hasta que lo revisemos juntos.</div>'
+        : o.mp ? '<p>Tu Mercado Pago está conectado: el comprador ya puede pagar. Cuando se acredite te avisamos por email con sus datos para la entrega.</p>'
+        : '<p><b>Para cobrar, conectá tu cuenta de Mercado Pago.</b> El comprador paga desde Nexo Fit y el dinero llega a tu cuenta, menos la comisión del ' + esc(String(Number(o.comision)).replace('.', ',')) + '% sobre los productos (el envío no paga comisión). Mercado Pago aplica además su propio cargo.</p>' + conectar;
+      est.innerHTML = mpMsg + '<div class="alert ok"><b>¡El comprador eligió tu oferta!</b></div>' + pagoTxt;
       form.hidden = true;
     } else if (!o.abierta) {
       est.innerHTML = '<div class="alert">' + (o.estado === 'vencida' ? 'Esta solicitud venció y ya no recibe ofertas.' : of ? 'El comprador ya decidió y esta solicitud no recibe más ofertas. ¡Gracias por participar!' : 'Esta solicitud ya no recibe ofertas.') + '</div>';
       form.hidden = true;
     } else if (of) {
-      est.innerHTML = '<div class="alert ok">Ya enviaste tu oferta. Podés corregirla mientras el comprador no haya decidido.</div>';
+      est.innerHTML = mpMsg + '<div class="alert ok">Ya enviaste tu oferta. Podés corregirla mientras el comprador no haya decidido.</div>'
+        + (o.mp ? '' : '<p class="muted small">Si el comprador te elige, cobrás con Mercado Pago. Podés conectar tu cuenta ahora para que pueda pagarte en el acto.</p>' + conectar);
+    } else if (mpMsg) {
+      est.innerHTML = mpMsg;
     }
     $('of-body').hidden = false;
     totalPreview();
   }
+
+  $('of-estado').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-mp]');
+    if (!b || b.disabled) return;
+    b.disabled = true; b.textContent = 'Abriendo Mercado Pago…';
+    fetch('/api/pagos/red/conectar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, returnUrl: w.location.origin + w.location.pathname }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.url) throw new Error(j.error || 'No pudimos abrir Mercado Pago.'); return j; }); })
+      .then(function (j) { w.location.href = j.url; })
+      .catch(function (e) { fail(e && e.message && !/fetch|network/i.test(e.message) ? e.message : 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.'); b.disabled = false; b.textContent = 'Conectar Mercado Pago'; });
+  });
 
   rpc('fitness_invitacion_ver', { p_token: token }).then(render).catch(function (e) {
     $('of-titulo').textContent = 'Pedido de oferta';
