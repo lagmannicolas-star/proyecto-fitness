@@ -261,7 +261,47 @@ def sc_end(d, t, sc, bg):
     if q > 0:
         logo(d, 1300, 120, q, bg); text_c(d, 1460, "nexofitt.com.ar", F(FR, 52), GREY, q, bg)
 
-R = dict(title=sc_title, number=sc_number, chat=sc_chat, notifs=sc_notifs, chips=sc_chips, checklist=sc_checklist,
+def sc_plan(d, t, sc, bg):
+    """Planta de un espacio: room=(ancho_m, largo_m), items=[(label, x, y, w, h, at)] en metros.
+    Opcional: verdict (texto en pastilla abajo), vcolor, vt (tiempo), note (texto chico)."""
+    headline(d, t, sc["text"], 210, sc.get("size", 84), WHITE, bg, 0, sc.get("hl"))
+    rw, rh = sc["room"]; top = sc.get("top", 640); maxw, maxh = W - 220, sc.get("maxh", 760)
+    k = min(maxw / rw, maxh / rh); pw, ph = rw * k, rh * k; x0 = (W - pw) / 2; y0 = top
+    p = ease((t - 0.3) / 0.4)
+    if p > 0:
+        d.rectangle([x0, y0, x0 + pw, y0 + ph], fill=mix(bg, DARK, p))
+        for gx in range(1, int(rw)):
+            d.line([(x0 + gx * k, y0), (x0 + gx * k, y0 + ph)], fill=mix(bg, (32, 42, 36), p), width=2)
+        for gy in range(1, int(rh)):
+            d.line([(x0, y0 + gy * k), (x0 + pw, y0 + gy * k)], fill=mix(bg, (32, 42, 36), p), width=2)
+        d.rectangle([x0, y0, x0 + pw, y0 + ph], outline=mix(bg, GREEN, p), width=8)
+        f = F(FB, 40)
+        lab = sc.get("wlabel", f"{rw:g} m".replace(".", ",")); text_c(d, y0 + ph + 18, lab, f, GREEN, p, bg)
+        lab2 = sc.get("hlabel", f"{rh:g} m".replace(".", ","))
+        tw = d.textlength(lab2, font=f); d.text((x0 - tw - 18, y0 + ph / 2 - 26), lab2, font=f, fill=mix(bg, GREEN, p))
+    for i, it in enumerate(sc["items"]):
+        lab, ix, iy, iw, ih = it[:5]; at = it[5] if len(it) > 5 else 0.9 + i * 0.35
+        q = back((t - at) / 0.3)
+        if q <= 0: continue
+        cq = clamp(q); m = (1 - cq) * 20
+        bx, by, bw, bh = x0 + ix * k + m, y0 + iy * k + m, iw * k - 2 * m, ih * k - 2 * m
+        col = it[6] if len(it) > 6 else (GREEN if i % 2 == 0 else LIME)
+        if bw > 4 and bh > 4: d.rounded_rectangle([bx, by, bx + bw, by + bh], radius=14, fill=col)
+        if cq > 0.7 and lab:
+            fs = 34
+            while fs > 18 and d.textlength(lab, font=F(FB, fs)) > iw * k - 16: fs -= 2
+            ff = F(FB, fs); lw = d.textlength(lab, font=ff)
+            d.text((x0 + ix * k + (iw * k - lw) / 2, y0 + iy * k + ih * k / 2 - fs * 0.62), lab, font=ff, fill=BLACK)
+    if sc.get("verdict"):
+        q = back((t - sc.get("vt", 3.0)) / 0.4)
+        if q > 0:
+            f = F(FX, sc.get("vsize", 70)); s = sc["verdict"]; tw = d.textlength(s, font=f)
+            yy = y0 + ph + 110 + (1 - clamp(q)) * 50
+            pill(d, (W - tw) / 2 - 50, yy, tw + 100, sc.get("vsize", 70) + 60, sc.get("vcolor", LIME), r=36)
+            d.text(((W - tw) / 2, yy + 22), s, font=f, fill=BLACK)
+    if sc.get("note"): text_c(d, H - 120, sc["note"], F(FR, 34), GREY, ease((t - 0.8) / 0.4), bg)
+
+R = dict(plan=sc_plan, title=sc_title, number=sc_number, chat=sc_chat, notifs=sc_notifs, chips=sc_chips, checklist=sc_checklist,
          split=sc_split, cards=sc_cards, grid=sc_grid, logo=sc_logo, steps=sc_steps, cta=sc_cta, end=sc_end)
 
 def frame(sc, t, g, total):
