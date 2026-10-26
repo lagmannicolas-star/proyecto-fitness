@@ -11,7 +11,9 @@
   var SALA = { gimnasio: [14, 9], club: [16, 10], colegio: [18, 10], casa: [4, 3] };
   // Cancha de fútbol sintético (medida típica de fútbol 5), para ver cómo queda el equipamiento sobre el césped.
   var CANCHA = [30, 18];
-  var last = null, user = {}, piso = 'sala', three = null, loading = false;
+  // Pista de césped sintético dentro de la sala (trineo, arrastres, funcional): 2 m de ancho contra la pared del frente.
+  var PISTA_ANCHO = 2, PISTA_MARGEN = 0.15, PISTA_PASO = 0.3;
+  var last = null, user = {}, piso = 'sala', three = null, loading = false, pista = false, pistaLargo = 15;
 
   // ---------- Catálogo 3D: qué figura usa cada producto y cuántas unidades dibuja ----------
   // f: figura · w,dp: huella en metros (ancho × profundidad) · c: espacio libre alrededor para usarlo · n(q): cuántas figuras · tag: etiqueta
@@ -55,7 +57,9 @@
 
   // ---------- Acomodo automático: lo que se guarda va contra las paredes, el resto en filas con pasillo ----------
   var PARED = { estante: 1, rusas: 1, mancuernero: 1, discos: 1, barras: 1, colchonetas: 1, steps: 1, cajones: 1, pilates: 1, accesorio: 1 };
-  function acomodar(ps, L, A) {
+  // Con pista, la franja del frente queda reservada: los equipos se acomodan en lo que resta (A útil).
+  function acomodar(ps, L, A, Au) {
+    if (Au == null) Au = A;
     var pared = ps.filter(function (p) { return PARED[p.f]; }), centro = ps.filter(function (p) { return !PARED[p.f]; });
     var m = 0.15, x = m, fuera = 0;
     // Pared del fondo (z = 0) y después pared izquierda (x = 0).
@@ -66,7 +70,7 @@
         else { p.x = x + p.w / 2; p.z = m + p.dp / 2; p.rot = 0; x += p.w + 0.15; return; }
       }
       if (lado === 1) {
-        if (z + p.w > A - m) { p.fuera = true; fuera++; return; }
+        if (z + p.w > Au - m) { p.fuera = true; fuera++; return; }
         p.x = m + p.dp / 2; p.z = z + p.w / 2; p.rot = Math.PI / 2; z += p.w + 0.15;
       }
     });
@@ -77,7 +81,7 @@
     centro.forEach(function (p) {
       var fw = p.w + p.c * 2, fd = p.dp + p.c * 2;
       if (cx + fw > L - 0.3) { cx = x0; cz += fila; fila = 0; }
-      if (cz + fd > A - 0.3) { p.fuera = true; fuera++; return; }
+      if (cz + fd > Au - 0.3) { p.fuera = true; fuera++; return; }
       p.x = cx + fw / 2; p.z = cz + fd / 2; p.rot = 0;
       cx += fw; fila = Math.max(fila, fd);
     });
@@ -91,19 +95,31 @@
   function medidas() {
     var t = (last && last.tipo) || 'gimnasio', k = piso === 'cancha' ? t + '|cancha' : t;
     var base = user[k] || (piso === 'cancha' ? CANCHA : SALA[t]) || [10, 8];
-    return { L: base[0], A: base[1], tipo: t, clave: k, piso: piso };
+    var m = { L: base[0], A: base[1], tipo: t, clave: k, piso: piso, pista: 0 };
+    // La pista solo va en la sala, y nunca más larga que el ambiente ni sin dejar al menos 2 m para el resto.
+    if (piso === 'sala' && pista && m.A >= PISTA_ANCHO + PISTA_MARGEN + 2) m.pista = Math.max(5, Math.min(pistaLargo, m.L - PISTA_MARGEN * 2));
+    if (m.pista > m.L - PISTA_MARGEN * 2) m.pista = 0;
+    return m;
+  }
+  function syncPista() {
+    var m = medidas(), en = piso === 'sala';
+    $('e3d-pista-box').hidden = !en;
+    $('e3d-pista').setAttribute('aria-pressed', String(pista));
+    $('e3d-pista-l').hidden = !pista;
+    if (pista && m.pista) $('e3d-pista-largo').value = m.pista;
   }
   function syncInputs() {
     var m = medidas();
     $('e3d-largo').value = m.L; $('e3d-ancho').value = m.A;
   }
-  function stats(ps, fuera, L, A) {
+  function stats(ps, fuera, L, A, pl) {
     var dentro = ps.filter(function (p) { return !p.fuera; });
-    var uso = dentro.reduce(function (s, p) { return s + (p.w + p.c * 2) * (p.dp + p.c * 2); }, 0), tot = L * A;
+    var uso = dentro.reduce(function (s, p) { return s + (p.w + p.c * 2) * (p.dp + p.c * 2); }, pl ? pl * PISTA_ANCHO : 0), tot = L * A;
     var pct = Math.min(100, Math.round(uso / tot * 100));
     var h = '<div class="e3d-kpi"><b>' + (Math.round(tot * 10) / 10).toString().replace('.', ',') + ' m²</b><span>superficie</span></div>'
       + '<div class="e3d-kpi"><b>' + pct + '%</b><span>ocupado con zona de uso</span></div>'
-      + '<div class="e3d-kpi"><b>' + dentro.length + '</b><span>piezas ubicadas</span></div>';
+      + '<div class="e3d-kpi"><b>' + dentro.length + '</b><span>piezas ubicadas</span></div>'
+      + (pl ? '<div class="e3d-kpi"><b>' + String(pl).replace('.', ',') + ' × ' + PISTA_ANCHO + ' m</b><span>pista de césped</span></div>' : '');
     $('e3d-stats').innerHTML = h;
     var a = $('e3d-alerta');
     if (fuera) { a.className = 'alert'; a.textContent = fuera + (fuera === 1 ? ' pieza no entra' : ' piezas no entran') + ' en ' + L + ' × ' + A + ' m: quedaron afuera, en rojo. Agrandá el ambiente o quitá algo de la lista.'; a.hidden = false; }
@@ -113,9 +129,11 @@
 
   function dibujar() {
     if (!last) return;
-    var m = medidas(), ps = piezas(last.kit || []), fuera = acomodar(ps, m.L, m.A);
-    stats(ps, fuera, m.L, m.A);
-    if (three) three.escena(ps, m.L, m.A, m.piso);
+    var m = medidas(), ps = piezas(last.kit || []);
+    var fuera = acomodar(ps, m.L, m.A, m.pista ? m.A - PISTA_ANCHO - PISTA_MARGEN - PISTA_PASO : m.A);
+    stats(ps, fuera, m.L, m.A, m.pista);
+    if (pista && piso === 'sala' && !m.pista) { var a = $('e3d-alerta'); a.className = 'alert'; a.textContent = 'La pista de césped no entra en ' + m.L + ' × ' + m.A + ' m: necesita al menos 5 m de largo y ' + (PISTA_ANCHO + 2) + ' m de ancho de ambiente.'; a.hidden = false; }
+    if (three) three.escena(ps, m.L, m.A, m.piso, m.pista);
   }
 
   w.addEventListener('nf-kit', function (ev) {
@@ -137,8 +155,13 @@
     b.addEventListener('click', function () {
       piso = b.getAttribute('data-e3d-piso') === 'cancha' ? 'cancha' : 'sala';
       [].forEach.call(botonesPiso, function (o) { o.setAttribute('aria-pressed', o === b); });
-      syncInputs(); dibujar();
+      syncInputs(); syncPista(); dibujar();
     });
+  });
+  $('e3d-pista').addEventListener('click', function () { pista = !pista; syncPista(); dibujar(); });
+  $('e3d-pista-largo').addEventListener('change', function () {
+    pistaLargo = Math.min(60, Math.max(5, parseFloat(String($('e3d-pista-largo').value).replace(',', '.')) || 15));
+    syncPista(); dibujar();
   });
   $('e3d-pedir').addEventListener('click', function () { var b = $('pedir'); if (b) b.click(); });
 
@@ -229,12 +252,27 @@
       });
     }
 
-    function escena(ps, L, A, tipoPiso) {
+    // Pista de césped sintético contra la pared del frente: franjas, bordes blancos, marcas cada 5 m y un trineo en la salida.
+    function pistaCesped(L, A, pl) {
+      var W = PISTA_ANCHO, z = A - PISTA_MARGEN - W / 2, x0 = L - PISTA_MARGEN - pl, y = 0.03, B = 0xF5F5F0, lw = 0.06;
+      var n = Math.max(1, Math.round(pl / 2.5)), fw = pl / n;
+      for (var i = 0; i < n; i++) franja(fw, W, x0 + fw * i + fw / 2, z, 0.02, i % 2 ? 0x3B8A37 : 0x449B3F).name = 'pista';
+      franja(pl, lw, x0 + pl / 2, z - W / 2 + lw / 2, y, B); franja(pl, lw, x0 + pl / 2, z + W / 2 - lw / 2, y, B);
+      franja(lw, W, x0 + lw / 2, z, y, B); franja(lw, W, x0 + pl - lw / 2, z, y, B);
+      for (var mk = 5; mk < pl - 0.5; mk += 5) franja(lw, W * 0.5, x0 + mk, z, y, B);
+      // Trineo de empuje en la salida.
+      var g = new T.Group();
+      caja(g, 0.9, 0.08, 0.7, 0, 0, 0, C.negro); caja(g, 0.95, 0.03, 0.08, 0, 0, -0.32, C.metal); caja(g, 0.95, 0.03, 0.08, 0, 0, 0.32, C.metal);
+      cil(g, 0.03, 1.1, -0.3, 0.6, -0.22, C.negro); cil(g, 0.03, 1.1, -0.3, 0.6, 0.22, C.negro);
+      cil(g, 0.025, 0.35, 0, 0.25, 0, C.metal); cil(g, 0.22, 0.05, 0, 0.12, 0, C.goma);
+      g.position.set(x0 + 0.8, 0.02, z); room.add(g);
+    }
+    function escena(ps, L, A, tipoPiso, pl) {
       while (room.children.length) room.remove(room.children[0]);
       while (cosas.children.length) cosas.remove(cosas.children[0]);
       piezasMesh = []; sel = null; panel();
       sc.background = new T.Color(tipoPiso === 'cancha' ? 0xDDE8F0 : 0xF4F1EA);
-      if (tipoPiso === 'cancha') cancha(L, A); else sala(L, A);
+      if (tipoPiso === 'cancha') cancha(L, A); else { sala(L, A); if (pl) pistaCesped(L, A, pl); }
       ps.forEach(function (p) {
         var g = new T.Group(); (FIG[p.f] || FIG.accesorio)(g);
         if (p.fuera) g.traverse(function (o) { if (o.isMesh) { o.material = mat(C.rojo, 0.75); } });

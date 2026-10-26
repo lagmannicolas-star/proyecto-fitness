@@ -65,7 +65,7 @@
   <section class="e3d" id="e3d" aria-labelledby="e3d-t">
     <div class="e3d-head">
       <div><p class="eyebrow">Nuevo</p><h2 id="e3d-t" class="display">Tu espacio en 3D</h2>
-        <p class="muted">Poné las medidas de tu lugar (sala o cancha de fútbol sintético) y mirá cómo entra todo, a escala real. Arrastrá cada pieza para moverla y girala con el botón.</p></div>
+        <p class="muted">Poné las medidas de tu lugar (sala, sala con pista de césped para trineo o cancha de fútbol sintético) y mirá cómo entra todo, a escala real. Arrastrá cada pieza para moverla y girala con el botón.</p></div>
       <div class="e3d-medidas">
         <label for="e3d-largo">Largo (m)<input id="e3d-largo" type="number" inputmode="decimal" min="2" max="60" step="0.5" value="14"></label>
         <span aria-hidden="true">×</span>
@@ -74,6 +74,10 @@
       <div class="e3d-piso" role="group" aria-label="Superficie">
         <button type="button" class="e3d-btn" data-e3d-piso="sala" aria-pressed="true">Sala</button>
         <button type="button" class="e3d-btn" data-e3d-piso="cancha" aria-pressed="false">Cancha de fútbol sintético</button>
+      </div>
+      <div class="e3d-pista" id="e3d-pista-box">
+        <button type="button" class="e3d-btn" id="e3d-pista" aria-pressed="false">Pista de césped sintético</button>
+        <label for="e3d-pista-largo" id="e3d-pista-l" hidden>Largo de la pista (m)<input id="e3d-pista-largo" type="number" inputmode="decimal" min="5" max="60" step="1" value="15"></label>
       </div>
     </div>
     <div class="e3d-stats" id="e3d-stats" aria-live="polite"></div>

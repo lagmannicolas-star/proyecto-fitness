@@ -213,6 +213,7 @@ main section{margin-bottom:48px}
 .e3d-medidas input{width:96px;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:700;text-align:center;background:#fff}
 .e3d-medidas span{padding-bottom:10px;font-weight:700}
 .e3d-piso{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
+.e3d-pista{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}.e3d-pista[hidden]{display:none}.e3d-pista label{display:grid;gap:4px;font-weight:600;font-size:.9rem}.e3d-pista input{width:96px;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:700;text-align:center;background:#fff}
 .e3d-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .e3d-kpi{border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:grid}.e3d-kpi b{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;line-height:1.1}.e3d-kpi span{font-size:.82rem;color:var(--muted)}
 .e3d-stage{position:relative;height:min(62vh,560px);min-height:360px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#F4F1EA;touch-action:none}

@@ -27,4 +27,8 @@ assert.match(js, /no entra/);
 // También se puede ver sobre una cancha de fútbol sintético.
 assert.match(html, /data-e3d-piso="cancha"/); assert.match(html, /data-e3d-piso="sala"/);
 assert.match(js, /CANCHA = \[/); assert.match(js, /function cancha\(/);
+// En la sala se puede sumar una pista de césped sintético (trineo) con largo configurable, que reserva su franja.
+assert.match(html, /id="e3d-pista"/); assert.match(html, /id="e3d-pista-largo"/);
+assert.match(js, /function pistaCesped\(/); assert.match(js, /PISTA_ANCHO = 2/);
+assert.match(js, /acomodar\(ps, m\.L, m\.A, m\.pista \?/);
 console.log('OK: planificador 3D en Armá tu espacio.');
