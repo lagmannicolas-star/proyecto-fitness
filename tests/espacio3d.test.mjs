@@ -24,4 +24,7 @@ assert.doesNotMatch(js, /https?:\/\/(cdn|unpkg)/);
 // Medidas por defecto para cada tipo de espacio, y aviso cuando algo no entra.
 for (const t of ['gimnasio', 'club', 'colegio', 'casa']) assert.match(js, new RegExp(t + ':\\s*\\['));
 assert.match(js, /no entra/);
+// También se puede ver sobre una cancha de fútbol sintético.
+assert.match(html, /data-e3d-piso="cancha"/); assert.match(html, /data-e3d-piso="sala"/);
+assert.match(js, /CANCHA = \[/); assert.match(js, /function cancha\(/);
 console.log('OK: planificador 3D en Armá tu espacio.');
