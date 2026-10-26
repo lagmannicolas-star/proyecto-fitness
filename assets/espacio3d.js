@@ -9,11 +9,7 @@
 
   // Medidas sugeridas del ambiente según el tipo de espacio (largo × ancho, en metros).
   var SALA = { gimnasio: [14, 9], club: [16, 10], colegio: [18, 10], casa: [4, 3] };
-  // Cancha de fútbol sintético (medida típica de fútbol 5), para ver cómo queda el equipamiento sobre el césped.
-  var CANCHA = [30, 18];
-  // Pista de césped sintético dentro de la sala (trineo, arrastres, funcional): 2 m de ancho contra la pared del frente.
-  var PISTA_ANCHO = 2, PISTA_MARGEN = 0.15, PISTA_PASO = 0.3;
-  var last = null, user = {}, piso = 'sala', three = null, loading = false, pista = false, pistaLargo = 15;
+  var last = null, user = {}, three = null, loading = false;
 
   // ---------- Catálogo 3D: qué figura usa cada producto y cuántas unidades dibuja ----------
   // f: figura · w,dp: huella en metros (ancho × profundidad) · c: espacio libre alrededor para usarlo · n(q): cuántas figuras · tag: etiqueta
@@ -57,9 +53,7 @@
 
   // ---------- Acomodo automático: lo que se guarda va contra las paredes, el resto en filas con pasillo ----------
   var PARED = { estante: 1, rusas: 1, mancuernero: 1, discos: 1, barras: 1, colchonetas: 1, steps: 1, cajones: 1, pilates: 1, accesorio: 1 };
-  // Con pista, la franja del frente queda reservada: los equipos se acomodan en lo que resta (A útil).
-  function acomodar(ps, L, A, Au) {
-    if (Au == null) Au = A;
+  function acomodar(ps, L, A) {
     var pared = ps.filter(function (p) { return PARED[p.f]; }), centro = ps.filter(function (p) { return !PARED[p.f]; });
     var m = 0.15, x = m, fuera = 0;
     // Pared del fondo (z = 0) y después pared izquierda (x = 0).
@@ -70,7 +64,7 @@
         else { p.x = x + p.w / 2; p.z = m + p.dp / 2; p.rot = 0; x += p.w + 0.15; return; }
       }
       if (lado === 1) {
-        if (z + p.w > Au - m) { p.fuera = true; fuera++; return; }
+        if (z + p.w > A - m) { p.fuera = true; fuera++; return; }
         p.x = m + p.dp / 2; p.z = z + p.w / 2; p.rot = Math.PI / 2; z += p.w + 0.15;
       }
     });
@@ -81,7 +75,7 @@
     centro.forEach(function (p) {
       var fw = p.w + p.c * 2, fd = p.dp + p.c * 2;
       if (cx + fw > L - 0.3) { cx = x0; cz += fila; fila = 0; }
-      if (cz + fd > Au - 0.3) { p.fuera = true; fuera++; return; }
+      if (cz + fd > A - 0.3) { p.fuera = true; fuera++; return; }
       p.x = cx + fw / 2; p.z = cz + fd / 2; p.rot = 0;
       cx += fw; fila = Math.max(fila, fd);
     });
@@ -93,33 +87,20 @@
 
   // ---------- Interfaz ----------
   function medidas() {
-    var t = (last && last.tipo) || 'gimnasio', k = piso === 'cancha' ? t + '|cancha' : t;
-    var base = user[k] || (piso === 'cancha' ? CANCHA : SALA[t]) || [10, 8];
-    var m = { L: base[0], A: base[1], tipo: t, clave: k, piso: piso, pista: 0 };
-    // La pista solo va en la sala, y nunca más larga que el ambiente ni sin dejar al menos 2 m para el resto.
-    if (piso === 'sala' && pista && m.A >= PISTA_ANCHO + PISTA_MARGEN + 2) m.pista = Math.max(5, Math.min(pistaLargo, m.L - PISTA_MARGEN * 2));
-    if (m.pista > m.L - PISTA_MARGEN * 2) m.pista = 0;
-    return m;
-  }
-  function syncPista() {
-    var m = medidas(), en = piso === 'sala';
-    $('e3d-pista-box').hidden = !en;
-    $('e3d-pista').setAttribute('aria-pressed', String(pista));
-    $('e3d-pista-l').hidden = !pista;
-    if (pista && m.pista) $('e3d-pista-largo').value = m.pista;
+    var t = (last && last.tipo) || 'gimnasio', base = user[t] || SALA[t] || [10, 8];
+    return { L: base[0], A: base[1], tipo: t };
   }
   function syncInputs() {
     var m = medidas();
     $('e3d-largo').value = m.L; $('e3d-ancho').value = m.A;
   }
-  function stats(ps, fuera, L, A, pl) {
+  function stats(ps, fuera, L, A) {
     var dentro = ps.filter(function (p) { return !p.fuera; });
-    var uso = dentro.reduce(function (s, p) { return s + (p.w + p.c * 2) * (p.dp + p.c * 2); }, pl ? pl * PISTA_ANCHO : 0), tot = L * A;
+    var uso = dentro.reduce(function (s, p) { return s + (p.w + p.c * 2) * (p.dp + p.c * 2); }, 0), tot = L * A;
     var pct = Math.min(100, Math.round(uso / tot * 100));
     var h = '<div class="e3d-kpi"><b>' + (Math.round(tot * 10) / 10).toString().replace('.', ',') + ' m²</b><span>superficie</span></div>'
       + '<div class="e3d-kpi"><b>' + pct + '%</b><span>ocupado con zona de uso</span></div>'
-      + '<div class="e3d-kpi"><b>' + dentro.length + '</b><span>piezas ubicadas</span></div>'
-      + (pl ? '<div class="e3d-kpi"><b>' + String(pl).replace('.', ',') + ' × ' + PISTA_ANCHO + ' m</b><span>pista de césped</span></div>' : '');
+      + '<div class="e3d-kpi"><b>' + dentro.length + '</b><span>piezas ubicadas</span></div>';
     $('e3d-stats').innerHTML = h;
     var a = $('e3d-alerta');
     if (fuera) { a.className = 'alert'; a.textContent = fuera + (fuera === 1 ? ' pieza no entra' : ' piezas no entran') + ' en ' + L + ' × ' + A + ' m: quedaron afuera, en rojo. Agrandá el ambiente o quitá algo de la lista.'; a.hidden = false; }
@@ -129,11 +110,9 @@
 
   function dibujar() {
     if (!last) return;
-    var m = medidas(), ps = piezas(last.kit || []);
-    var fuera = acomodar(ps, m.L, m.A, m.pista ? m.A - PISTA_ANCHO - PISTA_MARGEN - PISTA_PASO : m.A);
-    stats(ps, fuera, m.L, m.A, m.pista);
-    if (pista && piso === 'sala' && !m.pista) { var a = $('e3d-alerta'); a.className = 'alert'; a.textContent = 'La pista de césped no entra en ' + m.L + ' × ' + m.A + ' m: necesita al menos 5 m de largo y ' + (PISTA_ANCHO + 2) + ' m de ancho de ambiente.'; a.hidden = false; }
-    if (three) three.escena(ps, m.L, m.A, m.piso, m.pista);
+    var m = medidas(), ps = piezas(last.kit || []), fuera = acomodar(ps, m.L, m.A);
+    stats(ps, fuera, m.L, m.A);
+    if (three) three.escena(ps, m.L, m.A);
   }
 
   w.addEventListener('nf-kit', function (ev) {
@@ -146,22 +125,8 @@
     $(id).addEventListener('change', function () {
       var L = Math.min(60, Math.max(2, parseFloat(String($('e3d-largo').value).replace(',', '.')) || 2));
       var A = Math.min(40, Math.max(2, parseFloat(String($('e3d-ancho').value).replace(',', '.')) || 2));
-      user[medidas().clave] = [L, A]; syncInputs(); dibujar();
+      user[medidas().tipo] = [L, A]; syncInputs(); dibujar();
     });
-  });
-  // Superficie: sala (piso común) o cancha de fútbol sintético.
-  var botonesPiso = d.querySelectorAll('[data-e3d-piso]');
-  [].forEach.call(botonesPiso, function (b) {
-    b.addEventListener('click', function () {
-      piso = b.getAttribute('data-e3d-piso') === 'cancha' ? 'cancha' : 'sala';
-      [].forEach.call(botonesPiso, function (o) { o.setAttribute('aria-pressed', o === b); });
-      syncInputs(); syncPista(); dibujar();
-    });
-  });
-  $('e3d-pista').addEventListener('click', function () { pista = !pista; syncPista(); dibujar(); });
-  $('e3d-pista-largo').addEventListener('change', function () {
-    pistaLargo = Math.min(60, Math.max(5, parseFloat(String($('e3d-pista-largo').value).replace(',', '.')) || 15));
-    syncPista(); dibujar();
   });
   $('e3d-pedir').addEventListener('click', function () { var b = $('pedir'); if (b) b.click(); });
 
@@ -223,64 +188,10 @@
     };
 
     var piezasMesh = [], sel = null;
-    // Cancha de fútbol sintético: césped a franjas, líneas blancas, arcos en las cabeceras y alambrado perimetral.
-    function franja(w_, d_, x, z, y, c) { var m = new T.Mesh(new T.PlaneGeometry(w_, d_), mat(c)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); m.receiveShadow = true; room.add(m); return m; }
-    function cancha(L, A) {
-      var n = Math.max(6, Math.round(L / 3)), fw = L / n, lw = 0.1, y = 0.004, B = 0xF5F5F0;
-      for (var i = 0; i < n; i++) franja(fw, A, fw * i + fw / 2, A / 2, 0, i % 2 ? 0x3B8A37 : 0x449B3F).name = 'piso';
-      var mg = Math.min(1, Math.min(L, A) * 0.04), l0 = mg, l1 = L - mg, a0 = mg, a1 = A - mg;
-      franja(l1 - l0, lw, L / 2, a0, y, B); franja(l1 - l0, lw, L / 2, a1, y, B);
-      franja(lw, a1 - a0, l0, A / 2, y, B); franja(lw, a1 - a0, l1, A / 2, y, B);
-      franja(lw, a1 - a0, L / 2, A / 2, y, B);
-      var rc = Math.min(3, A * 0.16), ring = new T.Mesh(new T.RingGeometry(rc - lw / 2, rc + lw / 2, 64), mat(B));
-      ring.rotation.x = -Math.PI / 2; ring.position.set(L / 2, y, A / 2); room.add(ring);
-      var pto = new T.Mesh(new T.CircleGeometry(0.15, 20), mat(B)); pto.rotation.x = -Math.PI / 2; pto.position.set(L / 2, y, A / 2); room.add(pto);
-      // Áreas: rectángulo frente a cada arco, proporcional a la cancha.
-      var ad = Math.min(6, (l1 - l0) * 0.18), aw = Math.min(12, (a1 - a0) * 0.6);
-      [[l0, 1], [l1, -1]].forEach(function (e) {
-        var xf = e[0] + e[1] * ad;
-        franja(lw, aw, xf, A / 2, y, B);
-        franja(ad, lw, e[0] + e[1] * ad / 2, A / 2 - aw / 2, y, B); franja(ad, lw, e[0] + e[1] * ad / 2, A / 2 + aw / 2, y, B);
-        var pen = new T.Mesh(new T.CircleGeometry(0.12, 16), mat(B)); pen.rotation.x = -Math.PI / 2; pen.position.set(e[0] + e[1] * Math.min(6, ad * 1.1), y, A / 2); room.add(pen);
-        var g = new T.Group(); FIG.arco(g); g.position.set(e[0] + e[1] * 0.55, 0, A / 2); g.rotation.y = e[1] > 0 ? Math.PI / 2 : -Math.PI / 2; room.add(g);
-      });
-      // Alambrado: tablero bajo y red alta semitransparente alrededor.
-      var alto = 4, red = mat(0x1E2A22, 0.18);
-      [[L / 2, 0, L, 0.05], [L / 2, A, L, 0.05], [0, A / 2, 0.05, A], [L, A / 2, 0.05, A]].forEach(function (p) {
-        var t = new T.Mesh(new T.BoxGeometry(p[2], 0.6, p[3]), mat(0x2B3A2E)); t.position.set(p[0], 0.3, p[1]); t.castShadow = t.receiveShadow = true; room.add(t);
-        var r_ = new T.Mesh(new T.BoxGeometry(p[2], alto - 0.6, p[3] * 0.4), red); r_.position.set(p[0], 0.6 + (alto - 0.6) / 2, p[1]); room.add(r_);
-      });
-    }
-
-    // Pista de césped sintético contra la pared del frente: franjas, bordes blancos, marcas cada 5 m y un trineo en la salida.
-    function pistaCesped(L, A, pl) {
-      var W = PISTA_ANCHO, z = A - PISTA_MARGEN - W / 2, x0 = L - PISTA_MARGEN - pl, y = 0.03, B = 0xF5F5F0, lw = 0.06;
-      var n = Math.max(1, Math.round(pl / 2.5)), fw = pl / n;
-      for (var i = 0; i < n; i++) franja(fw, W, x0 + fw * i + fw / 2, z, 0.02, i % 2 ? 0x3B8A37 : 0x449B3F).name = 'pista';
-      franja(pl, lw, x0 + pl / 2, z - W / 2 + lw / 2, y, B); franja(pl, lw, x0 + pl / 2, z + W / 2 - lw / 2, y, B);
-      franja(lw, W, x0 + lw / 2, z, y, B); franja(lw, W, x0 + pl - lw / 2, z, y, B);
-      for (var mk = 5; mk < pl - 0.5; mk += 5) franja(lw, W * 0.5, x0 + mk, z, y, B);
-      // Trineo de empuje en la salida.
-      var g = new T.Group();
-      caja(g, 0.9, 0.08, 0.7, 0, 0, 0, C.negro); caja(g, 0.95, 0.03, 0.08, 0, 0, -0.32, C.metal); caja(g, 0.95, 0.03, 0.08, 0, 0, 0.32, C.metal);
-      cil(g, 0.03, 1.1, -0.3, 0.6, -0.22, C.negro); cil(g, 0.03, 1.1, -0.3, 0.6, 0.22, C.negro);
-      cil(g, 0.025, 0.35, 0, 0.25, 0, C.metal); cil(g, 0.22, 0.05, 0, 0.12, 0, C.goma);
-      g.position.set(x0 + 0.8, 0.02, z); room.add(g);
-    }
-    function escena(ps, L, A, tipoPiso, pl) {
+    function escena(ps, L, A) {
       while (room.children.length) room.remove(room.children[0]);
       while (cosas.children.length) cosas.remove(cosas.children[0]);
       piezasMesh = []; sel = null; panel();
-      sc.background = new T.Color(tipoPiso === 'cancha' ? 0xDDE8F0 : 0xF4F1EA);
-      if (tipoPiso === 'cancha') cancha(L, A); else { sala(L, A); if (pl) pistaCesped(L, A, pl); }
-      ps.forEach(function (p) {
-        var g = new T.Group(); (FIG[p.f] || FIG.accesorio)(g);
-        if (p.fuera) g.traverse(function (o) { if (o.isMesh) { o.material = mat(C.rojo, 0.75); } });
-        g.position.set(p.x, 0, p.z); g.rotation.y = p.rot || 0; g.userData = p; cosas.add(g); piezasMesh.push(g);
-      });
-      finEscena(L, A);
-    }
-    function sala(L, A) {
       var piso = new T.Mesh(new T.PlaneGeometry(L, A), new T.MeshStandardMaterial({ color: 0xE3DCCD, roughness: 0.95 }));
       piso.rotation.x = -Math.PI / 2; piso.position.set(L / 2, 0, A / 2); piso.receiveShadow = true; piso.name = 'piso'; room.add(piso);
       var grid = new T.GridHelper(Math.max(L, A), Math.max(L, A), 0xC9C1AF, 0xD6CFBF); grid.position.set(Math.max(L, A) / 2, 0.002, Math.max(L, A) / 2);
@@ -290,8 +201,11 @@
       var alto = 2.8, pm = mat(0xF7F4EE, 0.55);
       [[L / 2, 0, L, 0.08], [0, A / 2, 0.08, A]].forEach(function (p) { var m = new T.Mesh(new T.BoxGeometry(p[2], alto, p[3]), pm); m.position.set(p[0], alto / 2, p[1]); m.receiveShadow = true; room.add(m); });
       [[L / 2, A, L, 0.05], [L, A / 2, 0.05, A]].forEach(function (p) { var m = new T.Mesh(new T.BoxGeometry(p[2], 0.12, p[3]), mat(0xCFC7B6)); m.position.set(p[0], 0.06, p[1]); room.add(m); });
-    }
-    function finEscena(L, A) {
+      ps.forEach(function (p) {
+        var g = new T.Group(); (FIG[p.f] || FIG.accesorio)(g);
+        if (p.fuera) g.traverse(function (o) { if (o.isMesh) { o.material = mat(C.rojo, 0.75); } });
+        g.position.set(p.x, 0, p.z); g.rotation.y = p.rot || 0; g.userData = p; cosas.add(g); piezasMesh.push(g);
+      });
       sol.position.set(L * 0.2, Math.max(L, A) * 1.2, A * 1.4); sol.target.position.set(L / 2, 0, A / 2);
       var s = Math.max(L, A); sol.shadow.camera.left = -s; sol.shadow.camera.right = s; sol.shadow.camera.top = s; sol.shadow.camera.bottom = -s; sol.shadow.camera.far = s * 4; sol.shadow.camera.updateProjectionMatrix();
       medidasRoom = { L: L, A: A };
