@@ -100,7 +100,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-20,natatorios,Pool Equip,San Justo,Buenos Aires,poolequip@poolequip.com.ar,5491137619757,https://www.poolequip.com.ar/,seguimiento,1a15a5392f1f191f,2026-10-24
 2026-10-20,pisos deportivos,Grupo Cosmos,CABA,CABA,info@grupocosmos.com.ar,,https://grupocosmos.com.ar/categoria-producto/pisos-de-caucho/,seguimiento,1a15a53b2dca2088,2026-10-24
 2026-10-20,funcional/crossfit,PesasFit,,Buenos Aires,,5491128980866,https://www.pesasfit.com.ar/,solo_whatsapp,,
-2026-10-20,cesped sintetico,Slavon,CABA,CABA,info@slavon.com.ar,,https://slavoncespedsintetico.com/,seguimiento,1a15a72861115464,2026-10-24
+2026-10-20,cesped sintetico,Slavon,CABA,CABA,info@slavon.com.ar,,https://slavoncespedsintetico.com/,respondio,1a15a72861115464,2026-10-24
 2026-10-20,natacion,Solo Natación,CABA,CABA,info@solonatacion.com.ar,5491128080466,https://www.solonatacion.com.ar/,seguimiento,1a15a7e2b0101d6b,2026-10-24
 2026-10-20,natacion,Ciudad Del Nado,CABA,CABA,ciudaddelnado@gmail.com,5491130550555,https://www.ciudaddelnado.com.ar/,seguimiento,1a15a7e4f02ec01e,2026-10-24
 2026-10-20,bicicletas fijas,Nitrec,Lomas de Zamora,Buenos Aires,ventasnitrec@gmail.com,5491136302508,https://nitrec.com.ar/,seguimiento,1a15a7e706ba81bc,2026-10-24
@@ -186,11 +186,11 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-22,pisos deportivos,Multieva,,,multieva@barama.com.ar,,,enviado,1a16391e6642c5ee,
 2026-10-22,musculación/cardio/pilates,Fibra Fitness,,,contacto@fibrafitness.com,,,respondio,1a1639209a5da4af,
 2026-10-22,musculación,High Performance,,,hp.gimnasios@gmail.com,,,enviado,1a163922a6a5bcd7,
-2026-10-22,musculación/crossfit,Prisma Equipamientos,Roldán,Santa Fe,prisma.fierros@gmail.com,,,enviado,1a163924d3f29c72,
+2026-10-22,musculación/crossfit,Prisma Equipamientos,Roldán,Santa Fe,prisma.fierros@gmail.com,,,rebote,1a163924d3f29c72,
 2026-10-22,hockey,TodoHockey,,,ventas@todohockey.com.ar,,,enviado,1a163926ff8ecc32,
 2026-10-22,hockey,Mazon Hockey,,,info@mazonhockey.com.ar,,,enviado,1a163928ed8e395b,
 2026-10-22,hockey/material deportivo,Stick Argentina,,,Ventas@stickargentina.com.ar,,,enviado,1a16392bc4fad067,
-2026-10-22,material deportivo,As Equipamiento Deportivo,,Tucumán,ventas@asequipamientodeportivo.com.ar,,,enviado,1a16392df338abd9,
+2026-10-22,material deportivo,As Equipamiento Deportivo,,Tucumán,ventas@asequipamientodeportivo.com.ar,,,rebote,1a16392df338abd9,
 2026-10-22,pádel,Empire Padel,San Francisco,Córdoba,ventas@empirepadel.net,,,enviado,1a1639300650f5bb,
 2026-10-22,natación,Speed,Villa Martelli,Buenos Aires,localmitre@natacion.com.ar,,,enviado,1a163932342917b4,
 2026-10-22,redes deportivas,Persev Deportes,,,persev2010@gmail.com,,,enviado,1a16393447d2a9a7,
@@ -267,7 +267,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-23,material deportivo multideporte y fitness,El Sanatorio del Fútbol,Córdoba,Córdoba,ventas@sanatoriodelfutbol.com.ar,5493516602151,https://tienda.safdeportes.com/deportes-de-raqueta-paleta/tenis-de-mesa/,enviado,1a16a470aef5c794,
 2026-10-23,canchas de pádel (fábrica e instalación),World Padel Court,CABA,CABA,info@worldpadelcourt.com.ar,,https://worldpadelcourt.com.ar/,enviado,1a16a473306b77fa,
 2026-10-23,natación (elementos de entrenamiento),Nadadores ARG,San Miguel,Buenos Aires,nadadoresarg@gmail.com,5491165157374,https://www.nadadoresarg.com.ar/accesorios/pull-y-tablas,enviado,1a16a47550e8046b,
-2026-10-23,natación,Andarivel 4,Rosario,Santa Fe,info@andarivel4.com.ar,,https://andarivel4.com.ar/,enviado,1a16a47757293860,
+2026-10-23,natación,Andarivel 4,Rosario,Santa Fe,info@andarivel4.com.ar,,https://andarivel4.com.ar/,rebote,1a16a47757293860,
 2026-10-23,"accesorios de entrenamiento (calleras, mayorista)",Power Grip Argentina,CABA,CABA,,5491130592887,https://www.powergrip.com.ar/productos/calleras-barras-paralelas/,solo_whatsapp,,
 2026-10-23,pisos de caucho para gimnasios,Reciclado de Caucho y Plástico,Rosario,Santa Fe,,5493418203000,https://recicladodecauchoyplastico.com/,solo_whatsapp,,
 2026-10-23,calistenia (fábrica y parques),BÄR Calistenia,Buenos Aires,Buenos Aires,,5491123978270,https://barcalistenia.com/,solo_whatsapp,,
@@ -326,3 +326,13 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-26,gimnasios al aire libre y calistenia,Crucijuegos,Rosario,Santa Fe,,5493413382687,https://www.tienda.crucijuegos.com/contacto/,solo_whatsapp,,
 2026-10-26,accesorios gimnasia artística y crossfit,Priiisma,Lanús,Buenos Aires,,5492241516103,https://priiisma.com.ar/productos/calleras-para-asimetricas-con-abrojos/,solo_whatsapp,,
 2026-10-26,fitness boxeo y natacion,Black Baley Deportes,Paraná,Entre Ríos,ventas@blackbaley.com,5493435432870,https://www.blackbaley.com/contactus,enviado,1a17a239092ee7cd,
+2026-10-27,accesorios musculación mayorista,Mundo Fitness,Paraná,Entre Ríos,contacto@mundofitness.com.ar,,https://mundofitness.com.ar/nosotros/,enviado,1a17d8cef18a0bff,
+2026-10-27,cesped sintetico,Fit Argentina,CABA,CABA,ventas@fitargentina.com.ar,5491122474111,https://fitargentina.com.ar/,enviado,1a17d8d101d0f6f4,
+2026-10-27,pisos de goma,Pisolandia,Villa Domínico,Buenos Aires,info@pisolandiadearg.com.ar,,https://www.pisolandiadearg.com.ar/pisos-de-goma.html,enviado,1a17d8d33ad52477,
+2026-10-27,natatorios (cerramientos y climatización),Lonera Argentina,Córdoba,Córdoba,lonera.arg@gmail.com,,https://www.loneraargentina.com/climatizacion-de-piletas,enviado,1a17d8d5549ead47,
+2026-10-27,natatorios (climatización),Creaclima,Mar del Plata,Buenos Aires,info@creaclima.com.ar,5492235401850,https://creaclima.com.ar/servicios/climatizacion-piletas/,enviado,1a17d8d761ab154b,
+2026-10-27,pisos de caucho,4M Pisos de Caucho,Mataderos,CABA,,5491134185522,https://4mpisosdecaucho.com/quienes-somos/,solo_whatsapp,,
+2026-10-27,pisos de caucho,RubberNet,Caseros,Buenos Aires,,5491124759089,https://rubber-net.com/index.php/pisos/pisos-gym,solo_whatsapp,,
+2026-10-27,artes marciales y boxeo,Citideportes,Balvanera,CABA,,5491162553656,https://citideportes.com.ar/taekwondo/,solo_whatsapp,,
+2026-10-27,pelotas (fábrica),Fábrica de Pelotas Nexo,La Plata,Buenos Aires,,5492215640441,https://www.pelotasnexo.com.ar/contacto.php,solo_whatsapp,,
+2026-10-27,pádel,POINTSPORTS,Flores,CABA,,5491132274773,https://www.pointsports.com.ar/,solo_whatsapp,,
