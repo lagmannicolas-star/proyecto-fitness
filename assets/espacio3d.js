@@ -14,6 +14,8 @@
   // ---------- Catálogo 3D: qué figura usa cada producto y cuántas unidades dibuja ----------
   // f: figura · w,dp: huella en metros (ancho × profundidad) · c: espacio libre alrededor para usarlo · n(q): cuántas figuras · tag: etiqueta
   var REGLAS = [
+    // El césped, el relleno y la colocación cubren el piso: no se dibujan como piezas.
+    [/c[eé]sped|relleno|arena s[ií]lice|colocaci[oó]n/i, { none: true }],
     [/rack|jaula/i, { f: 'rack', w: 1.4, dp: 1.5, c: 0.9, n: function (q) { return q; }, tag: 'Rack' }],
     [/banco/i, { f: 'banco', w: 0.6, dp: 1.3, c: 0.7, n: function (q) { return q; }, tag: 'Banco' }],
     [/barra ol[ií]mpica|barras ol[ií]mpicas|barra con discos/i, { f: 'barras', w: 0.6, dp: 0.6, c: 0.3, n: function (q) { return Math.ceil(q / 6); }, tag: 'Soporte de barras' }],
@@ -43,6 +45,7 @@
     kit.forEach(function (it) {
       var r = regla(it);
       if (r.skip) { if (!tieneMancuernas) out.push({ f: 'mancuernero', w: 1.6, dp: 0.6, c: 0.8, tag: 'Mancuernero', item: it.p }); return; }
+      if (r.none) return;
       if (r.acc) { acc.push(it.p); return; }
       var n = Math.max(1, r.n(it.q || 1, it));
       for (var k = 0; k < n; k++) out.push({ f: r.f, w: r.w, dp: r.dp, c: r.c, tag: r.tag, item: it.p });

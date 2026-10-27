@@ -44,6 +44,14 @@
             ['Bandas elásticas', n, '']];
           if (full) l.push(['Sets de body pump', n, 'Barra + discos'], ['Pelotas de pilates', n, '65 cm'], ['Tobilleras (pares)', n, '1 a 2 kg']);
           return l;
+        }],
+        cesped: ['Pista de césped (trineo)', function (n, full) {
+          var l = [
+            ['Césped sintético para pista', 30, 'm² · pista de 15 × 2 m para trineo y arrastres. Ajustá a tu medida'],
+            ['Trineo de arrastre', C(n / 10), ''],
+            ['Arnés o cinta de arrastre', C(n / 10), '']];
+          if (full) l.push(['Colocación del césped', 1, 'Pegado al piso, con cinta de unión']);
+          return l;
         }]
       }
     },
@@ -74,10 +82,35 @@
             ['Gorras de natación', n, '']];
           if (full) l.push(['Andariveles', 1, 'Indicar largo de la pileta y cantidad de carriles'], ['Manoplas (pares)', n, ''], ['Flota flota', n, ''], ['Cronómetro', 1, '']);
           return l;
+        }],
+        // Césped sintético: las cantidades salen de la medida típica de cada cancha y se ajustan en la lista.
+        canchaFutbol: ['Cancha de fútbol sintético', function (n, full) {
+          var l = [
+            ['Césped sintético para cancha', 600, 'm² · fútbol 5, cancha de unos 30 × 18 m con bordes. Ajustá a tu medida'],
+            ['Relleno de caucho y arena', 1, 'Para todo el césped: el proveedor calcula los kilos'],
+            ['Arcos de fútbol 5', 2, '3 × 2 m'],
+            ['Redes para arcos', 2, '']];
+          if (full) l.push(['Red perimetral', 1, 'Indicar los metros de perímetro y la altura'], ['Colocación del césped', 1, 'Instalación con base y demarcación']);
+          return l;
+        }],
+        canchaHockey: ['Cancha de hockey sintético', function (n, full) {
+          var l = [
+            ['Césped sintético para hockey', 6000, 'm² · cancha de 91,4 × 55 m con márgenes. De agua o de arena: indicalo. Ajustá a tu medida'],
+            ['Arcos de hockey', 2, 'Reglamentarios'],
+            ['Redes para arcos', 2, '']];
+          if (full) l.push(['Relleno de arena', 1, 'Si el césped es de arena: el proveedor calcula los kilos'], ['Colocación del césped', 1, 'Instalación con base y demarcación']);
+          return l;
+        }],
+        canchaPadel: ['Césped para pádel', function (n, full) {
+          var l = [
+            ['Césped sintético para pádel', 200, 'm² · una cancha de 20 × 10 m'],
+            ['Arena sílice para relleno', 1, 'Para todo el césped: el proveedor calcula los kilos']];
+          if (full) l.push(['Red de pádel', 1, ''], ['Colocación del césped', 1, 'Instalación y demarcación']);
+          return l;
         }]
       },
       // Si solo se eligen estas disciplinas no se suma el material de cancha (conos, vallas, pecheras).
-      sinBase: ['natacion']
+      sinBase: ['natacion', 'canchaFutbol', 'canchaHockey', 'canchaPadel']
     },
     colegio: {
       n: 'Colegio', personas: ['Alumnos por clase', 10, 40, 25],
