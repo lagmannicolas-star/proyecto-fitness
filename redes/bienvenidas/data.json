@@ -1,0 +1,137 @@
+[
+ {
+  "slug": "herrero-fitness",
+  "nombre": "Herrero Fitness",
+  "rubro": "Pesas, racks y equipamiento funcional",
+  "ciudad": "Caseros, Buenos Aires",
+  "handle": "@elherrerofitness",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "ironside",
+  "nombre": "Ironside Fitness",
+  "rubro": "Equipamiento de musculación y funcional",
+  "ciudad": "CABA",
+  "handle": "@ironsideargentina",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "gworld",
+  "nombre": "GWorld Fitness",
+  "rubro": "Fabricantes de equipamiento de musculación",
+  "ciudad": "",
+  "handle": "@gworld_fitness",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "sonnos",
+  "nombre": "Sonnos",
+  "rubro": "Fabricantes de equipamiento deportivo y fitness",
+  "ciudad": "Ramos Mejía, Buenos Aires",
+  "handle": "@sonnostienda",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "valen-sport",
+  "nombre": "Valen Sport",
+  "rubro": "Fábrica de pelotas",
+  "ciudad": "Bell Ville, Córdoba",
+  "handle": "@pelotasvalensportok",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "dfs",
+  "nombre": "DFS Argentina",
+  "rubro": "Accesorios de fitness, yoga y pilates",
+  "ciudad": "CABA",
+  "handle": "@dfs_argentina",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "mariskal",
+  "nombre": "Mariskal Sport",
+  "rubro": "Fábrica de pelotas",
+  "ciudad": "Bell Ville, Córdoba",
+  "handle": "@mariskalsport",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "fibra-fitness",
+  "nombre": "Fibra Fitness",
+  "rubro": "Musculación, cardio y pilates",
+  "ciudad": "CABA",
+  "handle": "@fibrafitnessok",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "flex-sport",
+  "nombre": "Flex Sport",
+  "rubro": "Pisos deportivos",
+  "ciudad": "",
+  "handle": "@flexsport_oficial",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "cesped-cuyo",
+  "nombre": "Césped Sintéticos Cuyo",
+  "rubro": "Césped sintético",
+  "ciudad": "Mendoza",
+  "handle": "@cesped.sintetico.cuyo.2024",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "lopizzo",
+  "nombre": "Deportes Lopizzo",
+  "rubro": "Artículos deportivos y de fitness",
+  "ciudad": "Lanús, Buenos Aires",
+  "handle": "@deporteslopizzo",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "rastro",
+  "nombre": "Rastro Fitness",
+  "rubro": "Equipamiento de musculación y funcional",
+  "ciudad": "Buenos Aires",
+  "handle": "",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "alsol",
+  "nombre": "Alsol Deportes",
+  "rubro": "Colchonetas y equipamiento funcional",
+  "ciudad": "Villa Lynch, Buenos Aires",
+  "handle": "",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "n2-equipment",
+  "nombre": "N2 Equipment",
+  "rubro": "Equipamiento de musculación",
+  "ciudad": "Florencio Varela, Buenos Aires",
+  "handle": "",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ },
+ {
+  "slug": "good-padel",
+  "nombre": "Good Pádel",
+  "rubro": "Pádel",
+  "ciudad": "Córdoba",
+  "handle": "",
+  "estado": "pendiente_aprobacion",
+  "fecha": "2026-10-27"
+ }
+]
