@@ -49,7 +49,7 @@
     }).join('');
     var dato = function (k, v) { return v ? '<div><dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd></div>' : ''; };
     $('of-datos').innerHTML = dato('Entrega en', o.localidad + ', ' + o.provincia) + dato('Lo necesita', PLAZO[o.plazo] || o.plazo)
-      + dato('Factura', o.factura === 'no' ? 'No necesita' : 'Factura ' + o.factura) + dato('Puede pagar con', (o.pagos || []).map(function (p) { return PAGO[p] || p; }).join(', ') || 'A convenir')
+      + dato('Factura', o.factura === 'no' ? 'Remito / comprobante' : 'Factura ' + o.factura) + dato('Puede pagar con', (o.pagos || []).map(function (p) { return PAGO[p] || p; }).join(', ') || 'A convenir')
       + dato('Le importa más', PRIO[o.prioridad] || o.prioridad) + dato('Tipo de cliente', TIPO[o.tipo] || o.tipo);
     $('of-detalles').textContent = o.detalles || '';
     $('of-dest').textContent = o.localidad;

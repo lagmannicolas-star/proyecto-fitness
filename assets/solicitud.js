@@ -118,7 +118,7 @@
     var l = ['Hola, quiero pedir ofertas en Nexo Fit' + (code ? ' (solicitud ' + code + ')' : '') + ':'];
     s.items.forEach(function (it) { l.push('• ' + it.cantidad + ' × ' + it.producto + (it.detalle ? ' (' + it.detalle + ')' : '')); });
     l.push('Entrega: ' + s.localidad + ', ' + s.provincia + ' · ' + PLAZO[s.plazo]);
-    l.push('Factura: ' + (s.factura === 'no' ? 'no necesito' : s.factura) + ' · Prioridad: ' + PRIO[s.prioridad]);
+    l.push('Factura: ' + (s.factura === 'no' ? 'remito / comprobante' : s.factura) + ' · Prioridad: ' + PRIO[s.prioridad]);
     if (s.detalles) l.push('Detalles: ' + s.detalles);
     l.push(s.nombre + (s.empresa ? ' · ' + s.empresa : ''));
     return l.join('\n');

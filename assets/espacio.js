@@ -163,7 +163,7 @@
   var q = new URLSearchParams(w.location.search);
   var alias = { gimnasios: 'gimnasio', clubes: 'club', colegios: 'colegio', hogar: 'casa' };
   var st = { tipo: TIPOS[q.get('tipo')] ? q.get('tipo') : (alias[q.get('tipo')] || 'gimnasio'), usos: {}, personas: {}, nivel: 'basico', kit: [], extras: [] };
-  Object.keys(TIPOS).forEach(function (k) { st.usos[k] = TIPOS[k].def.slice(); st.personas[k] = TIPOS[k].personas[3]; });
+  Object.keys(TIPOS).forEach(function (k) { st.usos[k] = TIPOS[k].def.slice(); st.personas[k] = null; }); // la cantidad la escribe el cliente
 
   $('tipos').innerHTML = Object.keys(TIPOS).map(function (k) {
     return '<label class="opt"><input type="radio" name="tipo" value="' + k + '"' + (k === st.tipo ? ' checked' : '') + '><span><b>' + esc(TIPOS[k].n) + '</b></span></label>';
@@ -177,8 +177,14 @@
       }).join('') + '</div></div>';
     var r = $('personas');
     $('personas-lbl').textContent = p[0];
-    r.min = p[1]; r.max = p[2]; r.value = st.personas[st.tipo];
-    $('personas-out').textContent = r.value;
+    r.min = p[1]; r.max = p[2]; r.value = st.personas[st.tipo] || ''; r.placeholder = 'Ej.: ' + p[3];
+    ayuda();
+  }
+  function rango() { var p = TIPOS[st.tipo].personas; return p[1] === 1 ? 'Hasta ' + p[2] + '.' : 'De ' + p[1] + ' a ' + p[2] + '.'; }
+  function ayuda(fuera) {
+    var a = $('personas-ayuda');
+    a.textContent = fuera ? 'Para ' + TIPOS[st.tipo].n + ': ' + rango().toLowerCase() : 'Escribí el número. ' + rango();
+    a.classList.toggle('err', !!fuera);
   }
 
   function build() {
@@ -188,6 +194,7 @@
       if (!map[k]) { map[k] = { p: row[0], q: row[1], d: row[2] }; order.push(k); }
       else if (row[1] > map[k].q) { map[k].q = row[1]; if (row[2]) map[k].d = row[2]; }
     };
+    if (!n) { st.kit = st.extras.slice(); render(); return; } // sin cantidad no hay lista sugerida
     var elegidos = st.usos[st.tipo], sinBase = T.sinBase || [];
     var soloSinBase = elegidos.length > 0 && elegidos.every(function (u) { return sinBase.indexOf(u) >= 0; });
     if (T.base && !soloSinBase) T.base(n, full).forEach(add);
@@ -198,12 +205,13 @@
 
   function render() {
     var T = TIPOS[st.tipo], usos = st.usos[st.tipo].map(function (u) { return T.usos[u] && T.usos[u][0]; }).filter(Boolean);
-    $('lista-resumen').textContent = T.n + (usos.length ? ' · ' + usos.join(', ') : '') + ' · ' + st.personas[st.tipo] + ' ' + (st.personas[st.tipo] === 1 ? 'persona' : 'personas') + ' · ' + st.kit.length + ' productos';
+    var n = st.personas[st.tipo];
+    $('lista-resumen').textContent = T.n + (usos.length ? ' · ' + usos.join(', ') : '') + (n ? ' · ' + n + ' ' + (n === 1 ? 'persona' : 'personas') : '') + ' · ' + st.kit.length + ' productos';
     $('kit').innerHTML = st.kit.length ? st.kit.map(function (it, i) {
       return '<li class="kit-row"><div class="kit-name"><b>' + esc(it.p) + '</b>' + (it.d ? '<span class="muted small">' + esc(it.d) + '</span>' : '') + '</div>'
         + '<label class="kit-qty"><span class="sr">Cantidad de ' + esc(it.p) + '</span><input type="number" inputmode="numeric" min="1" max="999999" data-i="' + i + '" value="' + it.q + '"></label>'
         + '<button type="button" class="kit-x" data-x="' + i + '" aria-label="Quitar ' + esc(it.p) + '">×</button></li>';
-    }).join('') : '<li class="muted">Elegí al menos una opción para ver la lista.</li>';
+    }).join('') : '<li class="muted">' + (n ? 'Elegí al menos una opción para ver la lista.' : 'Escribí cuántas personas para ver la lista sugerida.') + '</li>';
     $('extra-add').disabled = st.kit.length >= MAX;
     avisar3d();
   }
@@ -219,10 +227,19 @@
     else if (t.name === 'nivel') st.nivel = t.value;
     build();
   });
+  // Mientras escribe, solo vale un número dentro del rango del tipo de espacio; al salir del cuadro se ajusta al tope.
   $('personas').addEventListener('input', function () {
-    st.personas[st.tipo] = Number(this.value);
-    $('personas-out').textContent = this.value;
+    var p = TIPOS[st.tipo].personas, v = parseInt(this.value, 10);
+    var ok = v >= p[1] && v <= p[2];
+    st.personas[st.tipo] = ok ? v : null;
+    ayuda(!!this.value && !ok);
     build();
+  });
+  $('personas').addEventListener('change', function () {
+    var p = TIPOS[st.tipo].personas, v = parseInt(this.value, 10);
+    if (isNaN(v)) { this.value = ''; st.personas[st.tipo] = null; ayuda(); return; }
+    v = Math.min(p[2], Math.max(p[1], v));
+    this.value = v; st.personas[st.tipo] = v; ayuda();
   });
   $('kit').addEventListener('input', function (ev) {
     var i = ev.target.getAttribute('data-i');
@@ -252,6 +269,7 @@
   $('pedir').addEventListener('click', function () {
     var err = $('kit-error');
     err.hidden = true;
+    if (!st.personas[st.tipo]) { err.textContent = 'Escribí cuántas personas van a entrenar (' + rango().toLowerCase().replace(/\.$/, '') + ').'; err.hidden = false; $('personas').focus(); return; }
     var items = st.kit.filter(function (it) { return it.q > 0; }).slice(0, MAX).map(function (it) {
       return { producto: it.p, cantidad: String(Math.min(999999, Math.round(it.q))), detalle: it.d || '' };
     });

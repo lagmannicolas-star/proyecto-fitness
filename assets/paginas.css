@@ -117,9 +117,9 @@ main section{margin-bottom:48px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .opts-row{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}
 .opts-row .opt{align-items:center}.opts-row .opt input{margin-top:0}
-.range{display:flex;align-items:center;gap:14px}
-.range input{flex:1;min-height:44px;padding:0;border:0;accent-color:var(--ink)}
-.range output{min-width:48px;text-align:center;font-weight:700;font-size:1.3rem;padding:6px 10px;border-radius:8px;background:var(--soft)}
+.cant-personas{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.cant-personas input{width:110px;min-height:52px;text-align:center;font-weight:700;font-size:1.4rem;background:var(--soft)}
+.cant-personas .err{color:#b42318;font-weight:600}
 .list-box{max-width:720px;margin-top:28px}
 .list-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:4px 16px}
 .list-head .display{margin-bottom:6px}

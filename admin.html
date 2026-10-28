@@ -3018,7 +3018,7 @@ function requestBrief(r){
  var l=['Nexo Fit · pedido de oferta '+r.code,''];
  (r.items||[]).forEach(function(it){l.push('• '+it.cantidad+' × '+it.producto+(it.detalle?' ('+it.detalle+')':''));});
  l.push('','Entrega: '+r.localidad+', '+r.provincia+' · '+(SOL_PLAZO[r.plazo]||r.plazo));
- l.push('Factura: '+(r.factura==='no'?'no necesita':r.factura)+' · Pago: '+((r.pagos||[]).join(', ')||'a convenir'));
+ l.push('Factura: '+(r.factura==='no'?'remito / comprobante':r.factura)+' · Pago: '+((r.pagos||[]).join(', ')||'a convenir'));
  l.push('Prioridad del comprador: '+(SOL_PRIO[r.prioridad]||r.prioridad));
  if(r.detalles)l.push('Detalles: '+r.detalles);
  l.push('','Pasanos tu mejor oferta: precio total, costo de envío, plazo de entrega, cuotas y garantía.');
@@ -3113,7 +3113,7 @@ function requestsView(){
    +'<div><b>'+esc(r.nombre)+'</b>'+(r.empresa?' · '+esc(r.empresa):'')+'<span class="rq-sub">'+esc(r.email)+' · '+esc(r.telefono)+'</span></div></div>'
    +(eleg?'<div class="alert ok" style="margin-top:10px"><b>Eligió la oferta de '+esc(eleg.proveedor)+'</b> por '+money(Number(eleg.oferta.precio_total)+Number(eleg.oferta.envio))+'. '+(r.pago_estado==='aprobado'?'<b>Pagado por Mercado Pago</b>'+(r.pago_monto?' ('+money(r.pago_monto)+(r.pago_comision?', comisión '+money(r.pago_comision):'')+')':'')+'. El proveedor ya tiene los datos para entregar; cuando se entregue, marcala como Cerrada.':r.pago_estado==='devuelto'?'<b>Pago devuelto por Mercado Pago.</b> Revisá con el proveedor antes de entregar.':'Falta el pago con Mercado Pago'+(r.pago_estado==='rechazado'?' (el último intento fue rechazado)':r.pago_estado==='pendiente'?' (hay un pago en proceso)':'')+'.')+(eleg.whatsapp?' Proveedor: WhatsApp '+esc(eleg.whatsapp)+'.':'')+(r.pago_alerta?'<br><b>Atención:</b> '+esc(r.pago_alerta):'')+'</div>':'')
    +'<ul style="margin:10px 0">'+(r.items||[]).map(function(it){return '<li><b>'+esc(it.cantidad)+' ×</b> '+esc(it.producto)+(it.detalle?' <span class="muted">('+esc(it.detalle)+')</span>':'')+'</li>';}).join('')+'</ul>'
-   +'<p class="rq-sub">Plazo: '+esc(SOL_PLAZO[r.plazo]||r.plazo)+' · Factura '+esc(r.factura==='no'?'no':r.factura)+' · Pago: '+esc((r.pagos||[]).join(', ')||'—')+' · Prioridad: '+esc(SOL_PRIO[r.prioridad]||r.prioridad)+(r.presupuesto?' · Presupuesto aprox.: '+money(r.presupuesto)+' (no compartir)':'')+'</p>'
+   +'<p class="rq-sub">Plazo: '+esc(SOL_PLAZO[r.plazo]||r.plazo)+' · '+esc(r.factura==='no'?'Remito / comprobante':'Factura '+r.factura)+' · Pago: '+esc((r.pagos||[]).join(', ')||'—')+' · Prioridad: '+esc(SOL_PRIO[r.prioridad]||r.prioridad)+(r.presupuesto?' · Presupuesto aprox.: '+money(r.presupuesto)+' (no compartir)':'')+'</p>'
    +(r.detalles?'<p class="rq-sub">'+esc(r.detalles)+'</p>':'')
    +invitesHTML(r)
    +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">'
