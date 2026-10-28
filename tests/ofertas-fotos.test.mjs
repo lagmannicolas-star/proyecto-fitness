@@ -10,11 +10,11 @@ const FOTOS = {
   get: async k => r2.has(k) ? { body: r2.get(k).v, httpMetadata: { contentType: r2.get(k).type } } : null,
   delete: async k => { r2.delete(k); },
 };
-const env = { SUPABASE_URL: 'https://db.example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', ALLOWED_ORIGINS: site, FOTOS, ASSETS: { fetch: async () => new Response('asset') } };
+const env = { SUPABASE_URL: 'https://db.example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', ALLOWED_ORIGINS: site, FOTOS, ASSETS: { fetch: async () => new Response('asset') } };
 let fotos = [], abierta = true, calls = [];
 globalThis.fetch = async (url, opts = {}) => {
   url = String(url); const b = opts.body ? JSON.parse(opts.body) : {}; calls.push({ url, b, opts });
-  assert.equal(opts.headers.apikey, 'sb_secret_test', 'las fotos de ofertas se registran con la llave del servidor');
+  assert.equal(opts.headers.apikey, 'sb_publishable_test', 'sin llave secreta: la base valida el link privado'); assert.equal(opts.headers.Authorization, undefined);
   if (url.endsWith('/rpc/fitness_oferta_foto_lugar')) {
     if (b.p_token !== TOKEN) return Response.json({ message: 'El link no es válido o fue reemplazado' }, { status: 400 });
     if (!abierta) return Response.json({ message: 'Esta solicitud ya no recibe ofertas' }, { status: 400 });

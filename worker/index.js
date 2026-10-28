@@ -436,9 +436,11 @@ function productsOf(vendor, offers) {
 }
 
 async function photosApi(request, env, url, route, headers) {
-  if (!env.FOTOS || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
+  if (!env.FOTOS) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
   const me = await whoAmI(request, env);
   if (!me) return json({ error: 'Ingresá a tu cuenta.' }, 401, headers);
+  // Las fotos se registran con la sesión de quien las sube; la base verifica el permiso (admin o proveedor dueño).
+  const auth = { user: /^Bearer\s+(\S+)$/.exec(request.headers.get('Authorization') || '')[1] };
   const isAdmin = me.identity.role === 'admin';
   let body = {}, form = null;
   if (request.method === 'POST') {
@@ -450,7 +452,7 @@ async function photosApi(request, env, url, route, headers) {
   const vendor = (me.snapshot.vendors || []).find(v => v.id === vendorId);
   if (!vendor) return json({ error: 'Proveedor inexistente.' }, 404, headers);
   const products = productsOf(vendor, me.snapshot.offers);
-  const list = async () => (await rpc(env, 'fitness_images_list', { p_vendor_id: vendorId }, { service: true })).data || [];
+  const list = async () => (await rpc(env, 'fitness_foto_lista', { p_vendor_id: vendorId }, auth)).data || [];
 
   if (route === 'GET /api/fotos') return json({ products: products.map(({ slug, name, category, variants }) => ({ slug, name, category, variants: variants.length })), images: await list() }, 200, headers);
 
@@ -461,9 +463,9 @@ async function photosApi(request, env, url, route, headers) {
     if (!file || typeof file === 'string' || !PHOTO_TYPES[file.type]) return json({ error: 'Subí una foto JPG, PNG o WEBP.' }, 400, headers);
     if (file.size > MAX_PHOTO) return json({ error: 'La foto no puede pesar más de 4 MB.' }, 400, headers);
     const path = await storePhoto(env, vendorId, product.slug, 'proveedor', await file.arrayBuffer(), file.type);
-    await setPhoto(env, vendorId, key, product.slug, path, 'proveedor', 'aprobada');
+    await setPhoto(env, auth, vendorId, key, product.slug, path, 'proveedor');
     // Modelo cargado a mano: la foto del modelo vale para todas sus variantes.
-    if (product.manual && key === product.slug) for (const v of product.variants) await setPhoto(env, vendorId, v.key, product.slug, path, 'proveedor', 'aprobada');
+    if (product.manual && key === product.slug) for (const v of product.variants) await setPhoto(env, auth, vendorId, v.key, product.slug, path, 'proveedor');
     return json({ ok: true, path }, 200, headers);
   }
 
@@ -473,9 +475,9 @@ async function photosApi(request, env, url, route, headers) {
   if (route === 'POST /api/fotos/estado') {
     if (!['aprobada', 'rechazada', 'pendiente'].includes(body.status)) return json({ error: 'Estado inválido.' }, 400, headers);
     const key = String(body.key || '');
-    const r = await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: key, p_status: body.status }, { service: true });
+    const r = await rpc(env, 'fitness_foto_estado', { p_vendor_id: vendorId, p_image_key: key, p_status: body.status }, auth);
     const manual = products.find(p => p.manual && p.slug === key);
-    if (r.ok && manual) for (const v of manual.variants) await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: v.key, p_status: body.status }, { service: true });
+    if (r.ok && manual) for (const v of manual.variants) await rpc(env, 'fitness_foto_estado', { p_vendor_id: vendorId, p_image_key: v.key, p_status: body.status }, auth);
     return r.ok ? json({ ok: true }, 200, headers) : json({ error: 'No se pudo cambiar el estado.' }, 400, headers);
   }
 
@@ -488,7 +490,7 @@ async function photosApi(request, env, url, route, headers) {
     for (const product of todo.slice(0, limit)) {
       let result = 'sin-foto';
       try {
-        if (await storeShopPhotos(env, vendor, product)) result = 'tienda';
+        if (await storeShopPhotos(env, auth, vendor, product)) result = 'tienda';
       } catch (e) { console.error('foto', product.slug, e && e.message); result = 'error'; }
       results.push({ slug: product.slug, result });
     }
@@ -500,7 +502,7 @@ async function photosApi(request, env, url, route, headers) {
 // Fotos de una oferta de la red ("Pedí ofertas"): el proveedor las sube desde su link privado (token).
 // Hasta 5 por oferta; se guardan en R2 bajo ofertas/i<invitación>/ y la base lleva la lista.
 async function offerPhotosApi(request, env, route, headers) {
-  if (!env.FOTOS || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
+  if (!env.FOTOS) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
   const fail = (r, fallback) => json({ error: (r.data && r.data.message) || fallback }, r.status >= 500 ? 502 : 400, headers);
   if (route === 'POST /api/ofertas/fotos') {
     const form = await request.formData().catch(() => null);
@@ -508,11 +510,11 @@ async function offerPhotosApi(request, env, route, headers) {
     if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: 'El link no es válido.' }, 400, headers);
     if (!file || typeof file === 'string' || !PHOTO_TYPES[file.type]) return json({ error: 'Subí una foto JPG, PNG o WEBP.' }, 400, headers);
     if (file.size > MAX_PHOTO) return json({ error: 'La foto no puede pesar más de 4 MB.' }, 400, headers);
-    const lugar = await rpc(env, 'fitness_oferta_foto_lugar', { p_token: token }, { service: true });
+    const lugar = await rpc(env, 'fitness_oferta_foto_lugar', { p_token: token }, {});
     if (!lugar.ok || !lugar.data || !lugar.data.invitacion) return fail(lugar, 'No se pudo subir la foto.');
     const path = 'ofertas/i' + Number(lugar.data.invitacion) + '/' + Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(1))[0].toString(36) + '.' + PHOTO_TYPES[file.type];
     await env.FOTOS.put(path, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
-    const r = await rpc(env, 'fitness_oferta_foto_agregar', { p_token: token, p_path: path }, { service: true });
+    const r = await rpc(env, 'fitness_oferta_foto_agregar', { p_token: token, p_path: path }, {});
     if (!r.ok) { await env.FOTOS.delete(path).catch(() => {}); return fail(r, 'No se pudo guardar la foto.'); }
     return json({ ok: true, fotos: r.data.fotos }, 200, headers);
   }
@@ -520,7 +522,7 @@ async function offerPhotosApi(request, env, route, headers) {
     const body = await request.json().catch(() => ({}));
     const token = String(body.token || '').toLowerCase(), path = String(body.path || '');
     if (!/^[0-9a-f]{64}$/.test(token) || !/^ofertas\/i\d+\/[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(path)) return json({ error: 'Foto inválida.' }, 400, headers);
-    const r = await rpc(env, 'fitness_oferta_foto_quitar', { p_token: token, p_path: path }, { service: true });
+    const r = await rpc(env, 'fitness_oferta_foto_quitar', { p_token: token, p_path: path }, {});
     if (!r.ok) return fail(r, 'No se pudo borrar la foto.');
     await env.FOTOS.delete(path).catch(() => {});
     return json({ ok: true, fotos: r.data.fotos }, 200, headers);
@@ -533,8 +535,8 @@ async function storePhoto(env, vendorId, slug, source, bytes, type) {
   await env.FOTOS.put(path, bytes, { httpMetadata: { contentType: type } });
   return path;
 }
-async function setPhoto(env, vendorId, key, slug, path, source, status) {
-  const r = await rpc(env, 'fitness_image_set', { p_vendor_id: vendorId, p_image_key: key, p_slug: slug, p_path: path, p_source: source, p_status: status }, { service: true });
+async function setPhoto(env, auth, vendorId, key, slug, path, source) {
+  const r = await rpc(env, 'fitness_foto_set', { p_vendor_id: vendorId, p_image_key: key, p_slug: slug, p_path: path, p_source: source }, auth);
   if (!r.ok) throw Error('No se pudo guardar la foto');
 }
 
@@ -570,7 +572,7 @@ async function download(url) {
   return bytes.byteLength > 0 && bytes.byteLength <= MAX_PHOTO * 2 ? { bytes, type } : null;
 }
 
-async function storeShopPhotos(env, vendor, product) {
+async function storeShopPhotos(env, auth, vendor, product) {
   const web = absolute(vendor.web || '', 'https://x.invalid');
   if (!web) return false;
   const page = await fetch(new URL('/productos/' + encodeURIComponent(product.slug) + '/', web).href, { headers: { Accept: 'text/html' } });
@@ -580,7 +582,7 @@ async function storeShopPhotos(env, vendor, product) {
   const big = info.main.replace(/-(\d+)-(\d+)\.(webp|jpg|jpeg|png)$/i, '-1024-1024.$3');
   const main = (big !== info.main && await download(big)) || await download(info.main);
   if (!main) return false;
-  await setPhoto(env, vendor.id, product.slug, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', main.bytes, main.type), 'tienda', 'aprobada');
+  await setPhoto(env, auth, vendor.id, product.slug, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', main.bytes, main.type), 'tienda');
   // Fotos por variante (por ejemplo, otro color), solo si son distintas de la principal.
   let extra = 0;
   for (const v of product.variants) {
@@ -590,7 +592,7 @@ async function storeShopPhotos(env, vendor, product) {
     if (!match || match.image === info.main) continue;
     const photo = await download(match.image);
     if (!photo) continue;
-    await setPhoto(env, vendor.id, v.key, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', photo.bytes, photo.type), 'tienda', 'aprobada');
+    await setPhoto(env, auth, vendor.id, v.key, product.slug, await storePhoto(env, vendor.id, product.slug, 'tienda', photo.bytes, photo.type), 'tienda');
     extra++;
   }
   return true;

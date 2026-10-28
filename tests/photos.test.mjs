@@ -4,7 +4,7 @@ const src=fs.readFileSync(new URL('../worker/index.js',import.meta.url),'utf8');
 const worker=await import('data:text/javascript,'+encodeURIComponent(src));
 const site='https://proyecto-fitness.example.workers.dev';
 const r2=new Map(),images=new Map();
-const env={SUPABASE_URL:'https://db.example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SERVICE_ROLE_KEY:'sb_secret_test',ASSETS:{fetch:async()=>new Response('asset')},
+const env={SUPABASE_URL:'https://db.example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',ASSETS:{fetch:async()=>new Response('asset')},
  FOTOS:{async put(k,v,o){r2.set(k,{bytes:new Uint8Array(v),type:o.httpMetadata.contentType});},async get(k){const x=r2.get(k);return x?{body:x.bytes,httpMetadata:{contentType:x.type}}:null;}}};
 const drafts=[
  {key:'kit#[{"name":"Color","value":"Rosa"}]',sourceSlug:'kit',name:'Kit Fuerza',sourceCategory:'Combos',properties:[{name:'Color',value:'Rosa'}],hidden:false,price:100},
@@ -17,9 +17,9 @@ const page=`<html><head><meta property="og:image" content="http://cdn.example/st
 let fetched=[];
 globalThis.fetch=async(url,opts={})=>{url=String(url);fetched.push(url);const body=opts.body&&typeof opts.body==='string'?JSON.parse(opts.body):{};
  if(url.includes('/rpc/fitness_snapshot')){const who=/Bearer (\w+)/.exec(opts.headers.Authorization)[1];return Response.json({_identity:identities[who],vendors:[vendor]});}
- if(url.includes('/rpc/fitness_images_list'))return Response.json([...images.values()]);
- if(url.includes('/rpc/fitness_image_set')){assert.equal(opts.headers.apikey,'sb_secret_test');images.set(body.p_image_key,{key:body.p_image_key,slug:body.p_slug,path:body.p_path,source:body.p_source,status:body.p_status});return Response.json({ok:true});}
- if(url.includes('/rpc/fitness_image_status')){const i=images.get(body.p_image_key);i.status=body.p_status;return Response.json({ok:true});}
+ if(url.includes('/rpc/fitness_foto_lista'))return Response.json([...images.values()]);
+ if(url.includes('/rpc/fitness_foto_set')){assert.equal(opts.headers.apikey,'sb_publishable_test');assert.match(opts.headers.Authorization,/^Bearer (admin|vendor)$/,'se registra con la sesión de quien sube');images.set(body.p_image_key,{key:body.p_image_key,slug:body.p_slug,path:body.p_path,source:body.p_source,status:'aprobada'});return Response.json({ok:true});}
+ if(url.includes('/rpc/fitness_foto_estado')){const i=images.get(body.p_image_key);i.status=body.p_status;return Response.json({ok:true});}
  if(url==='https://tienda.example/productos/kit/')return new Response(page,{headers:{'Content-Type':'text/html'}});
  if(url.startsWith('https://tienda.example/productos/'))return new Response('no',{status:404});
  if(url==='https://cdn.example/stores/1/products/kit-1024-1024.webp')return new Response('grande',{headers:{'Content-Type':'image/webp'}});

@@ -3,7 +3,7 @@ import fs from 'node:fs';import assert from 'node:assert/strict';
 const src=fs.readFileSync(new URL('../worker/index.js',import.meta.url),'utf8');
 const worker=await import('data:text/javascript,'+encodeURIComponent(src));
 const site='https://nexofitt.com.ar',r2=new Map(),images=new Map();
-const env={SUPABASE_URL:'https://db.example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SERVICE_ROLE_KEY:'sb_secret_test',ASSETS:{fetch:async()=>new Response('asset')},
+const env={SUPABASE_URL:'https://db.example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',ASSETS:{fetch:async()=>new Response('asset')},
  FOTOS:{async put(k,v,o){r2.set(k,{v,type:o.httpMetadata.contentType});},async get(k){return null;}}};
 const vendor={id:'v_dogo',name:'Dogo',status:'active'};
 const offers=[
@@ -15,9 +15,9 @@ const offers=[
 const ids={vendor:{role:'vendor',vendorId:'v_dogo'},admin:{role:'admin'}};
 globalThis.fetch=async(url,opts={})=>{url=String(url);const b=opts.body&&typeof opts.body==='string'?JSON.parse(opts.body):{};
  if(url.endsWith('/rpc/fitness_snapshot'))return Response.json({_identity:ids[/Bearer (\w+)/.exec(opts.headers.Authorization)[1]],vendors:[vendor],offers});
- if(url.endsWith('/rpc/fitness_images_list'))return Response.json([...images.values()]);
- if(url.endsWith('/rpc/fitness_image_set')){images.set(b.p_image_key,{key:b.p_image_key,path:b.p_path,status:b.p_status});return Response.json({ok:true});}
- if(url.endsWith('/rpc/fitness_image_status')){images.get(b.p_image_key).status=b.p_status;return Response.json({ok:true});}
+ if(url.endsWith('/rpc/fitness_foto_lista'))return Response.json([...images.values()]);
+ if(url.endsWith('/rpc/fitness_foto_set')){images.set(b.p_image_key,{key:b.p_image_key,path:b.p_path,status:'aprobada'});return Response.json({ok:true});}
+ if(url.endsWith('/rpc/fitness_foto_estado')){images.get(b.p_image_key).status=b.p_status;return Response.json({ok:true});}
  return new Response('?',{status:404});};
 const call=(who,path,init={})=>worker.default.fetch(new Request(site+path,{...init,headers:{...(init.headers||{}),Authorization:'Bearer '+who}}),env);
 let r=await call('vendor','/api/fotos?v=v_dogo');assert.equal(r.status,200);
