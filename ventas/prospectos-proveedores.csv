@@ -169,7 +169,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-21,pesas y funcional,Hergy (Hermetal S.A.),Alvear,Santa Fe,comercial@hermetal-sa.com.ar,5493415852467,https://www.hergy.com.ar/contacto,seguimiento,1a15ff07e6a783e5,2026-10-24
 2026-10-21,natatorios (bombas y filtros),Lacus (Elektrim),Berazategui,Buenos Aires,contacto@lacus.com.ar,5491126562531,https://lacus.com.ar/,seguimiento,1a15ff0a0582e6b2,2026-10-24
 2026-10-21,pelotas,Molten Argentina (Ene-Eme Producciones),,Buenos Aires,tienda@ene-eme.com.ar,,https://www.molten.com.ar/contacto/,seguimiento,1a15ff0c0a381ab0,2026-10-24
-2026-10-21,pelotas,Bell Ville Club,Bell Ville,Córdoba,bellvilleclub@bellvilleclub.com.ar,,https://bellvilleclub.com.ar/,enviado,1a15ff0e3a8c0216,
+2026-10-21,pelotas,Bell Ville Club,Bell Ville,Córdoba,bellvilleclub@bellvilleclub.com.ar,,https://bellvilleclub.com.ar/,seguimiento,1a15ff0e3a8c0216,2026-10-28
 2026-10-21,pelotas,Priball,Bell Ville,Córdoba,info@priball.com,,https://www.priball.com/,seguimiento,1a15ff104ad6ceff,2026-10-24
 2026-10-21,pisos deportivos (césped sintético),Trekan,,Buenos Aires,ventas@cespedsintetico.com.ar,5491165610320,https://cespedsintetico.com.ar/,rebote,1a1605989bae1270,
 2026-10-21,pisos de caucho,Ecocur Argentina,Santa Fe,Santa Fe,ecocurargentina@gmail.com,5493426285505,https://ecocur.com.ar/,seguimiento,1a16059ab7e7fd8e,2026-10-24
@@ -360,3 +360,13 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-27,materiales deportivos y fitness,Vela Sport,Gualeguaychú,Entre Ríos,info@velasport.ar,5493446562224,https://velasport.ar/producto/cajon-de-salto-piramidal-modular-para-gimnasia-ritmica-artistica-2/,enviado,1a17edc9927429f3,
 2026-10-27,natación (accesorios),Acquavel,Córdoba,Córdoba,acquavel@hotmail.com,5493518073712,https://www.acquavel.com/natacion/accesorios1/tablas/,enviado,1a17f4dd5b2a59d5,
 2026-10-27,"yoga y pilates (mats y kits, mayorista)",Casa Muna,Zona Norte GBA,Buenos Aires,casamuna@muna-wellness.com,5491124037866,https://muna-wellness.com.ar/,enviado,1a17f4df625a5cf9,
+2026-10-28,kinesiología con línea fitness,Cirugía Rex,Rosario,Santa Fe,info@cirugiarex.com.ar,5493412844932,https://cirugiarex.com.ar/categoria-producto/kinesiologia/,enviado,1a182a3da3796f89,
+2026-10-28,colchonetas de gimnasia,Arcoiris Triunvirato,CABA,CABA,triunvirato@colchonesarcoiris.com,5491150421291,https://arcoiristriunvirato.com.ar/colchoneta-gimnasia-alta-densidad-200x100x6cm-85kg-m3/,enviado,1a182a3fb83e7e55,
+2026-10-28,artículos deportivos,Cedrón Deportes,Mar del Plata,Buenos Aires,cedrondeportes@gmail.com,,https://www.cedrondeportes.com/tienda-de-art%C3%ADculos-deportivos,enviado,1a182a41c09a9391,
+2026-10-28,natación y natatorios,Vital Servicios,General Roca,Río Negro,ventas.tienda@vitalservicios.com.ar,5492984933333,https://tienda.vitalservicios.com.ar/,enviado,1a182a43ebf8f08a,
+2026-10-28,natación y natatorios,Protefrut,Villa Regina,Río Negro,info@protefrutriegos.com.ar,5492984352057,https://protefrut.com.ar/,enviado,1a182a460bdb5b69,
+2026-10-28,pisos de goma y tatamis,Mendoza Goma,Rosario,Santa Fe,info@mendozagoma.com.ar,5493417222633,https://www.mendozagoma.com.ar/#!/producto/64/,enviado,1a182a481951a051,
+2026-10-28,cardio y musculación,Olmo,,Buenos Aires,ventaonline@olmo.com.ar,5491157637250,https://www.olmobikes.shop/,enviado,1a182a4a5cfbfb0c,
+2026-10-28,pisos de parquet y básquet,Vera Basquet,Vera,Santa Fe,,5493483640872,https://verabasquet.com.ar/contacto-pisos-deportivos/,solo_whatsapp,,
+2026-10-28,natación y natatorios,Culzoni,Santa Fe,Santa Fe,,5493426129845,https://culzoni.com/contacto/,solo_whatsapp,,
+2026-10-28,natación y natatorios,Aquamare,Resistencia,Chaco,,5493795065520,https://www.aquamare.com.ar/,solo_whatsapp,,
