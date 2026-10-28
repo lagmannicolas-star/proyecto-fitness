@@ -9,7 +9,7 @@
   // Cada regla devuelve [producto, cantidad, detalle]. Si un producto aparece en dos usos se toma la cantidad mayor.
   var TIPOS = {
     gimnasio: {
-      n: 'Gimnasio', personas: ['Personas entrenando al mismo tiempo', 5, 60, 20],
+      n: 'Gimnasio', personas: ['Personas entrenando al mismo tiempo', 20],
       usosT: '¿Qué tipo de entrenamiento?', def: ['musculacion', 'funcional'],
       usos: {
         musculacion: ['Musculación', function (n, full) {
@@ -56,7 +56,7 @@
       }
     },
     club: {
-      n: 'Club', personas: ['Jugadores por entrenamiento', 8, 40, 20],
+      n: 'Club', personas: ['Jugadores por entrenamiento', 20],
       usosT: '¿Qué disciplinas?', def: ['futbol'],
       base: function (n, full) {
         var l = [
@@ -113,7 +113,7 @@
       sinBase: ['natacion', 'canchaFutbol', 'canchaHockey', 'canchaPadel']
     },
     colegio: {
-      n: 'Colegio', personas: ['Alumnos por clase', 10, 40, 25],
+      n: 'Colegio', personas: ['Alumnos por clase', 25],
       usosT: '¿Qué niveles?', def: ['primaria'],
       base: function (n, full) {
         var l = [
@@ -133,7 +133,7 @@
       }
     },
     casa: {
-      n: 'Mi casa', personas: ['Personas que van a entrenar', 1, 4, 1],
+      n: 'Mi casa', personas: ['Personas que van a entrenar', 1],
       usosT: '¿Qué te gustaría hacer?', def: ['fuerza'],
       usos: {
         fuerza: ['Fuerza', function (n, full) {
@@ -177,14 +177,7 @@
       }).join('') + '</div></div>';
     var r = $('personas');
     $('personas-lbl').textContent = p[0];
-    r.min = p[1]; r.max = p[2]; r.value = st.personas[st.tipo] || ''; r.placeholder = 'Ej.: ' + p[3];
-    ayuda();
-  }
-  function rango() { var p = TIPOS[st.tipo].personas; return p[1] === 1 ? 'Hasta ' + p[2] + '.' : 'De ' + p[1] + ' a ' + p[2] + '.'; }
-  function ayuda(fuera) {
-    var a = $('personas-ayuda');
-    a.textContent = fuera ? 'Para ' + TIPOS[st.tipo].n + ': ' + rango().toLowerCase() : 'Escribí el número. ' + rango();
-    a.classList.toggle('err', !!fuera);
+    r.value = st.personas[st.tipo] || ''; r.placeholder = 'Ej.: ' + p[1];
   }
 
   function build() {
@@ -227,19 +220,11 @@
     else if (t.name === 'nivel') st.nivel = t.value;
     build();
   });
-  // Mientras escribe, solo vale un número dentro del rango del tipo de espacio; al salir del cuadro se ajusta al tope.
+  // El cliente escribe la cantidad, sin topes por tipo de espacio: con ese número se arma la lista.
   $('personas').addEventListener('input', function () {
-    var p = TIPOS[st.tipo].personas, v = parseInt(this.value, 10);
-    var ok = v >= p[1] && v <= p[2];
-    st.personas[st.tipo] = ok ? v : null;
-    ayuda(!!this.value && !ok);
+    var v = parseInt(this.value, 10);
+    st.personas[st.tipo] = v >= 1 ? Math.min(v, 9999) : null;
     build();
-  });
-  $('personas').addEventListener('change', function () {
-    var p = TIPOS[st.tipo].personas, v = parseInt(this.value, 10);
-    if (isNaN(v)) { this.value = ''; st.personas[st.tipo] = null; ayuda(); return; }
-    v = Math.min(p[2], Math.max(p[1], v));
-    this.value = v; st.personas[st.tipo] = v; ayuda();
   });
   $('kit').addEventListener('input', function (ev) {
     var i = ev.target.getAttribute('data-i');
@@ -269,7 +254,7 @@
   $('pedir').addEventListener('click', function () {
     var err = $('kit-error');
     err.hidden = true;
-    if (!st.personas[st.tipo]) { err.textContent = 'Escribí cuántas personas van a entrenar (' + rango().toLowerCase().replace(/\.$/, '') + ').'; err.hidden = false; $('personas').focus(); return; }
+    if (!st.personas[st.tipo]) { err.textContent = 'Escribí cuántas personas van a entrenar.'; err.hidden = false; $('personas').focus(); return; }
     var items = st.kit.filter(function (it) { return it.q > 0; }).slice(0, MAX).map(function (it) {
       return { producto: it.p, cantidad: String(Math.min(999999, Math.round(it.q))), detalle: it.d || '' };
     });
