@@ -410,7 +410,21 @@ const slugOf = d => String(d.sourceSlug || String(d.key).split('#')[0]);
 const safe = s => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'producto';
 const variantLabel = d => (d.properties || []).map(p => p.name + ': ' + p.value).join(' · ');
 
-function productsOf(vendor) {
+// Productos cargados a mano desde el catálogo (sin tienda importada): se agrupan por categoría y modelo.
+// La foto del modelo se aplica a cada variante (cada oferta), que es como las busca el catálogo público.
+function manualProductsOf(vendor, offers) {
+  const drafts = new Set((vendor.catalogDrafts || []).map(d => String(d.key)));
+  const map = new Map();
+  for (const o of offers || []) {
+    if (o.vendorId !== vendor.id || !['review', 'published'].includes(o.status) || (o.sourceKey && drafts.has(String(o.sourceKey)))) continue;
+    const slug = 'm-' + safe((o.category || '') + '-' + (o.model || '')).slice(0, 78);
+    if (!map.has(slug)) map.set(slug, { slug, name: (o.model || 'Producto') + (o.category ? ' · ' + o.category : ''), category: o.category || '', variants: [], manual: true });
+    map.get(slug).variants.push({ key: String(o.id), label: String(o.size || ''), properties: [{ name: 'Variante', value: String(o.size || '') }] });
+  }
+  return [...map.values()];
+}
+
+function productsOf(vendor, offers) {
   const map = new Map();
   for (const d of vendor.catalogDrafts || []) {
     if (d.hidden) continue;
@@ -418,7 +432,7 @@ function productsOf(vendor) {
     if (!map.has(slug)) map.set(slug, { slug, name: d.name, category: d.sourceCategory || '', variants: [] });
     map.get(slug).variants.push({ key: d.key, label: variantLabel(d), properties: d.properties || [] });
   }
-  return [...map.values()];
+  return [...map.values(), ...manualProductsOf(vendor, offers)];
 }
 
 async function photosApi(request, env, url, route, headers) {
@@ -435,7 +449,7 @@ async function photosApi(request, env, url, route, headers) {
   if (!isAdmin && me.identity.vendorId !== vendorId) return json({ error: 'No autorizado.' }, 403, headers);
   const vendor = (me.snapshot.vendors || []).find(v => v.id === vendorId);
   if (!vendor) return json({ error: 'Proveedor inexistente.' }, 404, headers);
-  const products = productsOf(vendor);
+  const products = productsOf(vendor, me.snapshot.offers);
   const list = async () => (await rpc(env, 'fitness_images_list', { p_vendor_id: vendorId }, { service: true })).data || [];
 
   if (route === 'GET /api/fotos') return json({ products: products.map(({ slug, name, category, variants }) => ({ slug, name, category, variants: variants.length })), images: await list() }, 200, headers);
@@ -448,6 +462,8 @@ async function photosApi(request, env, url, route, headers) {
     if (file.size > MAX_PHOTO) return json({ error: 'La foto no puede pesar más de 4 MB.' }, 400, headers);
     const path = await storePhoto(env, vendorId, product.slug, 'proveedor', await file.arrayBuffer(), file.type);
     await setPhoto(env, vendorId, key, product.slug, path, 'proveedor', 'aprobada');
+    // Modelo cargado a mano: la foto del modelo vale para todas sus variantes.
+    if (product.manual && key === product.slug) for (const v of product.variants) await setPhoto(env, vendorId, v.key, product.slug, path, 'proveedor', 'aprobada');
     return json({ ok: true, path }, 200, headers);
   }
 
@@ -456,7 +472,10 @@ async function photosApi(request, env, url, route, headers) {
 
   if (route === 'POST /api/fotos/estado') {
     if (!['aprobada', 'rechazada', 'pendiente'].includes(body.status)) return json({ error: 'Estado inválido.' }, 400, headers);
-    const r = await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: String(body.key || ''), p_status: body.status }, { service: true });
+    const key = String(body.key || '');
+    const r = await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: key, p_status: body.status }, { service: true });
+    const manual = products.find(p => p.manual && p.slug === key);
+    if (r.ok && manual) for (const v of manual.variants) await rpc(env, 'fitness_image_status', { p_vendor_id: vendorId, p_image_key: v.key, p_status: body.status }, { service: true });
     return r.ok ? json({ ok: true }, 200, headers) : json({ error: 'No se pudo cambiar el estado.' }, 400, headers);
   }
 
@@ -464,7 +483,7 @@ async function photosApi(request, env, url, route, headers) {
     const limit = Math.max(1, Math.min(6, Number(body.limit) || 4));
     const done = new Set((await list()).map(i => i.key));
     const skip = new Set(Array.isArray(body.skip) ? body.skip.map(String) : []);
-    const todo = products.filter(p => !done.has(p.slug) && !skip.has(p.slug));
+    const todo = products.filter(p => !p.manual && !done.has(p.slug) && !skip.has(p.slug));
     const results = [];
     for (const product of todo.slice(0, limit)) {
       let result = 'sin-foto';
