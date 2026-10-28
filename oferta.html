@@ -26,7 +26,7 @@
     </section>
 
     <section class="note small of-reglas">
-      <b>Cómo funciona:</b> el comprador ve las ofertas sin el nombre de cada empresa y elige según costo total, plazo, cuotas y garantía. Vos no ves las ofertas de los demás y ellos no ven la tuya. Si te elige, el comprador te paga con Mercado Pago desde Nexo Fit (conectás tu cuenta una sola vez) y te pasamos sus datos para coordinar la entrega y la factura. <b>Comisión:</b> solo si la venta se concreta, el <span id="of-comision">10</span>% del precio de los productos (el envío no paga comisión). Tenela en cuenta en tu precio.
+      <b>Cómo funciona:</b> el comprador ve las ofertas sin el nombre de cada empresa y elige según costo total, plazo, cuotas y garantía. Vos no ves las ofertas de los demás y ellos no ven la tuya. <b>Cada oferta vale 24 horas</b> desde que la enviás; si el comprador todavía no eligió, la renovás con un clic desde este link. Si te elige, el comprador te paga con Mercado Pago desde Nexo Fit (conectás tu cuenta una sola vez) y te pasamos sus datos para coordinar la entrega y la factura. <b>Comisión:</b> solo si la venta se concreta, el <span id="of-comision">10</span>% del precio de los productos (el envío no paga comisión). Tenela en cuenta en tu precio.
     </section>
 
     <section id="of-estado"></section>
@@ -44,7 +44,7 @@
         </div>
         <div class="row2">
           <div><label for="garantia">Garantía (meses)</label><input id="garantia" type="number" inputmode="numeric" min="0" max="120" value="0"></div>
-          <div><label for="valida">La oferta vale hasta</label><input id="valida" type="date" required></div>
+          <div><p class="lbl">Validez</p><p class="of-validez" id="of-validez"><b>24 horas</b> desde que la enviás.</p><p class="hint">Así el comprador compara precios actualizados. Te avisamos por email antes de que venza.</p></div>
         </div>
         <div class="opts" role="radiogroup" aria-label="¿Cubrís todo el pedido?">
           <label class="opt"><input type="radio" name="cumple" value="total" checked><span><b>Cubro todo el pedido</b><span class="muted small">Todos los productos y cantidades.</span></span></label>
@@ -53,6 +53,14 @@
         <div><label for="notas">Notas para el comprador <span class="muted">(opcional)</span></label>
           <textarea id="notas" maxlength="600" placeholder="Ej.: marca y modelo, colores disponibles, si incluye instalación."></textarea>
           <p class="hint">No incluyas teléfonos, emails ni redes: el contacto se comparte cuando el comprador elige.</p></div>
+      </fieldset>
+      <fieldset class="of-fotos" aria-describedby="fotos-hint">
+        <legend>Fotos de lo que ofrecés <span class="muted">(opcional, hasta 5)</span></legend>
+        <p class="hint" id="fotos-hint">Fotos reales de los productos: ayudan al comprador a elegir. Se guardan en el momento. Evitá fotos con teléfonos, emails o redes.</p>
+        <ul class="of-fotos-list" id="of-fotos" aria-live="polite"></ul>
+        <button class="btn btn-outline" type="button" id="fotos-btn">Agregar fotos</button>
+        <input id="fotos-input" type="file" accept="image/*" multiple class="sr-only" tabindex="-1" aria-hidden="true">
+        <p class="hint" id="fotos-estado" role="status"></p>
       </fieldset>
       <p class="card of-total" id="of-total" aria-live="polite"></p>
       <button class="btn btn-accent btn-big" type="submit" id="of-enviar">Enviar oferta</button>

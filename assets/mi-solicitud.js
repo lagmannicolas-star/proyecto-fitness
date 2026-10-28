@@ -15,7 +15,38 @@
     ['cerrada', 'Compra cerrada', '¡Gracias por comprar en Nexo Fit!']
   ];
   var money = function (n) { return '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 }); };
-  var dia = function (iso) { try { var p = String(iso).split('-'); return p[2] + '/' + p[1]; } catch (e) { return iso; } };
+  // Las ofertas valen 24 horas: se muestra día y hora (Argentina).
+  var dia = function (iso) { try { return new Date(iso).toLocaleString('es-AR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' }) + ' h'; } catch (e) { return iso; } };
+  var foto = function (path) { return '/fotos/' + String(path).split('/').map(encodeURIComponent).join('/'); };
+  function venceHTML(o) {
+    if (o.elegida) return '';
+    if (o.vencida) return '<p class="of-vence">Venció el ' + esc(dia(o.validaHasta)) + '. Si te interesa, escribinos y le pedimos al proveedor que la renueve.</p>';
+    var h = (new Date(o.validaHasta) - Date.now()) / 36e5;
+    return '<p class="of-vence' + (h < 6 ? ' pronto' : '') + '">' + (h < 6 ? 'Vence pronto: ' : 'Vale ') + 'hasta el ' + esc(dia(o.validaHasta)) + ' (las ofertas valen 24 horas).</p>';
+  }
+  function thumbsHTML(o) {
+    var f = o.fotos || [];
+    if (!f.length) return '';
+    return '<div class="of-thumbs" role="list" aria-label="Fotos de la Oferta ' + esc(o.letra) + '">' + f.map(function (p, i) {
+      return '<a role="listitem" href="' + esc(foto(p)) + '" target="_blank" rel="noopener" data-foto="' + i + '" data-of="' + o.id + '"><img src="' + esc(foto(p)) + '" alt="Foto ' + (i + 1) + ' de la Oferta ' + esc(o.letra) + '" loading="lazy"></a>';
+    }).join('') + '</div>';
+  }
+  // Visor de fotos a pantalla completa (con flechas y Escape).
+  function verFotos(lista, i, letra) {
+    var box = d.createElement('div'), prev = d.activeElement;
+    box.className = 'foto-visor'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Fotos de la Oferta ' + letra);
+    function pinta() {
+      box.innerHTML = '<div class="fv-bar"><b>Oferta ' + esc(letra) + ' · foto ' + (i + 1) + ' de ' + lista.length + '</b><button type="button" data-fv="x">Cerrar</button></div>'
+        + '<img src="' + esc(foto(lista[i])) + '" alt="Foto ' + (i + 1) + ' de la Oferta ' + esc(letra) + '">'
+        + (lista.length > 1 ? '<div class="fv-nav"><button type="button" data-fv="-1">Anterior</button><button type="button" data-fv="1">Siguiente</button></div>' : '<div></div>');
+    }
+    function cerrar() { d.removeEventListener('keydown', tecla); box.remove(); if (prev && prev.focus) prev.focus(); }
+    function mover(k) { i = (i + k + lista.length) % lista.length; pinta(); var b = box.querySelector('[data-fv="' + k + '"]'); if (b) b.focus(); }
+    function tecla(e) { if (e.key === 'Escape') cerrar(); else if (e.key === 'ArrowRight') mover(1); else if (e.key === 'ArrowLeft') mover(-1); }
+    box.addEventListener('click', function (e) { var b = e.target.closest('[data-fv]'); if (b) { var v = b.getAttribute('data-fv'); v === 'x' ? cerrar() : mover(Number(v)); } else if (e.target === box) cerrar(); });
+    d.addEventListener('keydown', tecla);
+    pinta(); d.body.appendChild(box); box.querySelector('[data-fv="x"]').focus();
+  }
   var actual = { code: '', email: '' }, confirmar = null, ultimo = null;
   var form = $('buscar');
   if (!form) return;
@@ -117,7 +148,8 @@
         + '<p class="of-tot">' + money(o.total) + '<span class="muted small"> costo total</span></p>'
         + (marcas.length ? '<p class="tags">' + marcas.map(function (m) { return '<span class="tag' + (/después|parte|Vencida/.test(m) ? ' warn' : '') + '">' + esc(m) + '</span>'; }).join('') + '</p>' : '')
         + '<dl class="of-dl">' + row('Productos', money(o.precio)) + row('Envío', Number(o.envio) ? money(o.envio) : 'Incluido') + row('Entrega', o.plazo + (o.plazo === 1 ? ' día hábil' : ' días hábiles'))
-        + row('Cuotas', o.cuotas ? o.cuotas + ' sin interés' : 'No') + row('Garantía', o.garantia ? o.garantia + (o.garantia === 1 ? ' mes' : ' meses') : 'Sin garantía') + row('Vale hasta', esc(dia(o.validaHasta))) + '</dl>'
+        + row('Cuotas', o.cuotas ? o.cuotas + ' sin interés' : 'No') + row('Garantía', o.garantia ? o.garantia + (o.garantia === 1 ? ' mes' : ' meses') : 'Sin garantía') + '</dl>'
+        + thumbsHTML(o) + venceHTML(o)
         + (o.notas ? '<p class="small"><b>Notas del proveedor:</b> ' + esc(o.notas) + '</p>' : '') + btn + '</article>';
     }).join('');
     return h + '</div></section>';
@@ -164,6 +196,12 @@
 
   $('resultado').addEventListener('click', function (ev) {
     if (ev.target.closest('[data-cuadro]')) { if (ultimo) imprimirCuadro(); return; }
+    var fa = ev.target.closest('[data-foto]');
+    if (fa && ultimo) {
+      var of = (ultimo.ofertas || []).filter(function (o) { return String(o.id) === fa.getAttribute('data-of'); })[0];
+      if (of) { ev.preventDefault(); verFotos(of.fotos, Number(fa.getAttribute('data-foto')), of.letra); }
+      return;
+    }
     var pb = ev.target.closest('[data-pagar]');
     if (pb) {
       if (pb.disabled) return;

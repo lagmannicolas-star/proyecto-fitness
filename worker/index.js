@@ -36,6 +36,7 @@ async function api(request, env, url) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (route === 'GET /api/pagos/estado') return json({ mercadoPago: configured(env) }, 200, headers);
   if (url.pathname.startsWith('/api/fotos')) return photosApi(request, env, url, route, headers);
+  if (url.pathname.startsWith('/api/ofertas/fotos')) return offerPhotosApi(request, env, route, headers);
   if (!configured(env)) return json({ error: 'Mercado Pago todavía no está configurado.' }, 503, headers);
   if (route === 'POST /api/pagos/conectar') return connectStart(request, env, headers);
   if (route === 'POST /api/pagos/red/conectar') return connectRedStart(request, env, headers);
@@ -473,6 +474,37 @@ async function photosApi(request, env, url, route, headers) {
       results.push({ slug: product.slug, result });
     }
     return json({ results, remaining: Math.max(0, todo.length - results.length) }, 200, headers);
+  }
+  return json({ error: 'No encontrado' }, 404, headers);
+}
+
+// Fotos de una oferta de la red ("Pedí ofertas"): el proveedor las sube desde su link privado (token).
+// Hasta 5 por oferta; se guardan en R2 bajo ofertas/i<invitación>/ y la base lleva la lista.
+async function offerPhotosApi(request, env, route, headers) {
+  if (!env.FOTOS || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Las fotos todavía no están activadas en el sitio.' }, 503, headers);
+  const fail = (r, fallback) => json({ error: (r.data && r.data.message) || fallback }, r.status >= 500 ? 502 : 400, headers);
+  if (route === 'POST /api/ofertas/fotos') {
+    const form = await request.formData().catch(() => null);
+    const token = String(form && form.get('token') || '').toLowerCase(), file = form && form.get('file');
+    if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: 'El link no es válido.' }, 400, headers);
+    if (!file || typeof file === 'string' || !PHOTO_TYPES[file.type]) return json({ error: 'Subí una foto JPG, PNG o WEBP.' }, 400, headers);
+    if (file.size > MAX_PHOTO) return json({ error: 'La foto no puede pesar más de 4 MB.' }, 400, headers);
+    const lugar = await rpc(env, 'fitness_oferta_foto_lugar', { p_token: token }, { service: true });
+    if (!lugar.ok || !lugar.data || !lugar.data.invitacion) return fail(lugar, 'No se pudo subir la foto.');
+    const path = 'ofertas/i' + Number(lugar.data.invitacion) + '/' + Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(1))[0].toString(36) + '.' + PHOTO_TYPES[file.type];
+    await env.FOTOS.put(path, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+    const r = await rpc(env, 'fitness_oferta_foto_agregar', { p_token: token, p_path: path }, { service: true });
+    if (!r.ok) { await env.FOTOS.delete(path).catch(() => {}); return fail(r, 'No se pudo guardar la foto.'); }
+    return json({ ok: true, fotos: r.data.fotos }, 200, headers);
+  }
+  if (route === 'POST /api/ofertas/fotos/borrar') {
+    const body = await request.json().catch(() => ({}));
+    const token = String(body.token || '').toLowerCase(), path = String(body.path || '');
+    if (!/^[0-9a-f]{64}$/.test(token) || !/^ofertas\/i\d+\/[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(path)) return json({ error: 'Foto inválida.' }, 400, headers);
+    const r = await rpc(env, 'fitness_oferta_foto_quitar', { p_token: token, p_path: path }, { service: true });
+    if (!r.ok) return fail(r, 'No se pudo borrar la foto.');
+    await env.FOTOS.delete(path).catch(() => {});
+    return json({ ok: true, fotos: r.data.fotos }, 200, headers);
   }
   return json({ error: 'No encontrado' }, 404, headers);
 }
