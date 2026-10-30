@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catálogo de proveedores · Nexo Fit</title>
+<meta name="description" content="Equipamiento deportivo y fitness con precios de referencia de proveedores de la red. Elegí productos, pedí ofertas y compará en privado.">
+<link rel="canonical" href="https://nexofitt.com.ar/catalogo">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Nexo Fit"><meta property="og:url" content="https://nexofitt.com.ar/catalogo">
+<meta property="og:title" content="Catálogo de proveedores · Nexo Fit"><meta property="og:description" content="Precios de referencia de proveedores de la red. Elegí productos, pedí ofertas y compará en privado.">
+<meta property="og:image" content="https://nexofitt.com.ar/assets/og-home.jpg"><meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="assets/paginas.css">
+<script src="assets/sitio.js"></script>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon.png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><meta name="theme-color" content="#10171F">
+<style>
+[hidden]{display:none!important}
+.cat-hero{padding-block:28px 20px}
+.cat-hero h1{margin-bottom:8px}
+.cat-hero .cat-intro{font-size:1.05rem;max-width:62ch}
+.cat-main{padding-block:16px 56px}
+.cat-filtros{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+@media(min-width:720px){.cat-filtros{grid-template-columns:2fr 1fr;gap:14px}}
+.cat-filtros label{margin-bottom:4px}
+#cat-q{-webkit-appearance:none;appearance:none}
+.cat-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+@media(min-width:640px){.cat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:960px){.cat-grid{grid-template-columns:repeat(4,1fr);gap:16px}}
+.cat-card{display:grid;grid-template-columns:104px 1fr;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--bg);min-width:0}
+@media(min-width:640px){.cat-card{grid-template-columns:1fr;grid-template-rows:auto 1fr;padding:14px}}
+.cat-img{aspect-ratio:1/1;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff;display:grid;place-items:center}
+.cat-img img{width:100%;height:100%;object-fit:contain;display:block}
+.cat-img span{font:700 2.2rem 'Barlow Condensed',sans-serif;color:rgba(16,23,31,.25);text-transform:uppercase}
+.cat-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cat-tag{align-self:flex-start;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--soft)}
+.cat-card h3{margin:2px 0 0;font-size:1.02rem;line-height:1.3;overflow-wrap:anywhere}
+.cat-trust{margin:0}
+.cat-precio{margin:4px 0 0;display:flex;flex-direction:column;line-height:1.25}
+.cat-precio b{font-size:1.2rem}
+.cat-acts{display:grid;grid-template-columns:1fr;gap:8px;margin-top:auto;padding-top:10px}
+.cat-acts .btn{min-height:44px;padding:0 12px;font-size:.95rem}
+@media(max-width:639px){.cat-card .cat-img{align-self:start}}
+.cat-vacio{border:1px dashed var(--line);border-radius:14px;padding:20px;margin-top:8px}
+.cat-vacio p{margin:0}
+#cat-mas:not([hidden]){margin:20px auto 0;display:flex}
+.cat-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.cat-bar-in{max-width:1080px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cat-bar b{display:block;line-height:1.2}.bar-ped span{font-size:.85rem;opacity:.8}
+body.con-pedido .wa-fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.con-pedido .foot{padding-bottom:140px}
+dialog.cat-dlg{border:0;border-radius:16px;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--bg);color:var(--ink)}
+dialog.cat-dlg::backdrop{background:rgba(16,23,31,.55)}
+.dlg-in{padding:20px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.dlg-in>*{min-width:0}
+.dlg-in h2{margin:0;font-size:1.3rem}
+.dlg-in{position:relative}
+.dlg-head{display:block;padding-right:36px}
+.dlg-x{position:absolute;top:8px;right:8px;border:0;background:transparent;font-size:1.6rem;line-height:1;width:44px;height:44px;cursor:pointer;color:var(--muted)}
+#cat-ficha .dlg-head{padding-right:0}
+.ficha-top{padding-right:36px}
+.ficha-img{width:120px;aspect-ratio:1/1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.ficha-img img{width:100%;height:100%;object-fit:contain}
+#ficha-body{flex:1;min-width:0;display:grid;gap:8px}
+#ficha-body p{margin:0}
+#ficha-body h2{margin:0}
+.ficha-vars{gap:8px;padding:12px}
+.ficha-var{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.ficha-var:first-of-type{border-top:0}
+.ficha-var label{margin:0;font-weight:600;display:flex;flex-direction:column;line-height:1.3}
+.dlg-acts{display:flex;flex-wrap:wrap;gap:10px}
+.dlg-acts .btn{flex:1 1 180px}
+#pedido-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ped-row{display:grid;grid-template-columns:1fr 84px 40px;gap:8px;align-items:center;padding:10px;border-radius:10px;background:var(--surface)}
+.ped-row div{display:flex;flex-direction:column;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.ped-row input{min-height:42px;padding:8px}
+/* Comparar */
+.cat-filtros{grid-template-columns:1fr 1fr}
+.cat-filtros .f-q{grid-column:1/-1}
+@media(min-width:720px){.cat-filtros{grid-template-columns:2fr 1fr 1fr}.cat-filtros .f-q{grid-column:auto}}
+.cat-check{grid-column:1/-1!important;display:block;align-items:center;gap:10px;font-weight:600;font-size:.95rem;margin:2px 0 6px;min-height:44px;cursor:pointer}
+.cat-check input{vertical-align:-4px;margin-right:8px!important}
+.cat-check input,.cat-cmp input{width:20px;height:20px;min-height:0;margin:0;accent-color:var(--ink);flex:none}
+.cat-tags{display:flex;flex-wrap:wrap;gap:6px}
+.cat-n{background:var(--ink);color:var(--bg)}
+.cat-card.multi{border-color:rgba(16,23,31,.45)}
+.cat-rango{color:var(--ink);margin-top:2px}
+.linkbtn{border:0;background:none;padding:6px 0;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink);text-align:left;min-height:36px}
+.cat-cmp{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.92rem;margin:6px 0 0;min-height:40px;cursor:pointer}
+.cat-cmp:has(input:disabled){cursor:not-allowed;opacity:.7}
+.bar-ped{display:flex;align-items:center;gap:12px;min-width:0}
+.bar-btns{display:flex;gap:8px;margin-left:auto}
+.cat-bar .btn{min-height:44px;padding:0 14px}
+.btn-light{background:transparent;color:var(--bg);border-color:rgba(253,250,245,.5)}
+.ficha-top{display:flex;gap:14px;align-items:flex-start}
+.ficha-top .ficha-img{flex:none;width:96px}
+.cmp-sup h3{margin:4px 0 2px;font-size:1.05rem}
+.sup-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.sup{display:grid;grid-template-columns:56px 1fr;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px}
+.sup.best{border:2px solid var(--accent);background:var(--soft)}
+.sup img,.sup-ph{width:56px;height:56px;border-radius:8px;border:1px solid var(--line);object-fit:contain;background:#fff;display:grid;place-items:center;font-weight:700;color:var(--muted)}
+.sup-b{min-width:0}
+.sup-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pill-low{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.sup-vars{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}
+.sup-vars li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:.92rem}
+.sup-vars li span:first-child{flex:1 1 auto;min-width:0}
+.sup-vars b.low{background:var(--accent);padding:0 6px;border-radius:6px}
+dialog.cat-dlg.wide{width:min(1000px,calc(100vw - 24px))}
+.cmp-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;border:1px solid var(--line);border-radius:12px}
+.cmp-t{border-collapse:separate;border-spacing:0;width:100%;min-width:calc(100px + var(--cols) * 200px);font-size:.92rem}
+.cmp-t th,.cmp-t td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left;scroll-snap-align:start}
+.cmp-t tbody th{position:sticky;left:0;background:var(--bg);width:100px;font-size:.8rem;color:var(--muted);z-index:1;border-right:1px solid var(--line)}
+.cmp-t thead th{background:var(--surface)}
+.cmp-t thead th:first-child{position:sticky;left:0;z-index:2;background:var(--bg);border-right:1px solid var(--line)}
+.cmp-t thead img,.cmp-ph{display:block;width:100%;max-width:150px;aspect-ratio:1/1;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+.cmp-ph{display:grid;place-items:center;font-size:2rem;color:var(--muted)}
+.cmp-t thead b{display:block;line-height:1.3}
+.cmp-vars{margin:0;padding-left:18px}
+.cmp-acts{display:grid;gap:4px}
+.cmp-acts .btn{min-height:42px;padding:0 10px;font-size:.9rem}
+@media(max-width:560px){.cmp-t{min-width:calc(92px + var(--cols) * 190px)}.cmp-t tbody th{width:92px}}
+</style>
+</head>
+<body data-segmento="catalogo">
+<header class="top" id="top"></header>
+<section class="hero cat-hero"><div class="wrap">
+  <p class="eyebrow">Catálogo de proveedores</p>
+  <h1>Compará productos de distintos proveedores</h1>
+  <p class="cat-intro">Precios de referencia de proveedores de la red. Elegí productos, pedí ofertas y compará en privado: costo total puesto en tu localidad, plazo y garantía.</p>
+</div></section>
+<main class="wrap cat-main" id="cat-app">
+  <div class="cat-filtros" id="cat-filtros" hidden>
+    <div class="f-q"><label for="cat-q">Buscar</label><input id="cat-q" type="search" placeholder="Mancuernas, colchonetas, 10 kg…" autocomplete="off" enterkeyhint="search"></div>
+    <div><label for="cat-cat">Categoría</label><select id="cat-cat"></select></div>
+    <div><label for="cat-orden">Ordenar</label><select id="cat-orden"><option value="proveedores">Más proveedores</option><option value="precio">Menor precio</option><option value="az">A–Z</option></select></div>
+  <label class="cat-check f-q" id="cat-solo2-l"><input type="checkbox" id="cat-solo2"> Con 2 o más proveedores para comparar<span id="cat-solo2-n" class="muted"></span></label>
+  </div>
+  <div id="cat-estado" aria-live="polite"></div>
+  <div class="cat-grid" id="cat-grid"></div>
+  <button class="btn btn-outline" type="button" id="cat-mas" hidden>Ver más productos</button>
+  <p class="small muted" style="margin-top:28px">¿No encontrás lo que buscás? <a href="solicitud.html">Pedí ofertas</a> escribiendo el producto, o <a href="arma-tu-espacio.html">armá tu espacio</a> y te sugerimos la lista.</p>
+</main>
+
+<div class="cat-bar" id="cat-bar" hidden><div class="cat-bar-in">
+  <div class="bar-ped" id="cat-bar-ped"><div><b>Mi pedido</b><span id="cat-bar-n"></span></div><button class="btn btn-accent" type="button" id="cat-bar-ver">Ver pedido</button></div>
+  <div class="bar-btns"><button class="btn btn-light" type="button" id="cat-bar-cmp" hidden>Comparar (0)</button></div>
+</div></div>
+
+<dialog class="cat-dlg" id="cat-ficha" aria-labelledby="ficha-t"><div class="dlg-in">
+  <div class="dlg-head"><div id="ficha-body"></div><button type="button" class="dlg-x" id="ficha-cerrar" aria-label="Cerrar">×</button></div>
+  <div class="dlg-acts"><button class="btn btn-accent" type="button" id="ficha-ok">Pedir oferta</button><button class="btn btn-outline" type="button" id="ficha-alt">Agregar a mi pedido</button></div>
+</div></dialog>
+
+<dialog class="cat-dlg wide" id="cat-comparar" aria-labelledby="cmp-t"><div class="dlg-in">
+  <div class="dlg-head"><div><p class="eyebrow">Comparar</p><h2 id="cmp-t">Productos lado a lado</h2><p class="small muted">Precios de referencia. El precio final llega en cada oferta privada.</p></div><button type="button" class="dlg-x" id="cmp-cerrar" aria-label="Cerrar">×</button></div>
+  <div id="cmp-body"></div>
+</div></dialog>
+
+<dialog class="cat-dlg" id="cat-pedido" aria-labelledby="pedido-t"><div class="dlg-in">
+  <div class="dlg-head"><div><p class="eyebrow">Mi pedido</p><h2 id="pedido-t">Productos elegidos</h2></div><button type="button" class="dlg-x" id="pedido-cerrar" aria-label="Cerrar">×</button></div>
+  <ul id="pedido-list"></ul>
+  <p class="note small">Los proveedores te mandan ofertas privadas por este pedido: precio final, envío a tu localidad, plazo, cuotas, factura y garantía. Elegís sin compromiso.</p>
+  <div class="dlg-acts"><button class="btn btn-accent" type="button" id="pedido-enviar">Pedir ofertas</button></div>
+</div></dialog>
+
+<footer class="foot" id="foot"></footer>
+<script src="assets/empresa.js"></script>
+<script src="assets/paginas.js"></script>
+<script src="assets/catalogo.js"></script>
+</body>
+</html>

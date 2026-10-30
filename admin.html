@@ -1408,7 +1408,7 @@ function offerStatus(o){
   return '<span class="st '+m[0]+'">'+m[1]+'</span>';
 }
 function vendorStatus(v){
-  var m={active:['ok','Activo'],pending:['warn','Por aprobar'],suspended:['neu','Suspendido'],rejected:['bad','Rechazado']}[v.status]||['neu',v.status];
+  var m={active:['ok','Activo'],pending:['warn','Nuevo · espera aprobación'],suspended:['neu','Suspendido'],rejected:['bad','Rechazado']}[v.status]||['neu',v.status];
   return '<span class="st '+m[0]+'">'+m[1]+'</span>';
 }
 /* ---------- Íconos compartidos ---------- */
@@ -1957,16 +1957,17 @@ function vStats(v){
 function vendorList(){
   return '<div class="section-head" style="margin:0"><p class="note">Las marcas que venden en el sitio. Cada una se lleva el '+(100-db.commission)+'% de sus ventas. Entrá a la ficha para ver todo lo que cargó y cómo le va.</p><button class="btn btn-accent" data-act="v-new">Agregar proveedor</button></div>'
     +(ui.vForm==='new'?vendorForm():'')
-    +'<div class="vcards">'+db.vendors.map(function(v){
+    +'<div class="vcards">'+db.vendors.slice().sort(function(a,b){ return (b.status==='pending')-(a.status==='pending'); }).map(function(v){
       var S=vStats(v), cp=vComplete(v), idle=S.last&&calDays(S.last.slice(0,10),today())>14;
       return '<div class="vcard"><div class="vc-h"><span class="avatar lg" aria-hidden="true">'+esc(v.name.charAt(0))+'</span><div class="vc-t"><b>'+esc(v.name)+'</b><span class="muted small">'+esc([v.type,v.city].filter(Boolean).join(' · '))+'</span></div>'+vendorStatus(v)+'</div>'
+        +(v.status==='pending'?'<p class="note small">'+(v.alta==='web'?'Se registró con Vender con catálogo'+(v.since?' el '+fdate(v.since):'')+(v.razon?' · '+esc(v.razon):'')+(v.cuit?' · CUIT '+esc(v.cuit):'')+(v.terms?' · Aceptó los términos':'')+'. ':'')+'Puede cargar productos y fotos, pero no se publica nada ni recibe pedidos de la red hasta que lo apruebes.</p>':'')
         +'<div class="vc-stats"><div><span class="muted small">Vendido</span><b class="num">'+money(S.sold)+'</b></div><div><span class="muted small">Ventas</span><b class="num">'+S.ok.length+'</b></div><div><span class="muted small">Productos</span><b class="num">'+S.pub+'</b></div>'
         +'<div><span class="muted small">Ingresos al panel</span><b class="num">'+S.logins+'</b></div></div>'
         +'<div class="vc-meta small"><span>'+ico('clock',16)+(S.last?'Último ingreso '+ago(S.last)+(idle?' <span class="st warn">Hace mucho</span>':''):'Nunca entró al panel')+'</span>'
         +(S.low||S.nostock?'<span>'+ico('productos',16)+(S.low?'<span class="st warn">'+S.low+' con bajo stock</span>':'')+(S.nostock?' <span class="st bad">'+S.nostock+' sin stock</span>':'')+'</span>':'')+'<span>'+ico('pages',16)+'Datos '+cp.pct+'%'+(cp.pct<100?' <span class="st warn">Incompletos</span>':'')+'</span>'
         +'<span>'+ico('money',16)+(v.mp?'Mercado Pago conectado':'<span class="st bad">Sin Mercado Pago</span>')+'</span></div>'
         +'<div class="actions"><button class="btn btn-primary btn-sm" data-act="v-open" data-id="'+v.id+'">Ver ficha</button>'+vActs(v)+'</div></div>';
-    }).join('')+'</div>';
+    }).join('')+'</div>'+fotosRevisar();
 }
 function vActs(v){
   if(v.status==='pending') return '<button class="btn btn-accent btn-sm" data-act="v-approve" data-id="'+v.id+'">Aprobar</button><button class="btn btn-outline btn-sm" data-act="v-reject" data-id="'+v.id+'">Rechazar</button>';
@@ -1984,7 +1985,7 @@ function bulkPlan(v,c){
   var ops=[],n={create:0,update:0,pause:0,skip:0,missing:0,missingStock:0};
   (v.catalogDrafts||[]).forEach(function(d){
     var ex=db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0];
-    if(d.hidden||!(d.price>0)){ if(ex&&ex.status==='published'){ops.push({kind:'pause',o:ex});n.pause++;} else n.skip++; return; }
+    if(d.hidden||d.ausenteEnUltimaImportacion||!(d.price>0)){ if(ex&&ex.status==='published'){ops.push({kind:'pause',o:ex});n.pause++;} else n.skip++; return; }
     var source=tiendanubeSource(v,d)||safeUrl(ex&&ex.sourceUrl);
     if(!source){if(ex&&ex.status==='published'){ops.push({kind:'pause',o:ex});n.pause++;}n.missing++;return;}
     if(d.units===null){if(ex&&ex.status==='published'){ops.push({kind:'pause',o:ex});n.pause++;}n.missingStock++;return;}
@@ -2015,7 +2016,7 @@ function bulkCond(){
 }
 function bulkPanel(v){
   var b=ui.bulk&&ui.bulk.vid===v.id?ui.bulk:null,c=b?b.cond:{unit:'Unidad',lead:'',warranty:'',shipAmba:'',shipInt:'',minQty:1},
-    ready=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&d.units!==null&&(tiendanubeSource(v,d)||safeUrl((db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0]||{}).sourceUrl));}).length, missing=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&!tiendanubeSource(v,d)&&!safeUrl((db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0]||{}).sourceUrl);}).length, missingStock=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&d.units===null;}).length;
+    ready=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&!d.ausenteEnUltimaImportacion&&d.price>0&&d.units!==null&&(tiendanubeSource(v,d)||safeUrl((db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0]||{}).sourceUrl));}).length, missing=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&!tiendanubeSource(v,d)&&!safeUrl((db.offers.filter(function(o){return o.vendorId===v.id&&o.sourceKey===d.key;})[0]||{}).sourceUrl);}).length, missingStock=(v.catalogDrafts||[]).filter(function(d){return !d.hidden&&d.price>0&&d.units===null;}).length;
   if(b&&b.plan){var n=b.plan.n;return '<div class="bulk"><h3>Confirmá la publicación</h3><p>Se van a publicar <b>'+n.create+'</b> variantes nuevas y actualizar <b>'+n.update+'</b> ya publicadas'+(n.pause?'; se pausan <b>'+n.pause+'</b> ocultas o sin fuente':'')+(n.missing?'; <b>'+n.missing+'</b> quedan fuera por falta de fuente oficial':'')+(n.missingStock?'; <b>'+n.missingStock+'</b> quedan fuera porque el archivo no confirma stock':'')+'. Entrega '+c.lead+' días hábiles · garantía '+c.warranty+' meses · envío AMBA '+money(c.shipAmba)+' · resto del país '+money(c.shipInt)+' · mínimo '+c.minQty+'.</p><div class="actions"><button type="button" class="btn btn-primary" data-act="bulk-confirm" data-id="'+esc(v.id)+'">Confirmar y publicar</button><button type="button" class="btn btn-outline" data-act="bulk-cancel">Volver</button></div></div>';}
   return '<div class="bulk"><h3>Publicar todo el catálogo</h3><p class="note">Publica de una vez las '+ready+' variantes visibles con precio, con estas condiciones. Si ya estaban publicadas, actualiza precio y stock sin duplicarlas. Las que el archivo marca ocultas no se publican.'+(missing?' <b>'+missing+' variantes visibles quedan fuera porque no tienen una fuente oficial HTTPS.</b>':'')+(missingStock?' <b>'+missingStock+' quedan fuera porque el archivo no informa stock; deben confirmarse una por una.</b>':'')+'</p><div id="bulk-err" class="alert bad" role="alert" hidden></div><div class="formgrid">'
     +fld('bulk-unit','Se vende por',sel('bulk-unit',['Unidad','Par','Kit'],c.unit),'Los combos y kits se marcan como Kit.')
@@ -2029,9 +2030,12 @@ function bulkPanel(v){
 function catalogDraftPanel(v){
   var items=v&&v.catalogDrafts||[];if(!items.length)return '';
   var sourced=items.filter(function(x){return !!tiendanubeSource(v,x);}).length,stocked=items.filter(function(x){return x.units!==null;}).length,pending=items.filter(function(x){return !x.hidden&&x.price>0&&x.units===null;});
-  return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. '+sourced+' tienen enlace oficial generado y '+stocked+' informan stock. Las variantes sin fuente o sin stock confirmado quedan fuera de la publicación masiva.</p>'+(pending.length?'<div class="actions"><button type="button" class="btn btn-primary btn-sm" data-act="xls" data-kind="stock-pendiente:'+esc(v.id)+'">Descargar '+pending.length+' pendientes de stock</button><button type="button" class="btn btn-outline btn-sm" data-act="xcopy" data-kind="stock-pendiente:'+esc(v.id)+'">Copiar para planilla</button></div>':'')+bulkPanel(v)
+  /* Un importado se ve en el catálogo solo si lo publicaste (oferta publicada con su clave) y vino en la última importación. */
+  var pub={};db.offers.forEach(function(o){if(o.vendorId===v.id&&o.status==='published'&&o.sourceKey)pub[o.sourceKey]=1;});
+  var aus=items.filter(function(x){return x.ausenteEnUltimaImportacion;}).length;
+  return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. '+sourced+' tienen enlace oficial generado y '+stocked+' informan stock. Las variantes sin fuente o sin stock confirmado quedan fuera de la publicación masiva. En el catálogo solo se ven las que publicás vos.'+(aus?' <b>'+aus+' no vinieron en la última importación</b>: no se muestran.':'')+'</p>'+(pending.length?'<div class="actions"><button type="button" class="btn btn-primary btn-sm" data-act="xls" data-kind="stock-pendiente:'+esc(v.id)+'">Descargar '+pending.length+' pendientes de stock</button><button type="button" class="btn btn-outline btn-sm" data-act="xcopy" data-kind="stock-pendiente:'+esc(v.id)+'">Copiar para planilla</button></div>':'')+bulkPanel(v)
     +'<div class="tablewrap"><table style="min-width:820px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Fuente</th><th>Estado de origen</th></tr></thead><tbody>'
-    +items.map(function(x,index){var src=tiendanubeSource(v,x);return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(src?'<a class="linkbtn small" href="'+esc(src)+'" target="_blank" rel="noopener">Abrir oficial</a>':'<span class="st bad">Falta</span>')+'</td><td>'+(x.hidden?'Oculto':'Visible')+' · Borrador'+(!x.hidden&&x.price>0?'<br><button type="button" class="btn btn-primary btn-sm" data-act="draft-prepare" data-id="'+esc(v.id)+'" data-index="'+index+'">Completar y publicar</button>':'')+'</td></tr>';}).join('')
+    +items.map(function(x,index){var src=tiendanubeSource(v,x);return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(src?'<a class="linkbtn small" href="'+esc(src)+'" target="_blank" rel="noopener">Abrir oficial</a>':'<span class="st bad">Falta</span>')+'</td><td>'+(x.ausenteEnUltimaImportacion?'<span class="st warn">No vino en la última importación</span><br>':'')+(pub[x.key]&&!x.ausenteEnUltimaImportacion?'<span class="st ok">Publicado</span>':(x.hidden?'Oculto':'Visible')+' · Borrador')+(!x.hidden&&x.price>0&&!x.ausenteEnUltimaImportacion?'<br><button type="button" class="btn btn-primary btn-sm" data-act="draft-prepare" data-id="'+esc(v.id)+'" data-index="'+index+'">Completar y publicar</button>':'')+'</td></tr>';}).join('')
     +'</tbody></table></div></section>';
 }
 function vendorFile(v){
@@ -2492,7 +2496,7 @@ function alerts(){
     d:late.length?late.slice(0,3).map(function(o){ var x=lateDays(o); return '#'+o.id+' de '+esc(vn(o.vendorId))+': '+x+(x===1?' día hábil':' días hábiles')+' de atraso'; }).join(' · ')+(late.length>3?' · y '+(late.length-3)+' más':''):'Todos los pedidos pagados están dentro del plazo de entrega.',
     act:late.length?'<button class="btn btn-outline btn-sm" data-act="goto" data-tab="ventas" data-month="" data-status="late">Ver demorados</button>':''});
   var pv=db.vendors.filter(function(v){ return v.status==='pending'; });
-  rows.push({lvl:pv.length?'warn':'ok',t:'Proveedores por aprobar',n:pv.length,d:pv.length?pv.map(function(v){ return esc(v.name); }).join(' · '):'No hay solicitudes nuevas.',act:pv.length?'<button class="btn btn-outline btn-sm" data-act="tab" data-tab="vendedores">Revisar</button>':''});
+  rows.push({lvl:pv.length?'warn':'ok',t:'Proveedores por aprobar',n:pv.length,d:pv.length?pv.map(function(v){ return esc(v.name); }).join(' · ')+'. No publican ni reciben pedidos de la red hasta que los apruebes.':'No hay solicitudes nuevas.',act:pv.length?'<button class="btn btn-outline btn-sm" data-act="tab" data-tab="vendedores">Revisar</button>':''});
   var po=db.offers.filter(function(o){ return o.status==='review'; });
   rows.push({lvl:po.length?'warn':'ok',t:'Productos por revisar',n:po.length,d:po.length?po.slice(0,3).map(function(o){ return esc(o.model)+' de '+esc(vn(o.vendorId)); }).join(' · '):'No hay productos esperando revisión.',act:po.length?'<button class="btn btn-outline btn-sm" data-act="tab" data-tab="productos" data-sub="aprobar">Revisar</button>':''});
   var mp=db.vendors.filter(function(v){ return v.status==='active'&&!v.mp; });
@@ -2724,9 +2728,11 @@ document.addEventListener('click',function(ev){
       if(ui.confirm!=='r'+id){ ui.confirm='r'+id; rerender(); }
       else { x=order(id); if(x){ x.status='refunded'; } ui.confirm=null; save(); rerender(); toast('Devolución registrada'); }
       break;
-    case 'v-approve': x=vendor(id); if(x){ x.status='active'; logAct('aprobó/reactivó a '+x.name); vnotify(x.id,'account','resumen','Tu cuenta está activa: ya podés publicar y vender.'); save(); rerender(); toast(x.name+' quedó activo'); } break;
-    case 'v-reject': x=vendor(id); if(x){ x.status='rejected'; logAct('rechazó la solicitud de '+x.name); save(); rerender(); toast('Solicitud rechazada'); } break;
-    case 'v-suspend': x=vendor(id); if(x){ x.status='suspended'; logAct('suspendió a '+x.name); vnotify(x.id,'account','resumen','Tu cuenta fue suspendida: tus productos no se muestran. Escribinos para resolverlo.'); save(); rerender(); toast(x.name+' quedó suspendido'); } break;
+    case 'v-approve': x=vendor(id); if(x){ x.status='active'; logAct('aprobó/reactivó a '+x.name); vnotify(x.id,'account','resumen','Tu cuenta está activa: ya podés publicar y vender.'); save(); rerender(); toast(x.name+' quedó activo');
+      /* También activa su ficha en la red de proveedores (entra pausada al registrarse). */
+      (function(name,vid){ adminRpc('fitness_proveedor_aprobar',{p_vendor_id:vid}).then(function(r){ try{ db=FC.refresh(); }catch(e){} rerender(); toast(name+' quedó activo'+(r&&r.red?' y ya recibe pedidos de la red':'')); }).catch(function(e){ toast('Quedó activo, pero no se pudo activar en la red: '+e.message); }); })(x.name,x.id); } break;
+    case 'v-reject': x=vendor(id); if(x){ x.status='rejected'; logAct('rechazó la solicitud de '+x.name); save(); rerender(); toast('Solicitud rechazada: queda pausado en la red'); } break;
+    case 'v-suspend': x=vendor(id); if(x){ x.status='suspended'; logAct('suspendió a '+x.name); vnotify(x.id,'account','resumen','Tu cuenta fue suspendida: tus productos no se muestran. Escribinos para resolverlo.'); save(); rerender(); toast(x.name+' quedó suspendido: no se muestra ni recibe pedidos de la red'); } break;
     case 'o-approve': x=offer(id); if(x){ x.status='published'; logAct('aprobó '+x.model+' '+x.size+' de '+((vendor(x.vendorId)||{}).name||'')); vnotify(x.vendorId,'product','productos','Aprobamos '+x.model+' '+x.size+': ya se muestra en la comparación.',x.id); save(); rerender(); toast('Producto publicado'); } break;
     case 'o-reject': x=offer(id); if(x){ x.status='rejected'; logAct('rechazó '+x.model+' '+x.size+' de '+((vendor(x.vendorId)||{}).name||'')); vnotify(x.vendorId,'product','productos','No aprobamos '+x.model+' '+x.size+'. Revisá que el modelo y la variante sean los correctos y volvé a enviarlo.',x.id); save(); rerender(); toast('Producto rechazado'); } break;
     case 'stock-v': ui.stockVendor=id; ui.oForm=null; rerender(); break;
@@ -3273,6 +3279,25 @@ function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+pat
 function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}
 async function photosCall(path,opts){opts=opts||{};var h={Authorization:'Bearer '+FC.token()};if(opts.json!==undefined)h['Content-Type']='application/json';var r=await fetch(paymentsUrl(path),{method:opts.method||'GET',headers:h,body:opts.form||(opts.json!==undefined?JSON.stringify(opts.json):undefined)});var d={};try{d=await r.json();}catch(e){}if(!r.ok)throw Error(d.error||'No se pudo completar la acción con las fotos.');return d;}
 async function loadPhotos(vid,keep){var prev=ui.photos&&ui.photos.vid===vid?ui.photos:{};ui.photos={vid:vid,loading:true,filter:prev.filter||'todas',page:keep?prev.page||1:1,progress:prev.progress||''};try{var d=await photosCall('/api/fotos?v='+encodeURIComponent(vid));ui.photos.products=d.products;ui.photos.images=d.images;}catch(e){ui.photos.error=e.message;}ui.photos.loading=false;rerender();}
+/* Fotos para revisar: las que suben los proveedores quedan pendientes hasta que las publicás. Una por archivo (vale para todas sus variantes). */
+async function loadFotosRev(){ui.fotosRev={loading:true};try{ui.fotosRev.list=await adminRpc('fitness_fotos_por_revisar');}catch(e){ui.fotosRev.err=e.message;}ui.fotosRev.loading=false;rerender();}
+function fotosRevisar(){
+ var R=ui.fotosRev,h='<section class="card" id="fotos-revisar"><h2 class="display h-card">Fotos para revisar</h2>';
+ if(!R){setTimeout(loadFotosRev,0);return h+'<p class="muted">Cargando fotos…</p></section>';}
+ if(R.loading)return h+'<p class="muted">Cargando fotos…</p></section>';
+ if(R.err)return h+'<div class="alert bad">'+esc(R.err)+'</div><div class="actions"><button type="button" class="btn btn-outline btn-sm" data-act="frev-reload">Reintentar</button></div></section>';
+ var L=R.list||[];
+ if(!L.length)return h+'<p class="note">No hay fotos de proveedores esperando revisión. Las que suban quedan acá y no se muestran hasta que las publiques.</p></section>';
+ return h+'<p class="note">'+L.length+(L.length===1?' foto subida por un proveedor':' fotos subidas por proveedores')+'. No se muestran en el catálogo hasta que las publiques. Rechazá las que no sean del producto real.</p>'
+  +'<div class="photos-grid">'+L.map(function(f){return '<article class="photo-card"><div class="pimg"><img src="'+esc(photoSrc(f.path))+'" alt="'+esc(f.slug)+'" loading="lazy"></div><b>'+esc(f.slug)+'</b><span class="small muted">'+esc(f.vendorName)+((f.keys||[]).length>1?' · '+f.keys.length+' variantes':'')+'</span>'
+   +'<div class="actions"><button type="button" class="btn btn-primary" data-act="frev" data-v="'+esc(f.vendorId)+'" data-path="'+esc(f.path)+'" data-s="aprobada">Publicar</button><button type="button" class="btn btn-outline" data-act="frev" data-v="'+esc(f.vendorId)+'" data-path="'+esc(f.path)+'" data-s="rechazada">Rechazar</button></div></article>';}).join('')+'</div></section>';
+}
+document.addEventListener('click',function(ev){
+ var t=ev.target.closest&&ev.target.closest('[data-act="frev"],[data-act="frev-reload"]');if(!t||t.disabled)return;
+ if(t.dataset.act==='frev-reload'){loadFotosRev();return;}
+ t.disabled=true;
+ adminRpc('fitness_fotos_revisar',{p_vendor_id:t.dataset.v,p_path:t.dataset.path,p_status:t.dataset.s}).then(function(){toast(t.dataset.s==='aprobada'?'Foto publicada.':'Foto rechazada: no se muestra.');if(ui.photos&&ui.photos.vid===t.dataset.v)loadPhotos(t.dataset.v,true);return loadFotosRev();}).catch(function(e){t.disabled=false;toast(e.message);});
+});
 function photoMain(slug){return ((ui.photos&&ui.photos.images)||[]).filter(function(i){return i.key===slug;})[0]||null;}
 function photosPanel(v){
  if(!(v.catalogDrafts||[]).length&&!(db.offers||[]).some(function(o){return o.vendorId===v.id&&(o.status==='review'||o.status==='published');}))return '';
@@ -3290,7 +3315,7 @@ function photosPanel(v){
   +'<div class="rows num"><div><span class="muted">Productos</span><b>'+prods.length+'</b></div><div><span class="muted">Con foto publicada</span><b>'+ok+'</b></div><div><span class="muted">Sin foto o rechazadas</span><b>'+(none+rej+pend)+'</b></div></div>'
   +'<div class="actions"><button class="btn btn-primary" data-act="photos-run" data-id="'+esc(v.id)+'"'+(P.running||!none?' disabled':'')+'>'+(P.running?'Buscando fotos…':'Buscar fotos en la tienda del proveedor')+'</button><label class="btn btn-outline" for="photos-bulk">Subir varias fotos a la vez</label><input class="photo-file" id="photos-bulk" type="file" multiple accept="image/jpeg,image/png,image/webp" data-bulk-vendor="'+esc(v.id)+'">'+(P.progress?'<span class="small" role="status">'+esc(P.progress)+'</span>':'')+'</div>'
   +'<p class="small muted">Para subir varias: nombrá cada archivo como el producto (por ejemplo “Pesa rusa cromada 8 kg.jpg”) o con su identificador de la tienda. Se asignan solas.</p>'+(P.bulkReport?'<p class="alert" role="status">'+esc(P.bulkReport)+'</p>':'')
-  +'<div class="chips2" role="group" aria-label="Filtrar fotos">'+[['todas','Todas'],['sin','Sin foto ('+(none+rej+pend)+')'],['aprobadas','Publicadas ('+ok+')']].map(function(f){return '<button type="button" class="chipbtn" data-act="photos-filter" data-f="'+f[0]+'" aria-pressed="'+(P.filter===f[0])+'">'+f[1]+'</button>';}).join('')+'</div>'
+  +'<div class="chips2" role="group" aria-label="Filtrar fotos">'+[['todas','Todas'],['pendientes','Para revisar ('+pend+')'],['sin','Sin foto ('+(none+rej+pend)+')'],['aprobadas','Publicadas ('+ok+')']].map(function(f){return '<button type="button" class="chipbtn" data-act="photos-filter" data-f="'+f[0]+'" aria-pressed="'+(P.filter===f[0])+'">'+f[1]+'</button>';}).join('')+'</div>'
   +'<div class="photos-grid">'+list.slice((P.page-1)*24,P.page*24).map(function(x,i){var img=x.img,s2=img&&st[img.status];return '<article class="photo-card"><div class="pimg">'+(img?'<img src="'+esc(photoSrc(img.path))+'" alt="'+esc(x.p.name)+'" loading="lazy">':'Sin foto')+'</div><b>'+esc(x.p.name)+'</b>'
     +(img?'<span class="small muted">'+esc(src[img.source]||img.source)+'</span><span class="st '+s2[0]+'">'+s2[1]+'</span>':'<span class="small muted">'+x.p.variants+(x.p.variants===1?' variante':' variantes')+'</span>')
     +'<div class="actions">'+(img&&img.status!=='aprobada'?'<button class="btn btn-primary" data-act="photos-status" data-id="'+esc(v.id)+'" data-key="'+esc(x.p.slug)+'" data-status="aprobada">Publicar</button>':'')+(img&&img.status!=='rechazada'?'<button class="btn btn-outline" data-act="photos-status" data-id="'+esc(v.id)+'" data-key="'+esc(x.p.slug)+'" data-status="rechazada">Rechazar</button>':'')

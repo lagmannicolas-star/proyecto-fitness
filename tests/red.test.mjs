@@ -55,7 +55,7 @@ const toda = fs.readFileSync('supabase/migrations/20261021220000_pedido_a_toda_l
 assert.match(toda, /create trigger fitness_zz_invitar_red after insert on public\.fitness_solicitudes/);
 assert.match(toda, /from public\.fitness_red_proveedores r where r\.activo\s+on conflict/);
 assert.match(toda, /grant execute on function public\.fitness_mis_pedidos\(\) to authenticated/);
-assert.match(prov, /\{id:'pedidos',label:'Pedidos para cotizar'\}/);
+assert.match(prov, /\{id:'pedidos',label:'Pedidos para cotizar \(de compradores de tu rubro\)'\}/);
 assert.match(prov, /rpc\/fitness_mis_pedidos/);
 console.log('OK: red de proveedores con alta desde la web.');
 

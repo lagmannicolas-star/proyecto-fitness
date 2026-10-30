@@ -49,9 +49,11 @@ assert.match(sql, /revoke all on table public\.fitness_solicitudes from public,a
 
 console.log('OK: portada, Armá tu espacio, solicitud, seguimiento, puentes y panel de solicitudes.');
 
-// El catálogo tiene dirección propia: /catalogo sirve nicolas.html y abre directo en la búsqueda.
+// El catálogo tiene dirección propia: /catalogo sirve catalogo.html (vidriera de proveedores), ya no la tienda.
 const redirects = read('_redirects');
-assert.match(redirects, /^\/catalogo \/nicolas 200$/m, '/catalogo sirve el catálogo');
+assert.doesNotMatch(redirects, /^\/catalogo\S* \/nicolas/m, '/catalogo ya no sirve la tienda');
+assert(fs.existsSync('catalogo.html'), 'existe la página del catálogo');
+assert.match(read('.assetsignore'), /^!catalogo\.html$/m, 'catalogo.html se publica');
 assert.match(read('.assetsignore'), /^!_redirects$/m, '_redirects se publica');
 assert.match(read('nicolas.html'), /\\\/catalogo\\\/\?\$\/\.test\(location\.pathname\)/, '/catalogo abre la búsqueda');
 assert.doesNotMatch(home, /mejores ofertas/, 'sin superlativos en la portada');

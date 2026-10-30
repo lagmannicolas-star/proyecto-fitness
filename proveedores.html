@@ -840,6 +840,27 @@ h1.display{font-size:clamp(2rem,4.3vw,3.5rem);max-width:21ch}h2.display{font-siz
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:18px}.hero-demo{padding:14px;gap:6px}.hero-copy{gap:12px}.hero-demo .category-photo{width:40px;height:40px}.demo-product{gap:10px}.hero-demo .btn{min-height:44px}.category-photo{width:42px;height:42px}.cat-card{min-height:66px;padding:8px;gap:8px}.cat-card b{font-size:.84rem}.hero-copy h1{font-size:2.1rem}.demo-heading b{font-size:.94rem}}
 
 .legal-links{display:flex;flex-wrap:wrap;gap:4px 8px;padding-bottom:16px;font-size:.85rem}.legal-links a{color:var(--ink)}.legal-links .arrepentimiento{font-weight:700}
+/* Errores y avisos de formularios: el error se ve como error, al lado del formulario. */
+:root{--err:#B42318;--err-bg:#FDECEA}
+.alert.bad{background:var(--err-bg);color:#7A1C12;border-left:4px solid var(--err)}
+.field .err{color:var(--err)}
+.field input[aria-invalid="true"],.field select[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:var(--err)!important;box-shadow:0 0 0 1px var(--err)}
+.alert.pend{background:var(--accent-soft);border-left:4px solid var(--accent);font-weight:500}.alert.pend b{display:block;margin-bottom:2px}
+.conds{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--surface-2)}.conds h3{font-size:1rem;margin-bottom:6px}.conds ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.92rem}
+.check.top{align-items:flex-start;font-weight:500}.check.top input{margin-top:3px;flex:none}
+.paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}.paths .card h3{font-size:1.15rem}.paths ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.onb ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}.onb li{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;flex-wrap:wrap}.onb li.done{background:var(--accent-soft)}.onb .n{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--field-line);font-weight:700}.onb li.done .n{background:var(--accent);border-color:var(--ink)}.onb .t{flex:1 1 200px;min-width:0}.onb .t span{display:block;font-size:.85rem;color:var(--muted)}
+.subtabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.vsearch{display:flex;flex-direction:column;gap:6px}.vsearch .hint{font-size:.8rem;color:var(--muted)}
+.ftoggle{display:none}
+@media (max-width:640px){
+ .ftoggle{display:inline-flex}.filterbox.collapsed .filters,.filterbox.collapsed .chips2{display:none}
+ table.rt{min-width:0!important}.rt thead{display:none}.rt,.rt tbody,.rt tr,.rt td{display:block;width:100%}
+ .rt tr{border-bottom:1px solid var(--line);padding:10px 4px}.rt td{padding:4px 10px;text-align:left!important}
+ .rt td[data-l]::before{content:attr(data-l);display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+ .rt td .actions.nw{flex-wrap:wrap;justify-content:flex-start!important}.rt tr.detail td{padding:8px 4px}
+ .tablewrap:has(table.rt){overflow-x:visible}
+}
 .wa-in{display:flex;align-items:stretch}.wa-in .wa-pre{display:flex;align-items:center;padding:0 12px;border:1px solid var(--field-line);border-right:0;border-radius:8px 0 0 8px;background:var(--surface-2,#FDFAF5);color:var(--ink);font-weight:600;white-space:nowrap}.field .wa-in input{border-radius:0 8px 8px 0!important;min-width:0}
 </style>
 <meta name="nexofit-build" content="20261013-carrito-ab">
@@ -860,7 +881,8 @@ var FC=(function(){
  function validateConfig(){if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(cfg.url)||!cfg.key)throw Error('Falta activar la conexión del proyecto Supabase. Esta versión no usa datos de ejemplo ni guarda operaciones solo en el navegador.');if(/^sb_secret_/.test(cfg.key))throw Error('La clave secret no puede usarse en la web. Usá Publishable key.');}
  function clean(x){return JSON.parse(JSON.stringify(x,function(k,v){return ['hash','password','access_token','refresh_token','_identity','_revision'].indexOf(k)>=0?undefined:v;}));}
  function headers(auth){var h={apikey:cfg.key,'Content-Type':'application/json'};if(auth&&session&&session.access_token)h.Authorization='Bearer '+session.access_token;return h;}
- function error(data){return Error(data.message||data.msg||data.error_description||data.error||'No se pudo completar la operación.');}
+ /* Mensajes de Supabase Auth en castellano; el resto pasa igual. */
+ function error(data){var m=String(data.message||data.msg||data.error_description||data.error||'No se pudo completar la operación.'),T=[[/invalid login credentials/i,'El email o la clave no coinciden.'],[/email not confirmed/i,'Todavía no confirmaste tu email. Buscá el mensaje que te mandamos (revisá Spam o Promociones) y abrí el link.'],[/user already registered|already been registered/i,'Ya hay una cuenta con ese email. Ingresá con tu clave o usá “Me olvidé la clave”.'],[/password should be at least|weak password|pwned/i,'Esa clave es muy fácil de adivinar o muy corta. Usá al menos 8 caracteres.'],[/unable to validate email|invalid email|email address .* is invalid/i,'Revisá el email: no parece válido.'],[/rate limit|too many requests|security purposes/i,'Hiciste varios intentos seguidos. Esperá un minuto y probá de nuevo.']];for(var i=0;i<T.length;i++)if(T[i][0].test(m))return Error(T[i][1]);return Error(m);}
  function sync(path,body,auth,method){var xhr=new XMLHttpRequest();xhr.open(method||'POST',cfg.url+path,false);var h=headers(auth);Object.keys(h).forEach(function(k){xhr.setRequestHeader(k,h[k]);});xhr.send(body==null?null:JSON.stringify(body));var out={};try{out=JSON.parse(xhr.responseText||'{}');}catch(e){throw Error('El servidor devolvió una respuesta inválida.');}if(xhr.status<200||xhr.status>=300)throw error(out);return out;}
  async function request(path,body,auth,method){var r=await fetch(cfg.url+path,{method:method||'POST',headers:headers(auth),body:body==null?undefined:JSON.stringify(body)});var out=await r.json();if(!r.ok)throw error(out);return out;}
  function putSession(s){session=s;try{if(s)sessionStorage.setItem(storageKey,JSON.stringify(s));else sessionStorage.removeItem(storageKey);}catch(e){/* sesión queda en memoria si el navegador bloquea almacenamiento */}}
@@ -883,7 +905,8 @@ var FC=(function(){
  function blocked(id,value){state=sync('/rest/v1/rpc/fitness_set_blocked',{user_id:id,is_blocked:value},true);return clone();}
  function recoveryForm(){if(!recovery&&!linkError)return;var S={card:'background:#FDFAF5;color:#10171F;padding:28px 24px;width:100%;max-width:420px;border-radius:16px;font-family:inherit;display:grid;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)',h:'margin:0;font-size:24px;line-height:1.2',p:'margin:0;color:rgba(16,23,31,.72);line-height:1.45',lbl:'display:grid;gap:6px;font-weight:600',inp:'padding:12px;border:1px solid rgba(16,23,31,.28);border-radius:10px;font:inherit;background:white;color:#10171F',btn:'background:#A5CC21;color:#10171F;border:0;border-radius:999px;padding:14px 18px;font:inherit;font-weight:700;cursor:pointer'};var box=document.createElement('div');box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-labelledby','rec-t');box.style.cssText='position:fixed;inset:0;background:rgba(16,23,31,.85);z-index:9999;display:grid;place-items:center;padding:16px';function done(title,text){box.innerHTML='<div style="'+S.card+'"><h2 id="rec-t" style="'+S.h+'">'+title+'</h2><p style="'+S.p+'">'+text+'</p><button type="button" style="'+S.btn+'">Entendido</button></div>';var b=box.querySelector('button');b.addEventListener('click',function(){box.remove();});b.focus();}document.body.appendChild(box);if(!recovery){linkError='';done('El link ya no sirve','Los links que mandamos por email vencen y se pueden usar una sola vez. Si querías cambiar la clave, pedí uno nuevo desde “Me olvidé la clave”.');return;}box.innerHTML='<form style="'+S.card+'" novalidate><h2 id="rec-t" style="'+S.h+'">Creá tu clave nueva</h2><p style="'+S.p+'">Elegí una clave de al menos 8 caracteres. Desde ahora vas a ingresar con ella.</p><label style="'+S.lbl+'">Clave nueva<input type="password" name="new-password" autocomplete="new-password" minlength="8" required style="'+S.inp+'"></label><label style="'+S.lbl+'">Repetí la clave nueva<input type="password" name="repeat-password" autocomplete="new-password" minlength="8" required style="'+S.inp+'"></label><label style="display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" data-show> Mostrar las claves</label><button type="submit" style="'+S.btn+'">Guardar clave nueva</button><p role="alert" style="margin:0;color:rgb(180,35,24);min-height:1.2em"></p></form>';var form=box.querySelector('form');box.querySelector('[data-show]').addEventListener('change',function(){var t=this.checked?'text':'password';[].forEach.call(form.querySelectorAll('input[name$="password"]'),function(i){i.type=t;});});setTimeout(function(){var i=form.querySelector('[name="new-password"]');if(i)i.focus();},50);form.addEventListener('submit',async function(ev){ev.preventDefault();ev.stopImmediatePropagation();var p=form.querySelector('[name="new-password"]').value,p2=form.querySelector('[name="repeat-password"]').value;var btn=form.querySelector('button[type="submit"]');btn.disabled=true;try{if(p.length<8)throw Error('La clave tiene que tener al menos 8 caracteres.');if(p!==p2)throw Error('Las dos claves no coinciden.');try{await setPassword(p);}catch(e){var m=String(e&&e.message||e);if(/different from the old/i.test(m))throw Error('La clave nueva tiene que ser distinta de la anterior.');if(/weak|pwned|characters/i.test(m))throw Error('Esa clave es muy fácil de adivinar. Probá con otra más larga.');if(/expired|invalid|jwt|session/i.test(m))throw Error('El link venció. Pedí uno nuevo desde “Me olvidé la clave”.');throw e;}recovery=false;done('Listo, tu clave cambió','Ya quedaste con la sesión iniciada. La próxima vez ingresá con tu clave nueva.');}catch(e){form.querySelector('[role="alert"]').textContent=e.message;btn.disabled=false;}},true);}
 
- function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#A5CC21;color:#10171F;padding:16px;border-radius:8px';document.body.appendChild(box);}box.textContent=e.message||String(e);setTimeout(function(){box.remove();},12000);}
+ /* Errores inesperados (los de formularios se muestran en el formulario). Estilo de error, se puede cerrar. */
+ function fail(e){var box=document.getElementById('fitness-error');if(!box){box=document.createElement('div');box.id='fitness-error';box.setAttribute('role','alert');box.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;max-width:560px;margin-inline:auto;z-index:99999;background:#FDECEA;color:#7A1C12;border-left:4px solid #B42318;padding:12px 44px 12px 16px;border-radius:8px;box-shadow:0 6px 20px rgba(16,23,31,.18);font-weight:600';document.body.appendChild(box);}box.textContent=e.message||String(e);var x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label','Cerrar aviso');x.style.cssText='position:absolute;top:4px;right:4px;width:40px;height:40px;border:0;background:none;font-size:22px;cursor:pointer;color:inherit';x.onclick=function(){box.remove();};box.appendChild(x);clearTimeout(fail.t);fail.t=setTimeout(function(){box.remove();},8000);}
  function token(){ensureSession();return session&&session.access_token||null;}
  return {token:token,importCatalog:importCatalog,init:init,recoveryForm:recoveryForm,setPassword:setPassword,blocked:blocked,load:clone,refresh:refresh,save:save,login:login,signup:signup,recover:recover,password:password,logout:logout,apply:apply,reserve:reserve,cancel:cancel,key:key,fail:fail,identity:function(){return state&&state._identity;}};
 })();
@@ -1110,9 +1133,6 @@ var SPACES_BASE=[
 ];
 function spaces(){ return db.spaces||SPACES_BASE; }
 function img(key){ return (db.images||{})[key]||''; }
-/* Clave de demo: en el sitio real se guarda cifrada en el servidor. */
-function pwHash(str){ var h1=0xdeadbeef^7, h2=0x41c6ce57^7; for(var i=0,ch;i<str.length;i++){ ch=str.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); } h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return (4294967296*(2097151&h2)+(h1>>>0)).toString(36); }
-var DEMO_PW='';
 function catBy(name){ return CATALOG.filter(function(c){ return c.n===name; })[0]; }
 function modelBy(cat,name){ var c=catBy(cat); return c?c.m.filter(function(m){ return m[0]===name; })[0]:null; }
 
@@ -1133,9 +1153,15 @@ function notify(kind,tab,text,ref){
   if(db.notifs.length>200) db.notifs.length=200;
 }
 /* Actividad de cada proveedor, para su ficha. */
+/* Mismos tipos que el formulario de la red ("Quiero recibir pedidos"). */
+var VTYPES=['Distribuidor','Fabricante','Importador','Comercio'];
+/* CUIT argentino: 11 dígitos y dígito verificador (módulo 11). */
+function cuitOk(c){ var d=String(c||'').replace(/\D/g,''); if(!/^\d{11}$/.test(d)) return false; var w=[5,4,3,2,7,6,5,4,3,2], s=0; for(var i=0;i<10;i++) s+=w[i]*+d[i]; var r=11-s%11; if(r===11) r=0; if(r===10) return false; return r===+d[10]; }
+/* "1 unidad", "2 pares", "1 kit"… según la presentación. */
+function unitWord(n,u){ n=Number(n)||0; var one=n===1; return n+' '+(u==='Par'?(one?'par':'pares'):u==='Kit'?(one?'kit':'kits'):(one?'unidad':'unidades')); }
 /* Datos que carga cada proveedor sobre su empresa. Los ve el administrador en la ficha. */
 var VFIELDS=[
-  ['Empresa',[['name','Nombre de la marca'],['razon','Razón social'],['cuit','CUIT'],['iva','Condición frente al IVA','sel',['','Responsable inscripto','Monotributo','Exento']],['type','Tipo de proveedor','sel',['Fabricante','Importador','Distribuidor']]]],
+  ['Empresa',[['name','Nombre comercial (lo que ve el comprador)'],['razon','Razón social'],['cuit','CUIT'],['iva','Condición frente al IVA','sel',['','Responsable inscripto','Monotributo','Exento']],['type','Tipo de proveedor','sel',VTYPES]]],
   ['Contacto',[['contact','Persona de contacto'],['role','Cargo'],['email','Email','email'],['phone','Teléfono','tel'],['wa','WhatsApp','tel']]],
   ['Dónde está',[['address','Dirección'],['city','Ciudad'],['prov','Provincia'],['hours','Horario de atención']]],
   ['En internet',[['web','Sitio web','url'],['ig','Instagram']]],
@@ -1227,7 +1253,7 @@ function freeShipping(v,sub,cp){
   return shippingZoneEligible(f,cp)&&(f.mode==='always'||(f.mode==='from'&&sub>=f.threshold));
 }
 function benefitText(o){
-  var v=vendor(o.vendorId), f=(v||{}).freeShipping||{}, a=['Compra mínima: '+(o.minQty||1)+' '+(o.unit==='Par'?'pares':o.unit==='Kit'?'kits':'unidades')];
+  var v=vendor(o.vendorId), f=(v||{}).freeShipping||{}, a=['Compra mínima: '+unitWord(o.minQty||1,o.unit)];
   if((o.volumeTiers||[]).length) a.push('Volumen: '+o.volumeTiers.map(function(t){ return t.pct+'% desde '+t.qty+' '+(o.unit==='Par'?'pares':o.unit==='Kit'?'kits':'unidades'); }).join(' · '));
   if(f.mode==='always'||f.mode==='from') a.push('Envío gratis'+(f.mode==='from'?' desde '+money(f.threshold)+' en productos de este proveedor, después de descuentos':'')+' · '+(f.zone==='amba'?'CABA y alrededores':f.zone==='interior'?'resto del país':'todo el país'));
   return '<p class="note">'+a.join('<br>')+'</p>';
@@ -1250,7 +1276,7 @@ function readVolume(){
 function promotionForm(v){
   var f=v.freeShipping||{mode:'none',zone:'all',threshold:0};
   function options(list,value){return list.map(function(x){return '<option value="'+x[0]+'"'+(value===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');}
-  return '<form id="promotion-form" data-vendor="'+esc(v.id)+'" class="card" novalidate style="margin-top:20px"><h2 class="display h-card">Envío y beneficios</h2><div id="promo-err" class="alert bad" hidden role="alert"></div><p class="note">Cada producto respeta la compra mínima configurada. El proveedor decide si ofrece envío gratis y asume su costo. Los descuentos por volumen se configuran al editar cada producto.</p><div class="formgrid"><div class="field" style="grid-column:1 / -1"><label for="ship-mode">Cómo se cobra el envío</label><select id="ship-mode">'+options([['coordinar','Lo cotizo y coordino con el cliente después de la compra'],['fijo','Precio fijo por zona, se cobra junto con los productos']],v.shipMode==='coordinar'?'coordinar':'fijo')+'</select><span class="hint">“Después de la compra”: el cliente paga solo los productos y vos lo contactás para cotizar y cobrar el envío. “Precio fijo”: se cobra el costo de envío cargado en cada producto.</span></div><div class="field"><label for="promo-mode">Envío gratis</label><select id="promo-mode">'+options([['none','Sin promoción adicional'],['always','En todas las compras'],['from','Desde un importe']],f.mode)+'</select></div><div class="field"><label for="promo-zone">Zona de la promoción</label><select id="promo-zone">'+options([['all','Todo el país'],['amba','CABA y alrededores'],['interior','Resto del país']],f.zone)+'</select></div><div class="field"><label for="promo-threshold">Importe para envío gratis ($)</label><input id="promo-threshold" type="number" min="0" step="0.01" value="'+(f.threshold||'')+'"><span class="hint">Solo para “Desde un importe”. Suma los productos de este proveedor después de los descuentos, sin incluir envío.</span></div><div class="field"><label for="promo-postal">Códigos postales cubiertos (opcional)</label><input id="promo-postal" type="text" placeholder="1425, 1602, 1636" value="'+esc((f.postalCodes||[]).join(', '))+'"><span class="hint">Para limitar la cobertura exacta, cargá los códigos de 4 dígitos separados por comas. Vacío usa una zona aproximada según código postal; confirmar cobertura con la dirección antes del despacho.</span></div></div>'+paymentFields(v)+'<p class="note">Comisión del sitio: '+pctOf(v)+'% sobre los productos ya descontados. El envío cobrado se acredita al proveedor. Los costos del cobro se calculan aparte en la integración real.</p><button class="btn btn-accent" type="submit">Guardar beneficios</button></form>';
+  return '<form id="promotion-form" data-vendor="'+esc(v.id)+'" class="card" novalidate style="margin-top:20px"><h2 class="display h-card">Envío y beneficios</h2><div id="promo-err" class="alert bad" hidden role="alert"></div><p class="note">Cada producto respeta la compra mínima configurada. El proveedor decide si ofrece envío gratis y asume su costo. Los descuentos por volumen se configuran al editar cada producto.</p><div class="formgrid"><div class="field" style="grid-column:1 / -1"><label for="ship-mode">Cómo se cobra el envío</label><select id="ship-mode">'+options([['coordinar','Lo cotizo y coordino con el cliente después de la compra'],['fijo','Precio fijo por zona, se cobra junto con los productos']],v.shipMode==='coordinar'?'coordinar':'fijo')+'</select><span class="hint">“Después de la compra”: el cliente paga solo los productos y vos lo contactás para cotizar y cobrar el envío. “Precio fijo”: se cobra el costo de envío cargado en cada producto.</span></div><div class="field"><label for="promo-mode">Envío gratis</label><select id="promo-mode">'+options([['none','Sin promoción adicional'],['always','En todas las compras'],['from','Desde un importe']],f.mode)+'</select></div><div class="field"><label for="promo-zone">Zona de la promoción</label><select id="promo-zone">'+options([['all','Todo el país'],['amba','CABA y alrededores'],['interior','Resto del país']],f.zone)+'</select></div><div class="field"><label for="promo-threshold">Importe para envío gratis ($)</label><input id="promo-threshold" type="number" min="0" step="0.01" value="'+(f.threshold||'')+'"><span class="hint">Solo para “Desde un importe”. Suma los productos de este proveedor después de los descuentos, sin incluir envío.</span></div><div class="field"><label for="promo-postal">Códigos postales cubiertos (opcional)</label><input id="promo-postal" type="text" placeholder="1425, 1602, 1636" value="'+esc((f.postalCodes||[]).join(', '))+'"><span class="hint">Para limitar la cobertura exacta, cargá los códigos de 4 dígitos separados por comas. Vacío usa una zona aproximada según código postal; confirmar cobertura con la dirección antes del despacho.</span></div></div>'+paymentFields(v)+'<p class="note">Comisión del sitio: '+pctOf(v)+'% sobre los productos ya descontados, solo cuando hay una venta. El envío no paga comisión.</p><button class="btn btn-accent" type="submit">Guardar beneficios</button></form>';
 }
 function submitPromotion(ev){
   if(ev.target.id!=='promotion-form') return false;
@@ -1359,6 +1385,8 @@ function sumClicks(kind,month){
   return out;
 }
 function monthName(ym){ var n=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'], p=String(ym).split('-'); return n[+p[1]-1]+' '+p[0]; }
+/* Mercado Pago disponible en el sitio: lo informa el Worker (/api/pagos/estado). Mientras sea false, el catálogo funciona
+   como vidriera (los compradores piden oferta) y se ocultan conectar cuenta, links de pago, pago de prueba y devoluciones. */
 var mpReady=false;
 function toast(msg){
   toastEl.textContent=msg; toastEl.hidden=false;
@@ -1505,11 +1533,11 @@ function ordersView(v,sales){
   var f=ui.sf||'all', cnt=function(k){ return k==='all'?sales.length:sales.filter(function(o){ return shipStage(o)===k; }).length; };
   var rows=f==='all'?sales:sales.filter(function(o){ return shipStage(o)===f; });
   return '<div class="seg" role="group" aria-label="Filtrar ventas">'+SALE_F.map(function(x){ var n=cnt(x[0]); return '<button type="button" data-act="sale-f" data-f="'+x[0]+'" aria-pressed="'+(f===x[0])+'">'+x[1]+' · '+n+'</button>'; }).join('')+'</div>'
-    +(rows.length?'<div class="tablewrap"><table style="min-width:980px"><thead><tr><th>Venta</th><th>Comprador</th><th>Detalle</th><th class="r">Total</th><th class="r">Recibís</th><th>Estado</th><th></th></tr></thead><tbody>'
+    +(rows.length?'<div class="tablewrap"><table class="rt" style="min-width:980px"><thead><tr><th>Venta</th><th>Comprador</th><th>Detalle</th><th class="r">Total</th><th class="r">Recibís</th><th>Estado</th><th></th></tr></thead><tbody>'
     +rows.map(function(o){
       var ref=o.status==='refunded', open=ui.orderOpen===o.id, st=shipStage(o);
-      return '<tr'+(open?' class="editing"':'')+'><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'<span class="sub">'+esc((o.ship||{}).city||'')+'</span></td><td>'+esc(o.desc.split(': ').slice(1).join(': ')||o.desc)+' × '+o.qty+'</td>'
-        +'<td class="r num">'+money(o.subtotal+o.shipping)+'</td><td class="r num"><b>'+(ref?'—':money(net(o)))+'</b></td><td>'+orderStatus(o)+(o.tracking?'<span class="sub mono">'+esc(o.tracking)+'</span>':'')+'</td>'
+      return '<tr'+(open?' class="editing"':'')+'><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td data-l="Comprador">'+esc(o.buyer)+'<span class="sub">'+esc((o.ship||{}).city||'')+'</span></td><td data-l="Detalle">'+esc(o.desc.split(': ').slice(1).join(': ')||o.desc)+' × '+o.qty+'</td>'
+        +'<td class="r num" data-l="Total">'+money(o.subtotal+o.shipping)+'</td><td class="r num" data-l="Recibís"><b>'+(ref?'—':money(net(o)))+'</b></td><td data-l="Estado">'+orderStatus(o)+(o.tracking?'<span class="sub mono">'+esc(o.tracking)+'</span>':'')+'</td>'
         +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn '+(st==='paid'&&!open?'btn-primary':'btn-outline')+' btn-sm" data-act="order-open" data-id="'+o.id+'" aria-expanded="'+open+'">'+(open?'Cerrar':(st==='paid'?'Cargar envío':'Ver pedido'))+'</button></div></td></tr>'
         +(open?'<tr class="detail"><td colspan="7">'+orderDetail(o)+'</td></tr>':'');
     }).join('')+'</tbody></table></div>':'<div class="empty">No hay ventas en este estado.</div>');
@@ -1529,10 +1557,11 @@ function orderDetail(o){
         +'<div class="field"><label for="sh-num">Número de seguimiento</label><input id="sh-num" type="text" maxlength="40" autocomplete="off"><span class="hint">No hace falta si es retiro o transporte propio.</span></div>'
         +'<div class="field" style="grid-column:1 / -1"><label for="sh-url">Link de seguimiento (opcional)</label><input id="sh-url" type="url" placeholder="https://"></div></div>'
         +'<div class="actions"><button class="btn btn-primary" type="submit">'+ico('truck',18)+'Marcar como enviado</button></div>'
-        +'<p class="note">Al marcarlo, le llega un email al comprador con el transporte y el número para seguirlo.</p></form>'
+        +'<p class="note">El comprador ve el transporte y el número de seguimiento en su cuenta de Nexo Fit. Si querés, avisale también por WhatsApp.</p></form>'
       :'<div class="rows"><div><span class="muted">Transporte</span><b>'+esc(o.carrier||'—')+'</b></div><div><span class="muted">Seguimiento</span><b class="mono">'+esc(o.tracking||'—')+'</b></div><div><span class="muted">Enviado</span><b>'+(o.shippedAt?fdate(o.shippedAt):'—')+'</b></div>'+(o.delivered?'<div><span class="muted">Entregado</span><b>'+(o.deliveredAt?fdate(o.deliveredAt):'Sí')+'</b></div>':'')+'</div>'
         +(o.delivered?'':'<div class="actions"><button class="btn btn-primary btn-sm" data-act="deliver" data-id="'+o.id+'">'+ico('check',18)+'Marcar como entregado</button></div>')))
-    +(ref?'':'<div class="actions" style="margin-top:8px"><button class="btn '+(ui.confirm==='r'+o.id?'btn-danger':'btn-outline')+' btn-sm" data-act="refund" data-id="'+o.id+'">'+(ui.confirm==='r'+o.id?'Confirmar devolución':'Registrar devolución')+'</button></div>')
+    /* Registrar devolución: oculto hasta que los cobros con Mercado Pago estén activos (hoy la acción solo devolvería un error). */
+    +(ref||!mpReady?'':'<div class="actions" style="margin-top:8px"><button class="btn '+(ui.confirm==='r'+o.id?'btn-danger':'btn-outline')+' btn-sm" data-act="refund" data-id="'+o.id+'">'+(ui.confirm==='r'+o.id?'Confirmar devolución':'Registrar devolución')+'</button></div>')
     +'</div></div>';
 }
 
@@ -1561,7 +1590,9 @@ function filterBar(v,mine){
   var chips=QUICK.map(function(x){ var fx={}; for(var k in PF_DEF) fx[k]=PF_DEF[k]; for(var k2 in x[2]) fx[k2]=x[2][k2];
       return '<button type="button" class="chipbtn" data-act="pf-quick" data-q="'+x[0]+'" aria-pressed="'+sameF(f,fx)+'">'+x[1]+'</button>'; }).join('')
     +(v.views||[]).map(function(w,i){ return '<span class="chipbtn saved'+(sameF(f,w.f)?' on':'')+'"><button type="button" data-act="pf-view" data-i="'+i+'">'+ico('filter',16)+esc(w.name)+'</button><button type="button" class="x" data-act="pf-del" data-i="'+i+'" aria-label="Borrar el filtro '+esc(w.name)+'">×</button></span>'; }).join('');
-  return '<div class="filterbox"><div class="chips2" role="group" aria-label="Filtros rápidos y guardados">'+chips+'</div>'
+  // En el celular los filtros arrancan plegados (salvo que haya uno activo) para que la lista quede a la vista.
+  var openF=ui.fopen||pfActive();
+  return '<div class="filterbox'+(openF?'':' collapsed')+'"><button type="button" class="btn btn-outline btn-sm ftoggle" data-act="pf-toggle" aria-expanded="'+openF+'">'+ico('filter',18)+(openF?'Ocultar filtros':'Buscar y filtrar')+'</button><div class="chips2" role="group" aria-label="Filtros rápidos y guardados">'+chips+'</div>'
     +'<div class="filters fl5"><div class="field grow"><label for="pf-q">Buscar</label><input id="pf-q" type="search" placeholder="Modelo, variante, marca…" value="'+esc(f.q)+'"></div>'
     +s('pf-cat',[['','Todas']].concat(cats.map(function(c){ return [c,c]; })),f.cat,'Categoría')
     +s('pf-st',[['','Todos'],['published','Publicado'],['review','En revisión'],['paused','Pausado'],['rejected','Rechazado']],f.st,'Estado')
@@ -1571,31 +1602,108 @@ function filterBar(v,mine){
       :(pfActive()?'<div class="actions"><button class="btn btn-outline btn-sm" data-act="pf-save">'+ico('filter',18)+'Guardar este filtro</button><button class="btn btn-outline btn-sm" data-act="pf-clear">Limpiar</button></div>':''))
     +'</div>';
 }
-function newOfferForm(){
+/* Errores de formulario: al lado de cada campo y un resumen junto al botón. No se vuelve a dibujar el formulario, así no se pierde lo escrito. */
+function clearErrs(f){ if(!f) return; [].forEach.call(f.querySelectorAll('[aria-invalid="true"]'),function(e){ e.removeAttribute('aria-invalid'); }); [].forEach.call(f.querySelectorAll('[data-generr]'),function(e){ e.remove(); }); var b=f.querySelector('.form-err'); if(b){ b.hidden=true; b.textContent=''; } }
+function showErrs(f,errs,summary){
+  if(!f||!errs.length) return; clearErrs(f);
+  errs.forEach(function(e){ var el=e[0]?document.getElementById(e[0]):null; if(!el) return; el.setAttribute('aria-invalid','true'); var box=el.closest('.field')||el.parentNode, sp=document.createElement('span'); sp.className='err'; sp.setAttribute('data-generr',''); sp.id=e[0]+'-err'; sp.textContent=e[1]; box.appendChild(sp); el.setAttribute('aria-describedby',sp.id); });
+  var b=f.querySelector('.form-err'); if(b){ b.textContent=summary||(errs.length===1?errs[0][1]:'Revisá '+errs.length+' datos marcados: '+errs.map(function(e){ return e[1]; }).join(' ')); b.hidden=false; }
+  var first=errs[0][0]?document.getElementById(errs[0][0]):b; if(first){ try{ first.scrollIntoView({block:'center'}); first.focus({preventScroll:true}); }catch(x){} }
+}
+function formErrBox(){ return '<div class="alert bad form-err" role="alert" tabindex="-1" hidden></div>'; }
+/* Guarda en el servidor; si falla, vuelve a los datos del servidor y deja que el formulario muestre el error. */
+function saveOrRevert(){ try{ var out=FC.save(db); if(out) db=out; }catch(e){ db=load(); throw e; } }
+function moneyIn(n){ return n==null||n===''?'':Number(n).toLocaleString('es-AR',{maximumFractionDigits:2}); }
+
+/* Buscador de la lista de productos: filtra por palabras sin importar tildes. */
+function variantOptions(list,q){
+  var words=plain(q).split(' ').filter(Boolean), groups={}, order=[], n=0;
+  list.forEach(function(v,i){ var txt=plain(v.category+' '+v.model+' '+v.size); if(words.some(function(w){ return txt.indexOf(w)<0; })) return; if(!groups[v.category]){ groups[v.category]=[]; order.push(v.category); } groups[v.category].push('<option value="'+i+'">'+esc(v.model+' · '+v.size)+'</option>'); n++; });
+  if(!n) return {n:0,html:'<option value="">Sin resultados: probá con otra palabra o cargalo como producto nuevo</option>'};
+  return {n:n,html:(words.length?'':'<option value="">Elegí tu producto</option>')+order.map(function(c){ return '<optgroup label="'+esc(c)+'">'+groups[c].join('')+'</optgroup>'; }).join('')};
+}
+function newOfferForm(v){
  var variants=[];CATALOG.forEach(function(c){c.m.forEach(function(m){m[1].forEach(function(size){variants.push({category:c.n,model:m[0],size:size});});});});ui.newVariants=variants;
- return '<form id="supplier-create" class="card" style="margin:16px 0"><h2 class="display h-card">Nuevo producto</h2><p class="note">Se envía al administrador para revisar antes de publicarlo.</p><div class="formgrid"><div class="field"><label for="new-variant">Producto y variante exacta</label><select id="new-variant">'+variants.map(function(v,i){return '<option value="'+i+'">'+esc(v.category+' · '+v.model+' · '+v.size)+'</option>';}).join('')+'</select></div><div class="field"><label for="new-unit">Presentación</label><select id="new-unit"><option>Unidad</option><option>Par</option><option>Kit</option></select></div>'+[['price','Precio con IVA ($)',0,'0.01'],['units','Unidades disponibles',0,'1'],['min','Compra mínima (presentaciones)',1,'1'],['lead','Entrega (días hábiles)',5,'1'],['warranty','Garantía (meses)',0,'1'],['amba','Envío AMBA ($)',0,'0.01'],['interior','Envío resto del país ($)',0,'0.01']].map(function(f){return '<div class="field"><label for="new-'+f[0]+'">'+f[1]+'</label><input id="new-'+f[0]+'" type="number" min="0" step="'+f[3]+'" value="'+f[2]+'" required></div>';}).join('')+'<div class="field"><label for="new-source">Fuente oficial del precio</label><input id="new-source" type="url" inputmode="url" placeholder="https://..." required><span class="hint">Página oficial del producto o catálogo vigente.del proveedor.</span></div><div class="field"><label for="new-detail">Detalles del modelo</label><textarea id="new-detail" maxlength="500"></textarea></div></div><div class="actions"><button class="btn btn-accent" type="submit">Enviar a revisión</button><button class="btn btn-outline" type="button" data-act="new-offer-cancel">Cancelar</button></div></form>';
+ var custom=!!ui.customNew, fijo=!!v&&v.shipMode==='fijo', opts=variantOptions(variants,'');
+ var num=function(id,label,value,extra,hint){ return '<div class="field"><label for="new-'+id+'">'+label+'</label><input id="new-'+id+'" '+extra+' value="'+value+'">'+(hint?'<span class="hint">'+hint+'</span>':'')+'</div>'; };
+ var picker=custom
+   ?'<div class="field"><label for="new-cat">Categoría</label><select id="new-cat">'+CATALOG.map(function(c){ return '<option>'+esc(c.n)+'</option>'; }).join('')+'<option value="__otra">Otra categoría</option></select></div>'
+    +'<div class="field" id="new-cat-other-f" hidden><label for="new-cat-other">¿Qué categoría?</label><input id="new-cat-other" maxlength="60" placeholder="Ej.: Bicicletas fijas"></div>'
+    +'<div class="field"><label for="new-model">Producto y modelo</label><input id="new-model" maxlength="120" placeholder="Ej.: Mancuerna hexagonal engomada"></div>'
+    +'<div class="field"><label for="new-size">Variante o medida</label><input id="new-size" maxlength="80" placeholder="Ej.: 10 kg · 170×62 cm · Única"><span class="hint">Una variante por producto. Si hay varias medidas, cargalas por separado o usá la planilla.</span></div>'
+    +'<div class="field"><label for="new-brand">Marca <span class="hint">(opcional)</span></label><input id="new-brand" maxlength="60"></div>'
+   :'<div class="field vsearch" style="grid-column:1 / -1"><label for="new-q">Buscá tu producto en la lista</label><input id="new-q" type="search" autocomplete="off" placeholder="Ej.: mancuerna 10 kg, bumper, mat 6 mm"><span class="hint" id="new-q-h" aria-live="polite">'+opts.n+' productos en la lista. Escribí para achicarla.</span></div>'
+    +'<div class="field" style="grid-column:1 / -1"><label for="new-variant">Producto y variante exacta</label><select id="new-variant">'+opts.html+'</select></div>';
+ return '<form id="supplier-create" class="card" novalidate style="margin:16px 0"><h2 class="display h-card">Nuevo producto</h2><p class="note">Nexo Fit lo revisa antes de publicarlo. Mientras tanto lo ves como “En revisión” en tu lista.</p>'
+  +'<p class="small"><button type="button" class="linkbtn" data-act="new-custom" data-on="'+(custom?'0':'1')+'">'+(custom?'Volver a elegir de la lista':'Mi producto no está en la lista')+'</button></p>'
+  +'<div class="formgrid">'+picker
+  +'<div class="field"><label for="new-unit">Se vende por</label><select id="new-unit"><option>Unidad</option><option>Par</option><option>Kit</option></select></div>'
+  +num('price','Precio con IVA ($)','','type="text" inputmode="decimal" autocomplete="off" placeholder="Ej.: 15.000,50"')
+  +num('units','Unidades disponibles','','type="number" min="0" step="1" inputmode="numeric" placeholder="Sin contar"','Vacío = no llevás la cuenta.')
+  +num('min','Compra mínima','1','type="number" min="1" step="1" inputmode="numeric"','En la presentación elegida (unidad, par o kit).')
+  +num('lead','Entrega (días hábiles)','5','type="number" min="0" step="1" inputmode="numeric"')
+  +num('warranty','Garantía (meses)','6','type="number" min="6" step="1" inputmode="numeric"','La garantía legal mínima es de 6 meses.')
+  +(fijo?num('amba','Envío AMBA ($)','','type="text" inputmode="decimal" placeholder="0"')+num('interior','Envío resto del país ($)','','type="text" inputmode="decimal" placeholder="0"'):'')
+  +'<div class="field"><label for="new-source">Fuente oficial del precio <span class="hint">(opcional)</span></label><input id="new-source" type="url" inputmode="url" placeholder="https://..."><span class="hint">Link a tu tienda o catálogo vigente del proveedor. Ayuda a revisarlo más rápido.</span></div>'
+  +'<div class="field" style="grid-column:1 / -1"><label for="new-detail">Detalles del modelo</label><textarea id="new-detail" maxlength="500" placeholder="Material, medidas, relleno, qué incluye…"></textarea>'+(custom?'':'<span class="hint">Para combos y kits, informá cada componente con su cantidad.</span>')+'</div></div>'
+  +(fijo?'':'<p class="note">El envío queda “a coordinar” con el comprador. Si preferís cobrar un precio fijo por zona, cambialo en Beneficios.</p>')
+  +formErrBox()+'<div class="actions"><button class="btn btn-accent" type="submit">Enviar a revisión</button><button class="btn btn-outline" type="button" data-act="new-offer-cancel">Cancelar</button></div></form>';
+}
+function readNewOffer(v){
+  var errs=[], item=null, custom=!!ui.customNew;
+  if(custom){
+    var other=val('new-cat')==='__otra', cat=other?val('new-cat-other').trim():val('new-cat'), model=val('new-model').trim(), size=val('new-size').trim();
+    if(!cat) errs.push([other?'new-cat-other':'new-cat','Escribí la categoría.']);
+    if(model.length<3) errs.push(['new-model','Escribí el nombre y el modelo del producto.']);
+    if(!size) errs.push(['new-size','Escribí la variante o medida. Si hay una sola, poné “Única”.']);
+    item={category:cat,model:model,size:size,brand:val('new-brand').trim()};
+  } else {
+    var vr=val('new-variant')===''?null:ui.newVariants[Number(val('new-variant'))];
+    if(!vr) errs.push(['new-variant','Elegí tu producto de la lista o tocá “Mi producto no está en la lista”.']); else item={category:vr.category,model:vr.model,size:vr.size,brand:''};
+  }
+  var price=parseMoney(val('new-price')), ur=val('new-units').trim(), units=ur===''?null:Number(ur), minimum=Number(val('new-min')), lead=Number(val('new-lead')), warranty=Number(val('new-warranty')), source=val('new-source').trim(), detail=val('new-detail').trim();
+  var fijo=!!document.getElementById('new-amba'), amba=fijo?parseMoney(val('new-amba'))||0:0, interior=fijo?parseMoney(val('new-interior'))||0:0;
+  if(price==null||isNaN(price)||price<=0) errs.push(['new-price','Escribí el precio con IVA, por ejemplo 15.000 o 15000,50.']);
+  if(units!=null&&(!Number.isInteger(units)||units<0)) errs.push(['new-units','Las unidades van en números enteros, sin decimales.']);
+  if(!Number.isInteger(minimum)||minimum<1) errs.push(['new-min','La compra mínima es un número entero desde 1.']);
+  if(!Number.isInteger(lead)||lead<0) errs.push(['new-lead','Escribí los días hábiles de entrega.']);
+  if(!Number.isInteger(warranty)||warranty<6) errs.push(['new-warranty','La garantía legal mínima es de 6 meses.']);
+  if(fijo&&(isNaN(amba)||amba<0)) errs.push(['new-amba','Revisá el envío a AMBA.']);
+  if(fijo&&(isNaN(interior)||interior<0)) errs.push(['new-interior','Revisá el envío al resto del país.']);
+  if(source&&!safeUrl(source)) errs.push(['new-source','Ingresá el enlace https:// de la fuente oficial del precio, o dejalo vacío.']);
+  if(item&&item.category==='Combos y kits'&&detail.length<20) errs.push(['new-detail','Informá los componentes, variantes y cantidades del combo o kit.']);
+  if(item&&!errs.length){ var k=keyOf({category:item.category,model:item.model,size:item.size,unit:val('new-unit')}), dup=db.offers.filter(function(o){ return o.vendorId===v.id&&keyOf(o)===k; })[0]; if(dup) errs.push([custom?'new-model':'new-variant','Ya tenés este producto cargado. Cambiá su precio y stock desde la lista.']); }
+  if(errs.length) return {errs:errs};
+  return {offer:Object.assign({},item,{id:'o_'+FC.key(),vendorId:v.id,unit:val('new-unit'),detail:detail,sourceUrl:source,price:amount(price),units:units,minQty:minimum,lead:lead,warranty:warranty,shipAmba:amount(amba),shipInt:amount(interior),status:'review',stock:units===0?'none':'stock',volumeTiers:[],updated:today()})};
 }
 
 function productsView(v,mine,low,out){
+  var P=ui.ptab||'lista', nDrafts=(v.catalogDrafts||[]).length;
+  var sub='<div class="subtabs seg" role="group" aria-label="Secciones de Mis productos">'+[['lista','Productos · '+mine.length],['importar','Cargar con planilla'+(nDrafts?' · '+nDrafts:'')],['fotos','Fotos']].map(function(x){ return '<button type="button" data-act="ptab" data-p="'+x[0]+'" aria-pressed="'+(P===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div>';
+  if(P==='importar') return sub+sheetPanel(v,mine)+catalogDraftPanel(v);
+  if(P==='fotos'){
+    var hasP=nDrafts||mine.some(function(o){ return o.status==='review'||o.status==='published'; }), ph=vendorPhotosPanel(v);
+    return sub+(ph||(hasP?'<div class="card"><p class="muted">Cargando tus fotos…</p></div>':'<div class="empty"><b>Todavía no hay productos para fotografiar.</b>Cuando cargues tu primer producto, acá subís su foto.<div class="actions" style="justify-content:center"><button class="btn btn-accent" data-act="new-offer">Agregar producto</button></div></div>'));
+  }
   var shown=pfApply(mine), staleShown=shown.filter(priceIsStale), staleToken=priceConfirmToken(staleShown);
-  var head=(ui.adding?newOfferForm():'')+'<div class="section-head" style="margin:0"><p class="note">Cargá tus productos y mantené precios, stock y mínimos actualizados. Los productos nuevos y los cambios comerciales se revisan antes de publicarse.</p><div class="actions">'
-    +'<button class="btn btn-outline" data-act="sheet" aria-expanded="'+!!ui.sheet+'">'+ico('upload',18)+'Planilla</button>'
+  var head='<div class="section-head" style="margin:0"><p class="note">Mantené precios, stock y mínimos al día. Los productos nuevos y los cambios de precio pasan por revisión antes de publicarse.</p><div class="actions">'
+    +'<button class="btn btn-accent" data-act="new-offer">Agregar producto</button>'
     +(mine.length?'<button class="btn '+(ui.bulk?'btn-primary':'btn-outline')+'" data-act="bulk">'+ico('edit',18)+(ui.bulk?'Salir de la edición':'Editar precios y stock')+'</button>':'')
     +(staleShown.length?'<button class="btn '+(ui.confirm===staleToken?'btn-accent':'btn-outline')+'" data-act="price-confirm-visible">'+(ui.confirm===staleToken?'Confirmar ahora ':'Confirmar ')+staleShown.length+(staleShown.length===1?' precio visible':' precios visibles')+'</button>':'')
-    +'<button class="btn btn-accent" data-act="new-offer">Agregar producto</button>'+'</div></div>';
+    +'<button class="btn btn-outline" data-act="sheet">'+ico('upload',18)+'Cargar muchos con planilla</button>'+'</div></div>'+(ui.adding?newOfferForm(v):'');
   var lowdef='<div class="field lowdef"><label for="low-def">Avisarme con bajo stock cuando queden</label><div class="inline"><input id="low-def" type="number" min="0" inputmode="numeric" value="'+(v.lowAt!=null?v.lowAt:10)+'"><span>unidades o menos</span></div></div>';
   var table;
-  // Sin productos no hay precio ni stock para editar: se explica y se ofrecen los dos caminos para cargarlos.
-  if(!mine.length) table='<div class="empty"><b>Todavía no tenés productos cargados.</b> El precio y el stock se editan producto por producto, así que primero hay que cargarlos.<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn btn-accent" data-act="new-offer">Agregar producto</button><button class="btn btn-outline" data-act="sheet">'+ico('upload',18)+'Subir planilla de Tiendanube</button></div><p class="muted small" style="margin-top:12px">¿Tenés muchos productos o no encontrás el tuyo en la lista? Pasanos tu catálogo y lo cargamos nosotros.</p>'+contactCtas(v.name,'Quiero cargar mi catálogo').replace('class="actions"','class="actions" style="justify-content:center"')+'</div>';
+  // Sin productos no hay precio ni stock para editar: se explica y se ofrecen los caminos para cargarlos.
+  if(!mine.length) table=ui.adding?'':'<div class="empty"><b>Todavía no tenés productos cargados.</b> Cargalos de a uno o todos juntos con una planilla (también sirve el CSV de Tiendanube).<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn btn-accent" data-act="new-offer">Agregar producto</button><button class="btn btn-outline" data-act="sheet">'+ico('upload',18)+'Cargar con planilla</button></div><p class="muted small" style="margin-top:12px">¿Preferís que lo carguemos nosotros? Pasanos tu catálogo.</p>'+contactCtas(v.name,'Quiero cargar mi catálogo').replace('class="actions"','class="actions" style="justify-content:center"')+'</div>';
   else if(!shown.length) table='<div class="empty">Ningún producto coincide con el filtro. <button class="linkbtn" data-act="pf-clear">Ver todos</button></div>';
   else if(ui.bulk) table=bulkTable(shown);
   else table='<p class="muted small">Mostrando '+shown.length+' de '+mine.length+'. Las unidades se descuentan solas con cada venta; si llegan a cero, el producto deja de mostrarse hasta que repongas.</p>'
-    +'<div class="tablewrap"><table style="min-width:860px"><thead><tr><th>Producto</th><th class="r">Precio</th><th>Unidades y stock</th><th>Estado</th><th></th></tr></thead><tbody>'
+    +'<div class="tablewrap"><table class="rt" style="min-width:860px"><thead><tr><th>Producto</th><th class="r">Precio</th><th>Unidades y stock</th><th>Estado</th><th></th></tr></thead><tbody>'
     +shown.map(function(o){
-      return '<tr><td><b>'+esc(o.model)+'</b> · '+esc(o.size)+'<span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+' · entrega '+days(o.lead)+(o.brand?' · Marca: '+esc(o.brand):'')+(o.detail?' · '+esc(o.detail):'')+'</span></td><td class="r num">'+money(o.price)+(priceBadge(o)?'<span class="sub">'+priceBadge(o)+'</span>':'')+'</td><td><div class="ustack"><label class="sr" for="un-'+o.id+'">Unidades de '+esc(o.model+' '+o.size)+'</label><input class="cell-in units" id="un-'+o.id+'" data-units="'+o.id+'" type="number" min="0" inputmode="numeric" placeholder="—" value="'+(o.units==null?'':o.units)+'">'+stockBadge(o)+'</div></td><td>'+offerStatus(o)+'</td>'
-        +'<td><div class="actions nw" style="justify-content:flex-end">'+(priceIsStale(o)?'<button class="btn btn-accent btn-sm" data-act="price-confirm" data-id="'+o.id+'">Confirmar precio</button>':'')+'<button class="btn btn-outline btn-sm" data-act="prod-edit" data-id="'+o.id+'">Precio y stock</button>'+(o.status==='published'&&!priceIsStale(o)?'<button class="btn btn-primary btn-sm" data-act="paylink" data-id="'+o.id+'">Link de pago</button>':'')+'</div></td></tr>';
+      return '<tr><td><b>'+esc(o.model)+'</b> · '+esc(o.size)+'<span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+' · entrega '+days(o.lead)+(o.brand?' · Marca: '+esc(o.brand):'')+(o.detail?' · '+esc(o.detail):'')+'</span></td><td class="r num" data-l="Precio">'+money(o.price)+(priceBadge(o)?'<span class="sub">'+priceBadge(o)+'</span>':'')+'</td><td data-l="Unidades y stock"><div class="ustack"><label class="sr" for="un-'+o.id+'">Unidades de '+esc(o.model+' '+o.size)+'</label><input class="cell-in units" id="un-'+o.id+'" data-units="'+o.id+'" type="number" min="0" inputmode="numeric" placeholder="—" value="'+(o.units==null?'':o.units)+'">'+stockBadge(o)+'</div></td><td data-l="Estado">'+offerStatus(o)+'</td>'
+        +'<td><div class="actions nw" style="justify-content:flex-end">'+(priceIsStale(o)?'<button class="btn btn-accent btn-sm" data-act="price-confirm" data-id="'+o.id+'">Confirmar precio</button>':'')+'<button class="btn btn-outline btn-sm" data-act="prod-edit" data-id="'+o.id+'">Precio y stock</button>'+(mpReady&&o.status==='published'&&!priceIsStale(o)?'<button class="btn btn-primary btn-sm" data-act="paylink" data-id="'+o.id+'">Link de pago</button>':'')+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
-  return head+vendorPhotosPanel(v)+catalogDraftPanel(v)+linkBox()+(ui.sheet?sheetPanel(v,mine):'')+(mine.length?filterBar(v,mine)+'<div class="stockbar">'+lowdef+'</div>':'')+table;
+  return sub+head+linkBox()+(mine.length?filterBar(v,mine)+'<div class="stockbar">'+lowdef+'</div>':'')+table;
 }
 function bulkTable(list){
   var vals=ui.bulkVals||{}, odd=ui.bulkOdd||[];
@@ -1607,44 +1715,73 @@ function bulkTable(list){
     +'<div class="tablewrap flat"><table style="min-width:760px"><thead><tr><th>Producto</th><th class="r">Precio actual</th><th>Precio nuevo</th><th>Unidades</th></tr></thead><tbody>'
     +list.map(function(o){ var val0=vals[o.id]||{}, p=val0.p!=null?val0.p:o.price, u=val0.u!==undefined?val0.u:o.units, isOdd=odd.some(function(x){ return x.id===o.id; });
       return '<tr'+(isOdd?' class="oddrow"':'')+'><td><b>'+esc(o.model)+'</b> · '+esc(o.size)+'<span class="sub">'+esc(o.category)+' · '+perUnit(o.unit)+'</span></td><td class="r num">'+money(o.price)+'</td>'
-        +'<td><label class="sr" for="bp-'+o.id+'">Precio nuevo de '+esc(o.model+' '+o.size)+'</label><input class="cell-in" id="bp-'+o.id+'" data-bp="'+o.id+'" type="text" inputmode="numeric" value="'+Math.round(p).toLocaleString('es-AR')+'"></td>'
+        +'<td><label class="sr" for="bp-'+o.id+'">Precio nuevo de '+esc(o.model+' '+o.size)+'</label><input class="cell-in" id="bp-'+o.id+'" data-bp="'+o.id+'" type="text" inputmode="decimal" value="'+moneyIn(p)+'"></td>'
         +'<td><label class="sr" for="bu-'+o.id+'">Unidades de '+esc(o.model+' '+o.size)+'</label><input class="cell-in units" id="bu-'+o.id+'" data-bu="'+o.id+'" type="number" min="0" inputmode="numeric" placeholder="—" value="'+(u==null?'':u)+'"></td></tr>'; }).join('')
     +'</tbody></table></div><div class="actions"><button class="btn btn-primary" type="submit">Guardar todos los cambios</button><button class="btn btn-outline" type="button" data-act="bulk">Cancelar</button></div></form>';
 }
-/* Planilla: se baja, se edita en Excel y se vuelve a subir. */
-var SHEET_HEAD=['Código','Categoría','Modelo','Variante','Se vende por','Precio','Unidades'];
-function sheetRows(mine){ return [SHEET_HEAD].concat(mine.map(function(o){ return [o.id,o.category,o.model,o.size,o.unit,o.price,o.units==null?'':o.units]; })); }
+/* Planilla de Nexo Fit: sirve para la primera carga (filas sin Código = productos nuevos) y para actualizar precio y unidades (filas con Código). */
+var SHEET_HEAD=['Código','Categoría','Modelo','Variante','Se vende por','Precio','Unidades','Marca','Detalle','Garantía (meses)','Entrega (días hábiles)','Compra mínima','Fuente del precio'];
+function sheetRows(mine){ return [SHEET_HEAD].concat(mine.map(function(o){ return [o.id,o.category,o.model,o.size,o.unit,String(o.price).replace('.',','),o.units==null?'':o.units,o.brand||'',o.detail||'',o.warranty==null?'':o.warranty,o.lead==null?'':o.lead,o.minQty||1,o.sourceUrl||'']; })); }
 function sheetPanel(v,mine){
   var I=ui.imp;
-  return '<div class="card">'+'<div class="ch"><span class="ic">'+ico('upload')+'</span><div class="ch-t"><h2 class="display h-card">Actualizar con una planilla</h2><p class="muted small">Podés importar un CSV de Tiendanube como catálogo nuevo en borrador o actualizar productos existentes con la planilla de NexoFitt. 1) Bajá la planilla con todos tus productos. 2) Cambiá precios y unidades en Excel. 3) Subila o pegá las filas acá. Antes de guardar te mostramos qué cambia.</p></div></div>'
-    +'<div class="actions"><button class="btn btn-outline btn-sm" data-act="sheet-dl">'+ico('download',18)+'Descargar planilla</button><button class="btn btn-outline btn-sm" data-act="sheet-copy">'+ico('copy',18)+'Copiar para pegar en Excel</button>'
+  return '<div class="card">'+'<div class="ch"><span class="ic">'+ico('upload')+'</span><div class="ch-t"><h2 class="display h-card">Cargar o actualizar con una planilla</h2><p class="muted small">Sirve para cargar muchos productos de una vez o cambiar precios y unidades. Antes de guardar te mostramos qué cambia.</p></div></div>'
+    +'<ol class="small" style="margin:0;padding-left:20px;display:grid;gap:4px">'
+    +'<li><b>'+(mine.length?'Bajá la planilla':'Bajá la plantilla')+'</b>'+(mine.length?' con tus productos y abrila en Excel o Google Sheets.':' vacía y abrila en Excel o Google Sheets.')+'</li>'
+    +'<li><b>Productos nuevos:</b> una fila por variante, con el Código vacío. Completá Categoría, Modelo, Variante, Se vende por (Unidad, Par o Kit) y Precio; el resto es opcional.</li>'
+    +(mine.length?'<li><b>Para actualizar:</b> cambiá Precio y Unidades en las filas que ya tienen Código.</li>':'')
+    +'<li><b>Subila o pegá las filas acá.</b> Los productos nuevos pasan por revisión antes de publicarse.</li></ol>'
+    +'<div class="actions"><button class="btn btn-outline btn-sm" data-act="sheet-dl">'+ico('download',18)+(mine.length?'Descargar planilla':'Descargar plantilla')+'</button><button class="btn btn-outline btn-sm" data-act="sheet-copy">'+ico('copy',18)+'Copiar para pegar en Excel</button>'
     +'<label class="btn btn-outline btn-sm filebtn">'+ico('upload',18)+'Subir planilla<input id="sheet-file" type="file" accept=".csv,.txt,.tsv,text/csv,text/plain" class="sr"></label></div>'
-    +'<div class="field"><label for="sheet-paste">O pegá acá las filas copiadas de Excel</label><textarea id="sheet-paste" rows="4" placeholder="Código	Categoría	Modelo	Variante	Se vende por	Precio	Unidades"></textarea><span class="hint">No cambies la columna Código: es la que identifica cada producto. Unidades vacía = no cambia; un guion (-) = dejar de contar.</span></div>'
+    +'<div class="field"><label for="sheet-paste">O pegá acá las filas copiadas de Excel (con la fila de títulos)</label><textarea id="sheet-paste" rows="4" placeholder="'+esc(SHEET_HEAD.join('\t'))+'"></textarea><span class="hint">Garantía en meses (mínimo 6; vacío = 6). Entrega en días hábiles (vacío = 5). Compra mínima vacía = 1. No cambies el Código de los productos que ya tenés. Unidades vacía = no cambia; un guion (-) = dejar de contar. Categorías de la lista: '+esc(CATALOG.map(function(c){ return c.n; }).join(', '))+'; también podés escribir otra.</span></div>'
+    +'<p class="note">¿Vendés en Tiendanube? Subí directamente el CSV que exportás desde tu tienda (Productos → Exportar). Se guarda como borrador y Nexo Fit revisa cada producto antes de publicarlo.</p>'
     +'<div class="actions"><button class="btn btn-primary btn-sm" data-act="sheet-read">Revisar cambios</button></div>'
     +(I?importPreview(I):'')+'</div>';
 }
 function parseNum(s){return parseMoney(s);}
+function sheetUnit(s){ var t=plain(s); if(!t||t==='unidad'||t==='unidades'||t==='u') return 'Unidad'; if(t==='par'||t==='pares') return 'Par'; if(t==='kit'||t==='kits'||t==='combo'||t==='set') return 'Kit'; return null; }
 function parseSheet(text){
-  var source=String(text||'').replace(/^\uFEFF/,'');if(!source.trim())return {rows:[],errors:['La planilla está vacía.']};
+  var source=String(text||'').replace(/^﻿/,'');if(!source.trim())return {rows:[],news:[],errors:['La planilla está vacía.']};
   var first=source.split(/\r?\n/)[0],sep=first.indexOf('\t')>=0?'\t':(first.split(';').length>=first.split(',').length?';':',');
   var lines=[],cells=[],cur='',q=false;
   for(var j=0;j<source.length;j++){var ch=source[j];if(ch==='"'){if(q&&source[j+1]==='"'){cur+='"';j++;}else q=!q;}else if(ch===sep&&!q){cells.push(cur.trim());cur='';}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&source[j+1]==='\n')j++;cells.push(cur.trim());if(cells.some(function(x){return x!=='';}))lines.push(cells);cells=[];cur='';}else cur+=ch;}
-  if(q)return {rows:[],errors:['Hay comillas sin cerrar en la planilla. Revisá el archivo CSV.']};cells.push(cur.trim());if(cells.some(function(x){return x!=='';}))lines.push(cells);
-  var split=function(row){return row;};
+  if(q)return {rows:[],news:[],errors:['Hay comillas sin cerrar en la planilla. Revisá el archivo CSV.']};cells.push(cur.trim());if(cells.some(function(x){return x!=='';}))lines.push(cells);
   if(lines[0].map(plain).some(function(h){return h.indexOf('identificador')>=0&&h.indexOf('url')>=0;}))return parseTiendaCatalog(lines);
-  var head=split(lines[0]).map(plain), ic=head.findIndex(function(h){ return h.indexOf('codigo')===0; }), ip=head.indexOf('precio'), iu=head.indexOf('unidades'), start=1;
-  if(ic<0){ ic=0; ip=5; iu=6; start=0; }
-  var rows=[], errors=[], me0=me();
-  lines.slice(start).forEach(function(l,k){
-    var c=split(l), id=c[ic], o=offer(id), n=k+start+1;
-    if(!o||o.vendorId!==me0.id){ errors.push('Fila '+n+': no encontramos el código “'+(id||'')+'” entre tus productos.'); return; }
-    var p=ip>=0?parseNum(c[ip]):null, ur=iu>=0?String(c[iu]==null?'':c[iu]).trim():'', u;
-    if(p!=null&&(isNaN(p)||p<=0)){ errors.push('Fila '+n+' ('+o.model+' '+o.size+'): el precio “'+c[ip]+'” no es válido.'); return; }
+  var head=lines[0].map(plain), find=function(){ var keys=[].slice.call(arguments); return head.findIndex(function(h){ return keys.some(function(k){ return h.indexOf(k)===0; }); }); };
+  var hasHead=head.some(function(h){ return h.indexOf('precio')===0||h.indexOf('codigo')===0; }), start=hasHead?1:0;
+  var ic=hasHead?find('codigo'):0, ip=hasHead?find('precio'):5, iu=hasHead?find('unidades','stock'):6;
+  var col=hasHead?{cat:find('categoria'),model:find('modelo','producto'),size:find('variante','medida'),unit:find('se vende por','presentacion'),brand:find('marca'),detail:find('detalle','descripcion'),war:find('garantia'),lead:find('entrega'),min:find('compra minima','minimo'),src:find('fuente')}:{};
+  var get=function(c,i){ return i>=0?String(c[i]==null?'':c[i]).trim():''; };
+  var rows=[], news=[], errors=[], me0=me(), seen={};
+  db.offers.forEach(function(o){ if(o.vendorId===me0.id) seen[keyOf(o)]=o.id; });
+  lines.slice(start).forEach(function(c,k){
+    var id=get(c,ic), n=k+start+1;
+    if(!id){
+      // Fila sin código: producto nuevo (primera carga sin Tiendanube).
+      if(!hasHead||col.cat<0||col.model<0||col.size<0){ errors.push('Fila '+n+': falta el código. Para sumar productos nuevos usá la planilla con la fila de títulos (Categoría, Modelo, Variante, Precio…).'); return; }
+      var d={category:get(c,col.cat),model:get(c,col.model),size:get(c,col.size),unit:sheetUnit(get(c,col.unit)),brand:get(c,col.brand).slice(0,60),detail:get(c,col.detail).slice(0,500),sourceUrl:get(c,col.src)}, name=(d.model+' '+d.size).trim()||'sin nombre';
+      if(!d.category||!d.model||!d.size){ errors.push('Fila '+n+' ('+name+'): completá Categoría, Modelo y Variante.'); return; }
+      if(!d.unit){ errors.push('Fila '+n+' ('+name+'): en “Se vende por” poné Unidad, Par o Kit.'); return; }
+      var pr=parseNum(get(c,ip)); if(pr==null||isNaN(pr)||pr<=0){ errors.push('Fila '+n+' ('+name+'): el precio “'+get(c,ip)+'” no es válido.'); return; }
+      var ur0=get(c,iu), un=ur0===''||ur0==='-'?null:parseNum(ur0); if(un!=null&&(!Number.isInteger(un)||un<0)){ errors.push('Fila '+n+' ('+name+'): las unidades “'+ur0+'” no son válidas.'); return; }
+      var w=get(c,col.war), l=get(c,col.lead), m=get(c,col.min); w=w===''?6:Number(w); l=l===''?5:Number(l); m=m===''?1:Number(m);
+      if(!Number.isInteger(w)||w<6){ errors.push('Fila '+n+' ('+name+'): la garantía va en meses y la mínima legal es 6.'); return; }
+      if(!Number.isInteger(l)||l<0||!Number.isInteger(m)||m<1){ errors.push('Fila '+n+' ('+name+'): revisá entrega (días hábiles) y compra mínima (desde 1).'); return; }
+      if(d.sourceUrl&&!safeUrl(d.sourceUrl)){ errors.push('Fila '+n+' ('+name+'): la fuente del precio tiene que empezar con https://'); return; }
+      if(d.category==='Combos y kits'&&d.detail.length<20){ errors.push('Fila '+n+' ('+name+'): en combos y kits, informá en Detalle cada componente con su cantidad.'); return; }
+      var kk=keyOf(d); if(seen[kk]){ errors.push('Fila '+n+' ('+name+'): '+(seen[kk]==='file'?'está repetido en la planilla.':'ya lo tenés cargado (código '+seen[kk]+'). Usá esa fila para cambiar precio y unidades.')); return; }
+      seen[kk]='file';
+      d.price=amount(pr); d.units=un; d.warranty=w; d.lead=l; d.minQty=m; d.name=name; d.odd=priceCheck(d,null,me0.id,0);
+      news.push(d); return;
+    }
+    var o=offer(id);
+    if(!o||o.vendorId!==me0.id){ errors.push('Fila '+n+': no encontramos el código “'+id+'” entre tus productos.'); return; }
+    var p=ip>=0&&get(c,ip)!==''?parseNum(get(c,ip)):null, ur=get(c,iu), u;
+    if(p!=null&&(isNaN(p)||p<=0)){ errors.push('Fila '+n+' ('+o.model+' '+o.size+'): el precio “'+get(c,ip)+'” no es válido.'); return; }
     if(ur==='') u=undefined; else if(ur==='-') u=null; else { u=parseNum(ur); if(!Number.isInteger(u)||u<0){ errors.push('Fila '+n+' ('+o.model+' '+o.size+'): las unidades “'+ur+'” no son válidas.'); return; } }
-    var np=p==null?o.price:p, ch=np!==o.price||(u!==undefined&&u!==o.units);
-    if(ch) rows.push({id:o.id,name:o.model+' '+o.size,op:o.price,np:np,ou:o.units,nu:u===undefined?o.units:u,odd:np!==o.price?priceCheck({category:o.category,model:o.model,size:o.size,unit:o.unit,price:np},o.id,o.vendorId,o.price):null});
+    var np=p==null?o.price:p, chg=np!==o.price||(u!==undefined&&u!==o.units);
+    if(chg) rows.push({id:o.id,name:o.model+' '+o.size,op:o.price,np:np,ou:o.units,nu:u===undefined?o.units:u,odd:np!==o.price?priceCheck({category:o.category,model:o.model,size:o.size,unit:o.unit,price:np},o.id,o.vendorId,o.price):null});
   });
-  return {rows:rows,errors:errors};
+  return {rows:rows,news:news,errors:errors};
 }
 function tiendaMoney(value){var t=String(value||'').trim();if(!t)return null;if(!/^[0-9,]+(?:\.[0-9]{1,2})?$/.test(t))return NaN;return Number(t.replace(/,/g,''));}
 function parseTiendaCatalog(records){
@@ -1660,17 +1797,22 @@ function parseTiendaCatalog(records){
  rows.push({key:key,name:name,sourceSlug:slug,sourceCategory:get(row,'Categorías')||parent['Categorías']||'',properties:properties,sku:get(row,'SKU').slice(0,80),basePrice:price,promoPrice:promo,price:promo!==null&&promo>0&&promo<price?promo:price,units:units,hidden:hidden,description:description,brand:get(row,'Marca')||parent.Marca||'',kind:/\b(combo|kit|set)\b/i.test(name)?'kit':'product'});
  });return {kind:'tiendanube',rows:rows,errors:errors};
 }
-function catalogDraftPanel(v){var items=v&&v.catalogDrafts||[];if(!items.length)return '';return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+' variantes recibidas. Las variantes visibles del archivo aparecen en la portada para consulta. Para habilitar la compra, el administrador debe abrir este proveedor en Administrador → Proveedores y usar Completar y publicar. Allí se confirman presentación, stock, entrega y envío. Los productos ocultos conservan esa condición.</p><div class="tablewrap"><table style="min-width:700px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Estado de origen</th></tr></thead><tbody>'+items.map(function(x){return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td>'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td>'+money(x.price)+'</td><td>'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td>'+(x.hidden?'Oculto':'Visible')+' · Borrador</td></tr>';}).join('')+'</tbody></table></div></section>';}
+function catalogDraftPanel(v){var items=v&&v.catalogDrafts||[];if(!items.length)return '';return '<section class="card"><h2 class="display h-card">Catálogo importado</h2><p class="note">'+items.length+(items.length===1?' variante recibida':' variantes recibidas')+'. Nexo Fit revisa cada una (presentación, stock, entrega y envío) antes de publicarla. Cuando esté aprobada, la vas a ver como Publicado en Productos. Las que estaban ocultas en tu tienda siguen ocultas.</p><div class="tablewrap"><table class="rt" style="min-width:700px"><thead><tr><th>Producto y variante</th><th>Tipo</th><th>Precio con IVA</th><th>Stock informado</th><th>Estado</th></tr></thead><tbody>'+items.map(function(x){return '<tr><td><b>'+esc(x.name)+'</b><span class="sub">'+esc((x.properties||[]).map(function(a){return a.name+': '+a.value;}).join(' · '))+'</span></td><td data-l="Tipo">'+esc(x.kind==='kit'?'Combo o kit':'Producto')+'</td><td data-l="Precio con IVA">'+money(x.price)+'</td><td data-l="Stock informado">'+(x.units===null?'No informa cantidad':esc(x.units))+'</td><td data-l="Estado">'+(x.hidden?'Oculto en tu tienda':'Visible en tu tienda')+' · En revisión</td></tr>';}).join('')+'</tbody></table></div></section>';}
 function importPreview(I){
- if(I.kind==='tiendanube'){var target=me(),isAdmin=db._identity&&db._identity.role==='admin';var count=Object.keys(I.rows.reduce(function(acc,r){acc[r.sourceSlug]=true;return acc;},{})).length;return '<div class="imp"><h3>Importar catálogo de Tiendanube</h3><p>'+count+' productos · '+I.rows.length+' variantes · '+I.rows.filter(function(r){return r.hidden;}).length+' filas ocultas.</p><p class="note">Se guardan como borrador, sin publicarse ni reemplazar tus ofertas actuales. El precio promocional vigente se conserva; el costo interno no se importa.</p>'+(isAdmin?'<div class="field"><label for="catalog-vendor">Proveedor del catálogo</label><select id="catalog-vendor">'+db.vendors.map(function(v){return '<option value="'+esc(v.id)+'"'+(v.id===target.id?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>':'<p>Proveedor: '+esc(target.name)+'</p>')+(I.errors.length?'<div class="alert bad">'+I.errors.slice(0,8).map(esc).join('<br>')+'</div>':'')+'<div class="actions">'+(!I.errors.length&&I.rows.length?'<button class="btn btn-primary" data-act="imp-apply">Importar catálogo en borrador</button>':'')+'<button class="btn btn-outline" data-act="imp-cancel">Cancelar</button></div></div>';
+ if(I.kind==='tiendanube'){var target=me(),isAdmin=db._identity&&db._identity.role==='admin';var count=Object.keys(I.rows.reduce(function(acc,r){acc[r.sourceSlug]=true;return acc;},{})).length;
+  // Se compara el archivo con los borradores que ya tiene el proveedor (la importación nueva actualiza por clave, no reemplaza).
+  var have={};(target.catalogDrafts||[]).forEach(function(d){have[d.key]=true;});var upd=I.rows.filter(function(r){return have[r.key];}).length,add=I.rows.length-upd,kept=(target.catalogDrafts||[]).length-upd;
+  var what=(target.catalogDrafts||[]).length?'Se '+(upd===1?'actualiza 1 variante que ya tenías':'actualizan '+upd+' variantes que ya tenías')+' y se '+(add===1?'agrega 1 nueva':'agregan '+add+' nuevas')+'.'+(kept===1?' La que no está en el archivo queda como estaba.':kept>1?' Las '+kept+' que no están en el archivo quedan como estaban.':''):'Se '+(add===1?'agrega 1 variante nueva':'agregan '+add+' variantes nuevas')+'.';
+  return '<div class="imp"><h3>Importar catálogo de Tiendanube</h3><p>'+count+' productos · '+I.rows.length+' variantes · '+I.rows.filter(function(r){return r.hidden;}).length+' filas ocultas.</p><p><b>'+what+'</b></p><p class="note">Todo queda en borrador: nada se publica hasta que Nexo Fit lo revisa. Tus productos ya cargados en Productos no cambian. El precio promocional vigente se conserva; el costo interno no se importa.</p>'+(isAdmin?'<div class="field"><label for="catalog-vendor">Proveedor del catálogo</label><select id="catalog-vendor">'+db.vendors.map(function(v){return '<option value="'+esc(v.id)+'"'+(v.id===target.id?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>':'<p>Proveedor: '+esc(target.name)+'</p>')+(I.errors.length?'<div class="alert bad">'+I.errors.slice(0,8).map(esc).join('<br>')+'</div>':'')+'<div class="alert bad imp-err" role="alert" hidden></div><div class="actions">'+(!I.errors.length&&I.rows.length?'<button class="btn btn-primary" data-act="imp-apply">Importar catálogo en borrador</button>':'')+'<button class="btn btn-outline" data-act="imp-cancel">Cancelar</button></div></div>';
  }
-
-  var odd=I.rows.filter(function(r){ return r.odd; });
-  return '<div class="imp">'+(I.errors.length?'<div class="alert bad" role="alert">'+I.errors.slice(0,8).map(esc).join('<br>')+(I.errors.length>8?'<br>Y '+(I.errors.length-8)+' más.':'')+'</div>':'')
-    +(I.rows.length?'<p class="sumline"><b>'+I.rows.length+(I.rows.length===1?' producto cambia':' productos cambian')+'</b></p><div class="tablewrap flat"><table style="min-width:640px"><thead><tr><th>Producto</th><th class="r">Precio</th><th class="r">Unidades</th></tr></thead><tbody>'
-      +I.rows.map(function(r){ return '<tr'+(r.odd?' class="oddrow"':'')+'><td><b>'+esc(r.name)+'</b>'+(r.odd?'<span class="sub">'+esc(r.odd.text)+'</span>':'')+'</td><td class="r num">'+(r.np!==r.op?'<s class="muted">'+money(r.op)+'</s> → <b>'+money(r.np)+'</b>':money(r.op))+'</td><td class="r num">'+(r.nu!==r.ou?'<s class="muted">'+(r.ou==null?'—':r.ou)+'</s> → <b>'+(r.nu==null?'sin contar':r.nu)+'</b>':(r.ou==null?'—':r.ou))+'</td></tr>'; }).join('')+'</tbody></table></div>'
-      +(odd.length?'<label class="check"><input id="imp-ok" type="checkbox"> Revisé los '+odd.length+' precios marcados y están bien</label>':'')
-      +'<div class="actions"><button class="btn btn-primary" data-act="imp-apply">Aplicar '+I.rows.length+(I.rows.length===1?' cambio':' cambios')+'</button><button class="btn btn-outline" data-act="imp-cancel">Descartar</button></div>'
+  var odd=I.rows.filter(function(r){ return r.odd; }), news=I.news||[], oddN=news.filter(function(r){ return r.odd; }), total=I.rows.length+news.length;
+  return '<div class="imp">'+(I.errors.length?'<div class="alert bad" role="alert">'+(total?'Estas filas no se van a cargar:<br>':'')+I.errors.slice(0,8).map(esc).join('<br>')+(I.errors.length>8?'<br>Y '+(I.errors.length-8)+' más.':'')+'</div>':'')
+    +(news.length?'<p class="sumline"><b>'+news.length+(news.length===1?' producto nuevo':' productos nuevos')+'</b> · pasan por revisión antes de publicarse</p><div class="tablewrap flat"><table class="rt" style="min-width:640px"><thead><tr><th>Producto</th><th>Categoría</th><th class="r">Precio</th><th class="r">Unidades</th></tr></thead><tbody>'
+      +news.map(function(r){ return '<tr'+(r.odd?' class="oddrow"':'')+'><td><b>'+esc(r.model)+'</b> · '+esc(r.size)+'<span class="sub">'+perUnit(r.unit)+(r.brand?' · Marca: '+esc(r.brand):'')+' · garantía '+months(r.warranty)+(r.odd?' · '+esc(r.odd.text):'')+'</span></td><td data-l="Categoría">'+esc(r.category)+'</td><td class="r num" data-l="Precio">'+money(r.price)+'</td><td class="r num" data-l="Unidades">'+(r.units==null?'Sin contar':r.units)+'</td></tr>'; }).join('')+'</tbody></table></div>':'')
+    +(I.rows.length?'<p class="sumline"><b>'+I.rows.length+(I.rows.length===1?' producto cambia':' productos cambian')+'</b></p><div class="tablewrap flat"><table class="rt" style="min-width:640px"><thead><tr><th>Producto</th><th class="r">Precio</th><th class="r">Unidades</th></tr></thead><tbody>'
+      +I.rows.map(function(r){ return '<tr'+(r.odd?' class="oddrow"':'')+'><td><b>'+esc(r.name)+'</b>'+(r.odd?'<span class="sub">'+esc(r.odd.text)+'</span>':'')+'</td><td class="r num" data-l="Precio">'+(r.np!==r.op?'<s class="muted">'+money(r.op)+'</s> → <b>'+money(r.np)+'</b>':money(r.op))+'</td><td class="r num" data-l="Unidades">'+(r.nu!==r.ou?'<s class="muted">'+(r.ou==null?'—':r.ou)+'</s> → <b>'+(r.nu==null?'sin contar':r.nu)+'</b>':(r.ou==null?'—':r.ou))+'</td></tr>'; }).join('')+'</tbody></table></div>':'')
+    +(total?(odd.length+oddN.length?'<label class="check"><input id="imp-ok" type="checkbox"> Revisé los '+(odd.length+oddN.length)+' precios marcados y están bien</label>':'')
+      +'<div class="alert bad imp-err" role="alert" hidden></div><div class="actions"><button class="btn btn-primary" data-act="imp-apply">'+(news.length&&!I.rows.length?'Cargar '+news.length+(news.length===1?' producto':' productos'):'Aplicar '+total+(total===1?' cambio':' cambios'))+'</button><button class="btn btn-outline" data-act="imp-cancel">Descartar</button></div>'
       :(I.errors.length?'':'<div class="empty">La planilla no tiene cambios.</div>'))+'</div>';
 }
 /* Guarda un precio y unas unidades nuevas; si el precio es raro, vuelve a revisión y avisa. */
@@ -1750,7 +1892,7 @@ function copyText(txt,msg){
 
 /* ---------- Sitio de proveedores ---------- */
 var SKEY='fitness-vendor-ui';
-var ui={pf:JSON.parse(JSON.stringify(PF_DEF)),bulk:false,sheet:false,imp:null,bulkVals:null,bulkOdd:null,saveView:false,sf:'all',orderOpen:null,nMonth:'',vbell:false,seenN:null,route:'landing',tab:'resumen',editId:null,linkId:null,confirm:null,vendorId:db._identity&&(db._identity.role==='vendor'||db._identity.role==='admin')?db._identity.vendorId:null,formError:'',applied:false,sim:1000000};
+var ui={pf:JSON.parse(JSON.stringify(PF_DEF)),bulk:false,sheet:false,imp:null,bulkVals:null,bulkOdd:null,saveView:false,sf:'all',orderOpen:null,nMonth:'',vbell:false,seenN:null,route:'landing',tab:'resumen',editId:null,linkId:null,confirm:null,vendorId:db._identity&&(db._identity.role==='vendor'||db._identity.role==='admin')?db._identity.vendorId:null,formError:'',sim:1000000};
 if(ui.vendorId&&vendor(ui.vendorId)) ui.route='panel'; else ui.vendorId=null;
 
 function go(route,patch){
@@ -1786,7 +1928,7 @@ function simHTML(){
     +'<div class="bar90" aria-hidden="true"><i class="a" style="flex:'+(100-p)+'"></i><i class="b" style="flex:'+p+'"></i></div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:16px 48px"><div><div class="small accent" style="font-weight:600">Vos recibís · '+(100-p)+'%</div><div id="sim-net" class="bigfig num">'+money(n*(100-p)/100)+'</div></div>'
     +'<div><div class="small muted" style="font-weight:600">Comisión del sitio · '+p+'%</div><div id="sim-com" class="bigfig num">'+money(n*p/100)+'</div></div></div>'
-    +'<p class="muted small">Simulación de comisión. La integración de Mercado Pago está pendiente.</p></div>';
+    +'<p class="muted small">Simulación. La comisión se calcula sobre los productos, sin contar el envío, y solo cuando hay una venta.</p></div>';
 }
 /* Red de "Pedí ofertas": el proveedor se suma sin cuenta ni catálogo. Entra pausado hasta que el administrador lo activa. */
 var RED_RUBROS=[['musculacion','Musculación'],['funcional','Funcional'],['crossfit','CrossFit'],['colchonetas','Colchonetas, yoga y pilates'],['deportes','Deportes y pelotas'],['entrenamiento','Conos, escaleras y vallas'],['atletismo','Atletismo'],['escolar','Psicomotricidad y escolar'],['boxeo','Boxeo y artes marciales'],['natacion','Natación'],['rehabilitacion','Protección y rehabilitación'],['cesped','Césped sintético']];
@@ -1830,68 +1972,89 @@ document.addEventListener('submit',async function(ev){
     ui.redOk=true; var box=document.getElementById('red'); if(box){ box.querySelector('.wrap').innerHTML=redJoinHTML(); box.scrollIntoView({block:'start'}); }
   }catch(e){ err.textContent=e.message; err.hidden=false; btn.disabled=false; btn.textContent='Sumarme a la red'; }
 },true);
+/* Condiciones para vender con catálogo: lo mismo que se acepta al registrarse. */
+function sellConditions(p){
+  return '<div class="conds"><h3>Condiciones para vender</h3><ul>'
+    +'<li>Sin abono ni costo de alta.</li>'
+    +'<li>Comisión del '+p+'% solo sobre los productos y solo cuando se concreta una venta. El envío no paga comisión.</li>'
+    +'<li>Facturás vos al comprador.</li>'
+    +'<li>Garantía legal de tus productos: mínimo 6 meses.</li>'
+    +'<li>Envío “a coordinar” con el comprador, salvo que cargues un precio fijo por zona.</li>'
+    +'<li>Nexo Fit revisa tu cuenta, tus productos y tus fotos antes de publicarlos.</li></ul></div>';
+}
+function applyHTML(p){
+  if(ui.applySent) return '<div class="card" style="max-width:760px"><h2 class="display" style="font-size:1.9rem">Revisá tu email</h2><div class="alert ok" role="status">Te mandamos un email a '+esc(ui.applySent)+' para confirmar la cuenta. Abrí el link desde cualquier dispositivo. Si no lo ves en unos minutos, revisá Spam o Promociones.</div><p class="muted">Después ingresá con tu email y tu clave. Mientras revisamos tu cuenta ya podés cargar tus datos, productos y fotos; cuando la aprobemos, tus productos se publican.</p><div class="actions"><button class="btn btn-accent" data-go="login">Ingresar</button></div></div>';
+  return '<form id="apply" class="card" novalidate style="max-width:760px">'
+    +'<h2 class="display" style="font-size:1.9rem">Creá tu cuenta de proveedor</h2>'
+    +'<p class="muted">Para vender con catálogo. Revisamos tus datos y, cuando aprobemos tu cuenta, tus productos se publican.</p>'
+    +'<div class="formgrid">'
+    +'<div class="field"><label for="a-name">Nombre comercial</label><input id="a-name" type="text" maxlength="40" autocomplete="organization"><span class="hint">Lo que ve el comprador.</span></div>'
+    +'<div class="field"><label for="a-razon">Razón social</label><input id="a-razon" type="text" maxlength="120"><span class="hint">Como figura en AFIP.</span></div>'
+    +'<div class="field"><label for="a-cuit">CUIT</label><input id="a-cuit" type="text" inputmode="numeric" maxlength="13" placeholder="11 dígitos"></div>'
+    +'<div class="field"><label for="a-type">Tipo de proveedor</label><select id="a-type">'+VTYPES.map(function(t){ return '<option>'+t+'</option>'; }).join('')+'</select></div>'
+    +'<div class="field"><label for="a-contact">Nombre de contacto</label><input id="a-contact" type="text" maxlength="120" autocomplete="name"></div>'
+    +'<div class="field"><label for="a-email">Email</label><input id="a-email" type="email" maxlength="160" autocomplete="email" autocapitalize="none"></div>'
+    +waField('a-phone','WhatsApp')
+    +'<div class="field"><label for="a-pass">Elegí una clave</label><input id="a-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 8 caracteres. Con tu email y esta clave entrás a tu panel apenas confirmes el email.</span></div>'
+    +'</div>'+sellConditions(p)
+    +'<div class="field"><label class="check top" for="a-terms"><input id="a-terms" type="checkbox"> <span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> y las condiciones para vender.</span></label></div>'
+    +'<p class="note small">Usamos estos datos para revisar tu cuenta y contactarte. Los compradores ven tu nombre comercial y tus productos. <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a>.</p>'
+    +formErrBox()+'<div><button class="btn btn-primary btn-lg" type="submit">Crear mi cuenta</button></div></form>';
+}
 function vLanding(){
   var p=db.commission;
-  var done=ui.applied?'<div class="alert ok" role="status">Recibimos tu solicitud. Queda pendiente hasta que el administrador la apruebe.</div>':'';
   return '<section class="dark hero"><div class="wrap hero-in">'
     +'<p class="eyebrow">Para fabricantes, importadores, distribuidores y comercios</p>'
     +'<h1 class="display">Recibí pedidos de gimnasios, clubes y colegios. <em>Competí por ventas, no por visibilidad.</em></h1>'
-    +'<p class="lead">Los compradores publican lo que necesitan. Te llega el pedido por WhatsApp y ofertás en privado desde un link. Sin abono y sin cargar catálogo.</p>'
+    +'<p class="lead">Los compradores publican lo que necesitan y vos ofertás en privado desde un link. Podés sumarte sin cargar catálogo, o mostrar tus productos con precio y fotos.</p>'
     +'<div class="chips"><span class="chip">Sin abono fijo</span><span class="chip">Comisión del '+p+'% solo si vendés</span><span class="chip">No ves las ofertas de los demás</span><span class="chip">Pedidos reales, con cantidades</span></div>'
     +'<div class="actions"><a class="btn btn-accent btn-lg" href="#red">Quiero recibir pedidos</a><a class="btn btn-outline btn-lg" href="#alta">Vender con catálogo</a><button class="btn btn-outline btn-lg" data-go="login">Ya tengo cuenta</button></div>'
     +'</div></section>'
-    +'<section class="section"><div class="wrap"><div class="section-head"><h2 class="display">Cómo funciona</h2></div><div class="steps">'
-    +'<div class="step"><h3>Te sumás a la red</h3><p class="muted">Contás qué vendés y a qué zonas entregás. Un minuto, sin cuenta.</p></div>'
+    +'<section class="section"><div class="wrap"><div class="section-head"><h2 class="display">Dos formas de sumarte</h2></div><div class="paths">'
+    +'<div class="card"><h3>Recibir pedidos</h3><p class="muted">Sin cuenta y sin catálogo. Ideal para empezar.</p><ul class="small"><li>Contás qué vendés y a qué zonas entregás.</li><li>Cuando un comprador pide algo de tu rubro, te llega un link privado.</li><li>Ofertás precio, envío, plazo y garantía. Nadie más ve tu oferta.</li></ul><div><a class="btn btn-accent" href="#red">Quiero recibir pedidos</a></div></div>'
+    +'<div class="card"><h3>Vender con catálogo</h3><p class="muted">Con cuenta de proveedor y tus productos cargados.</p><ul class="small"><li>Tus productos aparecen en el catálogo de Nexo Fit con precio y fotos.</li><li>Los compradores te piden oferta sobre ellos y te llegan esos pedidos.</li><li>Además recibís los pedidos de tu rubro, igual que en la otra opción.</li><li>Pago online con Mercado Pago: próximamente.</li></ul><div><a class="btn btn-outline" href="#alta">Vender con catálogo</a></div></div>'
+    +'</div></div></section>'
+    +'<section class="section"><div class="wrap"><div class="section-head"><h2 class="display">Cómo funciona un pedido</h2></div><div class="steps">'
+    +'<div class="step"><h3>Te sumás</h3><p class="muted">Contás qué vendés y a qué zonas entregás.</p></div>'
     +'<div class="step"><h3>Te llega un pedido</h3><p class="muted">Cuando un comprador pide algo de tu rubro y tu zona, te mandamos un link privado.</p></div>'
     +'<div class="step"><h3>Ofertás en privado</h3><p class="muted">Precio total, envío, plazo, cuotas y garantía. Nadie ve tu oferta salvo el comprador.</p></div>'
     +'<div class="step"><h3>Si te eligen, vendés</h3><p class="muted">Recién ahí recibís los datos del comprador para coordinar entrega y pago. Comisión del '+p+'% sobre los productos, sin contar el envío.</p></div>'
     +'</div></div></section>'
     +'<section class="section" style="padding-top:0" id="red"><div class="wrap">'+redJoinHTML()+'</div></section>'
-    +'<section class="section" style="padding-top:0"><div class="wrap section-head"><h2 class="display">¿Preferís vender con catálogo?</h2><p class="muted" style="max-width:62ch">También podés publicar tus productos con precio y stock para que te compren directo desde el Catálogo, con pago por Mercado Pago. Comisión del '+p+'% solo sobre ventas pagadas.</p></div>'
+    +'<section class="section" style="padding-top:0"><div class="wrap section-head"><div><h2 class="display">Vender con catálogo</h2><p class="muted" style="max-width:62ch">Cargás tus productos con precio, stock y fotos. Cuando los aprobamos, aparecen en el catálogo de Nexo Fit y los compradores te piden oferta sobre ellos; además te siguen llegando los pedidos de tu rubro. El pago online con Mercado Pago llega próximamente. Comisión del '+p+'% solo si vendés.</p></div></div>'
     +'<div class="wrap split">'+simHTML()
     +'<div class="card side"><h2 class="display h-card">Reglas claras</h2>'
     +'<div><b>El orden no se compra</b><p class="muted">Pagar comisión no mejora tu posición.</p></div>'
     +'<div><b>Se compara lo mismo con lo mismo</b><p class="muted">Misma variante y misma presentación.</p></div>'
-    +'<div><b>Comisión solo sobre ventas pagadas</b><p class="muted">Si no hay venta en el sitio, no hay cargo.</p></div></div>'
+    +'<div><b>Comisión solo si vendés</b><p class="muted">Si no hay venta, no hay cargo.</p></div></div>'
     +'</div></section>'
-    +'<section class="section" style="padding-top:0" id="alta"><div class="wrap"><form id="apply" class="card" novalidate style="max-width:760px">'
-    +'<h2 class="display" style="font-size:1.9rem">Vender con catálogo</h2>'+done
-    +(ui.formError?'<div class="alert bad" role="alert">'+esc(ui.formError)+'</div>':'')
-    +'<div class="formgrid">'
-    +'<div class="field"><label for="a-name">Razón social</label><input id="a-name" type="text" autocomplete="organization"></div>'
-    +'<div class="field"><label for="a-cuit">CUIT</label><input id="a-cuit" type="text" inputmode="numeric" placeholder="11 dígitos"></div>'
-    +'<div class="field"><label for="a-type">Tipo de proveedor</label><select id="a-type"><option>Fabricante</option><option>Importador</option><option>Distribuidor</option></select></div>'
-    +'<div class="field"><label for="a-contact">Nombre de contacto</label><input id="a-contact" type="text" autocomplete="name"></div>'
-    +'<div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email"></div>'
-    +waField('a-phone','WhatsApp')
-    +'<div class="field"><label for="a-pass">Elegí una clave</label><input id="a-pass" type="password" autocomplete="new-password"><span class="hint">Al menos 8 caracteres. Entrás con tu email y esta clave cuando te aprueben.</span></div>'
-    +'</div><div><button class="btn btn-primary btn-lg" type="submit">Enviar solicitud</button></div></form></div></section>';
+    +'<section class="section" style="padding-top:0" id="alta"><div class="wrap">'+applyHTML(p)+'</div></section>';
 }
 function vLogin(){
   if(ui.forgot) return '<div class="wrap page" style="max-width:560px"><h1 class="display h-page">Recuperar la clave</h1>'
     +'<form id="f-forgot" class="card" novalidate><p class="muted">Escribí el email de tu cuenta y te mandamos un link para crear una clave nueva.</p>'
     +(ui.forgotSent?'<div class="alert ok" role="status">Si '+esc(ui.forgotSent)+' tiene una cuenta, te llega un email con un link para crear una clave nueva. El link sirve una sola vez. Si no lo ves, revisá Spam o Promociones.</div>':'')
     +'<div class="field"><label for="fg-email">Email de tu cuenta</label><input id="fg-email" type="email" autocomplete="email" autocapitalize="none" value="'+esc(ui.forgotEmail||'')+'"></div>'
-    +'<div><button class="btn btn-accent btn-lg" type="submit">'+(ui.forgotSent?'Mandarme otro link':'Enviarme el link')+'</button></div></form>'
+    +formErrBox()+'<div><button class="btn btn-accent btn-lg" type="submit">'+(ui.forgotSent?'Mandarme otro link':'Enviarme el link')+'</button></div></form>'
     +'<p class="note"><button type="button" class="linkbtn" data-forgot="0">Volver a ingresar</button></p></div>';
   return '<div class="wrap page" style="max-width:560px"><h1 class="display h-page">Ingresar</h1>'
-    +'<form id="slogin" class="card" novalidate><p class="muted">Tus productos, tus ventas y tu Mercado Pago.</p>'
-    +(ui.formError?'<div class="alert bad" role="alert">'+esc(ui.formError)+'</div>':'')
-    +'<div class="field"><label for="l-user">Usuario o email</label><input id="l-user" type="text" autocomplete="username" autocapitalize="none"></div>'
+    +'<form id="slogin" class="card" novalidate><p class="muted">Tus productos, tus pedidos y los datos de tu empresa.</p>'
+    +'<div class="field"><label for="l-user">Email</label><input id="l-user" type="email" autocomplete="username" autocapitalize="none" value="'+esc(ui.loginEmail||'')+'"></div>'
     +'<div class="field"><label for="l-pass">Clave</label><input id="l-pass" type="password" autocomplete="current-password"></div>'
+    +'<div class="alert bad form-err" role="alert" tabindex="-1"'+(ui.formError?'':' hidden')+'>'+esc(ui.formError||'')+'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center"><button class="btn btn-accent btn-lg" type="submit">Entrar a mi panel</button><button type="button" class="linkbtn" data-forgot="1">Me olvidé la clave</button></div>'
     +'<p class="note">Ingresá con el email y la clave de tu cuenta de proveedor.</p></form>'
-    +'<p class="note">¿Todavía no vendés acá? <button class="linkbtn" data-go="landing">Pedí el alta</button></p></div>';
+    +'<p class="note">¿Todavía no vendés acá? <button class="linkbtn" data-go="landing" data-anchor="alta">Creá tu cuenta</button></p></div>';
 }
 
 /* Panel del vendedor */
 function salesTable(sales){
   if(!sales.length) return '<div class="empty">Todavía no tenés ventas.</div>';
-  return '<div class="tablewrap"><table style="min-width:1080px"><thead><tr><th>Venta</th><th>Comprador</th><th>Detalle</th><th class="r">Productos</th><th class="r">Envío</th><th class="r">Comisión</th><th class="r">Recibís</th><th>Estado</th><th></th></tr></thead><tbody>'
+  return '<div class="tablewrap"><table class="rt" style="min-width:1080px"><thead><tr><th>Venta</th><th>Comprador</th><th>Detalle</th><th class="r">Productos</th><th class="r">Envío</th><th class="r">Comisión</th><th class="r">Recibís</th><th>Estado</th><th></th></tr></thead><tbody>'
     +sales.map(function(o){
       var ref=o.status==='refunded';
-      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td>'+esc(o.buyer)+'</td><td>'+esc(o.desc)+' × '+o.qty+'</td><td class="r num">'+money(o.subtotal)+'</td><td class="r num">'+(o.shipping?money(o.shipping):o.shipQuote?'A cotizar con el cliente':'Sin cargo')+'</td>'
-        +'<td class="r num">'+(ref?'—':money(o.commission))+'</td><td class="r num"><b>'+(ref?'—':money(net(o)))+'</b></td><td>'+orderStatus(o)+'</td>'
+      return '<tr><td><b>#'+o.id+'</b><span class="sub">'+fdate(o.date)+'</span></td><td data-l="Comprador">'+esc(o.buyer)+'</td><td data-l="Detalle">'+esc(o.desc)+' × '+o.qty+'</td><td class="r num" data-l="Productos">'+money(o.subtotal)+'</td><td class="r num" data-l="Envío">'+(o.shipping?money(o.shipping):o.shipQuote?'A cotizar con el cliente':'Sin cargo')+'</td>'
+        +'<td class="r num" data-l="Comisión">'+(ref?'—':money(o.commission))+'</td><td class="r num" data-l="Recibís"><b>'+(ref?'—':money(net(o)))+'</b></td><td data-l="Estado">'+orderStatus(o)+'</td>'
         +'<td><div class="actions nw"><button class="btn '+(!ref&&!o.shipped?'btn-primary':'btn-outline')+' btn-sm" data-act="order-go" data-id="'+o.id+'">'+(!ref&&!o.shipped?'Cargar envío':'Ver pedido')+'</button></div></td></tr>';
     }).join('')+'</tbody></table></div>';
 }
@@ -1917,6 +2080,7 @@ function dataForm(v,cp){
 }
 /* Cómo ve el comprador al proveedor cuando paga, y pago de prueba. */
 function mpPreview(v){
+  if(!mpReady) return '';
   var ok=mpNameOk(v), ex=db.offers.filter(function(o){ return o.vendorId===v.id&&o.status==='published'; })[0];
   return '<div class="card" style="max-width:860px"><div><h2 class="display h-card">Así te ve el comprador cuando paga</h2><p class="muted">El pago entra directo en tu cuenta, así que en Mercado Pago el comprador ve el nombre de tu cuenta. Conviene que sea el mismo nombre de marca que usás en el sitio, para que no desconfíe.</p></div>'
     +'<div class="field" style="max-width:460px"><label for="mp-name">Nombre que figura en tu cuenta de Mercado Pago</label><input id="mp-name" type="text" maxlength="60" value="'+esc(v.mpName||'')+'" placeholder="'+esc(v.name)+'"><span class="hint">Lo ves en Mercado Pago, en Tu perfil → Datos de tu negocio.</span></div>'
@@ -1924,9 +2088,8 @@ function mpPreview(v){
     +'<div class="mp-prev"><div class="mp-screen" aria-label="Vista previa de la pantalla de pago"><span class="muted small">Pantalla de pago</span><span>Le pagás a</span><b>'+esc(mpName(v))+'</b>'
     +'<span class="muted small">'+esc(ex?ex.model+' '+ex.size+' × 1':'Tu producto')+'</span><b class="num">'+money(ex?ex.price:0)+'</b></div>'
     +'<div class="mp-card"><span class="muted small">Resumen de la tarjeta del comprador</span><b class="mono">'+esc(descriptor(v))+'</b><span class="small">Hasta 13 letras: el sitio y tu marca, para que reconozca el cargo y no lo desconozca.</span></div></div>'
-    +'<div class="mp-test"><div><b>Pago de prueba</b><p class="muted small">'+(v.mpTest?'Último pago de prueba aprobado el '+fdate(v.mpTest)+'.':'Hacé uno antes de empezar a vender, para ver que todo llegue bien.')+' En el sitio real se hace con una cuenta de prueba de Mercado Pago y no se cobra nada.</p></div>'
-    +'<button class="btn '+(v.mpTest?'btn-outline':'btn-primary')+'" data-act="mp-test"'+(v.mp?'':' disabled')+'>'+(v.mpTest?'Hacer otro pago de prueba':'Hacer un pago de prueba')+'</button></div>'
-    +(v.mp?'':'<p class="note">Primero conectá tu Mercado Pago.</p>')+'</div>';
+    /* "Pago de prueba" oculto: todavía no hay un pago de prueba real detrás (el botón solo devolvía un error). */
+    +'</div>';
 }
 /* Pedidos de compradores (Pedí ofertas) a los que está invitado este proveedor. Cada uno se oferta en privado desde su link. */
 var PED_PLAZO={urgente:'Urgente',7:'En 7 días',15:'En 15 días',30:'En 30 días',flexible:'Plazo flexible'};
@@ -1949,6 +2112,30 @@ function pedidosView(){
       +'<a class="btn '+(p.ofertada?'btn-outline':'btn-primary')+' btn-sm" href="oferta.html#t='+encodeURIComponent(p.token)+'" target="_blank" rel="noopener">'+(p.ofertada?'Ver o cambiar mi oferta':'Cargar mi oferta')+'</a></div>';
   }).join('')+'</div>';
 }
+/* Primeros pasos del proveedor con catálogo: datos de la empresa, primer producto (o importación) y fotos. */
+function onboardSteps(v,mine){
+  var P=ui.myPhotos&&ui.myPhotos.vid===v.id?ui.myPhotos:null;
+  var datos=!!(String(v.razon||'').trim()&&String(v.cuit||'').trim()&&String(v.contact||'').trim()&&String(v.wa||v.phone||'').trim()&&String(v.city||'').trim()&&(v.zones||[]).length);
+  var prod=mine.length>0||(v.catalogDrafts||[]).length>0;
+  var fotos=!!(P&&(P.images||[]).length);
+  return [
+    {ok:datos,t:'Datos de tu empresa',d:'Razón social, contacto, ciudad y zonas de envío.',act:'tab',arg:'datos',btn:'Completar datos'},
+    {ok:prod,t:'Tu primer producto o tu catálogo',d:'De a uno, con una planilla o con el CSV de Tiendanube.',act:'new-offer',btn:'Agregar producto',alt:'<button class="btn btn-outline btn-sm" data-act="sheet">Cargar con planilla</button>'},
+    {ok:fotos,t:'Fotos de tus productos',d:'Una foto real por modelo. Ayuda a que te pidan oferta.',act:'ptab-fotos',btn:'Subir fotos',need:!prod}
+  ];
+}
+function onboardCard(v,mine){
+  var S=onboardSteps(v,mine), n=S.filter(function(s){ return s.ok; }).length; if(n===S.length) return '';
+  if(S[1].ok&&!(ui.myPhotos&&ui.myPhotos.vid===v.id)) setTimeout(function(){ loadMyPhotos(v.id); },0);
+  return '<section class="card onb"><div><h2 class="display h-card">Primeros pasos · '+n+' de '+S.length+'</h2><p class="muted small">Con estos tres pasos tu catálogo queda listo para revisar y publicar.</p></div><span class="track" aria-hidden="true"><i style="width:'+Math.round(n/S.length*100)+'%"></i></span><ol>'
+    +S.map(function(s,i){ return '<li class="'+(s.ok?'done':'')+'"><span class="n" aria-hidden="true">'+(s.ok?'✓':i+1)+'</span><span class="t"><b>'+s.t+'</b><span>'+(s.ok?'Listo.':s.d)+'</span></span>'+(s.ok||s.need?'':'<span class="actions"><button class="btn btn-'+(i===S.findIndex(function(x){ return !x.ok; })?'accent':'outline')+' btn-sm" data-act="'+(s.act==='tab'?'tab" data-tab="'+s.arg:s.act)+'">'+s.btn+'</button>'+(s.alt||'')+'</span>')+'<span class="sr">'+(s.ok?'Completo':'Pendiente')+'</span></li>'; }).join('')+'</ol></section>';
+}
+function statusBanner(v){
+  if(v.status==='pending') return '<div class="alert pend" role="status"><b>Tu cuenta está en revisión.</b>Ya podés cargar tus datos, productos y fotos. Cuando la aprobemos, tus productos se publican en el catálogo y empezás a recibir pedidos.</div>';
+  if(v.status==='rejected') return '<div class="alert bad">Tu solicitud no fue aprobada. Escribinos y te contamos qué falta.</div>'+contactCtas(v.name,'');
+  if(v.status==='suspended') return '<div class="alert bad">Tu cuenta está suspendida. Tus productos no se muestran en el sitio.</div>';
+  return '';
+}
 function vPanel(){
   var v=me(), mine=db.offers.filter(function(o){ return o.vendorId===v.id; }), sales=db.orders.filter(function(o){ return o.vendorId===v.id; });
   var ok=sales.filter(function(o){ return o.status==='approved'; });
@@ -1958,33 +2145,37 @@ function vPanel(){
   checkLateV(v);
   if(!ui.pedidos) loadPedidos();
   var pend=(ui.pedidos||[]).filter(function(x){ return !x.ofertada; }).length;
-  var list=[{id:'resumen',label:'Resumen'},{id:'pedidos',label:'Pedidos para cotizar'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'}];
+  var list=[{id:'resumen',label:'Resumen'},{id:'pedidos',label:'Pedidos para cotizar (de compradores de tu rubro)'},{id:'productos',label:'Mis productos'},{id:'ventas',label:'Mis ventas'},{id:'numeros',label:'Mis números'},{id:'datos',label:'Mis datos'},{id:'mp',label:'Mercado Pago'},{id:'promociones',label:'Beneficios'}];
+  // Sin Mercado Pago activo en el sitio no hay nada para conectar: la pestaña aparece cuando se active (o si la cuenta ya estaba conectada).
+  if(!mpReady&&!v.mp) list=list.filter(function(t){ return t.id!=='mp'; });
   list.forEach(function(t){ t.count=t.id==='pedidos'?(pend||0):vUnread(v,t.id); });
-  if(!list[5].count&&cp.pct<100) list[5].count='!';
-  if(!list.some(function(t){ return t.id===ui.tab; })) ui.tab='resumen';
+  var tDatos=list.filter(function(t){ return t.id==='datos'; })[0]; if(!tDatos.count&&cp.pct<100) tDatos.count='!';
+  var curTab=list.some(function(t){ return t.id===ui.tab; })?ui.tab:'resumen'; if(ui.tab!=='mp') ui.tab=curTab;
   var warn=(low.length||out.length)&&ui.tab!=='productos'?'<div class="alert">'+(low.length?'Tenés '+low.length+(low.length===1?' producto con bajo stock':' productos con bajo stock'):'')+(low.length&&out.length?' y ':'')+(out.length?(low.length?'':'Tenés ')+out.length+' sin stock':'')+'. <button class="linkbtn" data-act="stock-filter" data-f="'+(low.length?'low':'none')+'">Ver y reponer</button></div>':'';
-  if(v.status==='suspended') warn='<div class="alert bad">Tu cuenta está suspendida. Tus productos no se muestran en el sitio.</div>';
-  else if(!v.mp) warn='<div class="alert">Tus productos aprobados pueden compararse. Mercado Pago todavía no está conectado; no se realizan cobros. <button class="linkbtn" data-act="tab" data-tab="mp">Conectar ahora</button></div>';
+  if(v.status!=='active') warn=statusBanner(v)+(v.status==='pending'?warn:'');
+  else if(!v.mp&&mpReady) warn='<div class="alert">Tus productos aprobados pueden compararse. Mercado Pago todavía no está conectado; no se realizan cobros. <button class="linkbtn" data-act="tab" data-tab="mp">Conectar ahora</button></div>';
   var body='';
-  if(ui.tab==='resumen'){
-    body=(pend?'<div class="alert ok" role="status">Tenés '+(pend===1?'1 pedido de un comprador':pend+' pedidos de compradores')+' para cotizar. <button class="linkbtn" data-act="tab" data-tab="pedidos">Ver y ofertar</button></div>':'')+'<div class="tiles">'
+  if(curTab==='resumen'){
+    // Las cifras de dinero aparecen recién con la primera venta; antes, los primeros pasos.
+    body=(pend?'<div class="alert ok" role="status">Tenés '+(pend===1?'1 pedido de un comprador':pend+' pedidos de compradores')+' para cotizar. <button class="linkbtn" data-act="tab" data-tab="pedidos">Ver y ofertar</button></div>':'')+onboardCard(v,mine)
+      +(!sales.length?'<div class="card"><h2 class="display h-card">Cómo te llegan los pedidos</h2><p class="muted">Tus productos aprobados aparecen en el catálogo de Nexo Fit con precio y fotos. Los compradores te piden oferta sobre ellos y además te llegan los pedidos de tu rubro: los ves en <button class="linkbtn" data-act="tab" data-tab="pedidos">Pedidos para cotizar</button>. El pago online con Mercado Pago llega próximamente.</p></div>':'<div class="tiles">'
       +'<div class="tile"><span class="k">Ventas aprobadas</span><span class="v num">'+money(sum(function(o){ return o.subtotal+o.shipping; }))+'</span><span class="s">'+(ok.length===1?'1 venta':ok.length+' ventas')+'</span></div>'
-      +'<div class="tile main"><span class="k">Recibiste</span><span class="v num">'+money(sum(net))+'</span><span class="s">Antes del costo de Mercado Pago</span></div>'
+      +'<div class="tile main"><span class="k">Recibiste</span><span class="v num">'+money(sum(net))+'</span><span class="s">Después de la comisión del sitio</span></div>'
       +'<div class="tile"><span class="k">Comisión del sitio</span><span class="v num">'+money(sum(function(o){ return o.commission; }))+'</span><span class="s">'+pctOf(v)+'% de los productos</span></div>'
       +'<div class="tile"><span class="k">Por enviar</span><span class="v num">'+toShip+'</span><span class="s">'+(toShip?'<button class="linkbtn" data-act="tab" data-tab="ventas">Ver pedidos</button>':'Estás al día')+'</span></div>'
       +'<div class="tile'+(low.length?' warnt':'')+'"><span class="k">Bajo stock</span><span class="v num">'+low.length+'</span><span class="s">'+(low.length||out.length?'<button class="linkbtn" data-act="stock-filter" data-f="'+(low.length?'low':'none')+'">Ver productos</button>'+(out.length?' · '+out.length+' sin stock':''):'Todo con stock')+'</span></div></div>'
-      +'<div class="section-head" style="margin:8px 0 0"><h2 class="display h-card">Últimas ventas</h2></div>'+salesTable(sales.slice(0,5));
-  } else if(ui.tab==='pedidos'){
+      +'<div class="section-head" style="margin:8px 0 0"><h2 class="display h-card">Últimas ventas</h2></div>'+salesTable(sales.slice(0,5)));
+  } else if(curTab==='pedidos'){
     body=pedidosView();
-  } else if(ui.tab==='productos'){
+  } else if(curTab==='productos'){
     body=productsView(v,mine,low,out);
-  } else if(ui.tab==='ventas'){
+  } else if(curTab==='ventas'){
     body=ordersView(v,sales);
-  } else if(ui.tab==='numeros'){
+  } else if(curTab==='numeros'){
     body=numbersView(v);
-  } else if(ui.tab==='datos'){
+  } else if(curTab==='datos'){
     body=dataForm(v,cp);
-  } else if(ui.tab==='promociones'){
+  } else if(curTab==='promociones'){
     body=promotionForm(v);
   } else {
     body='<div class="card" style="max-width:640px"><h2 class="display h-card">Mercado Pago</h2>'
@@ -1995,8 +2186,8 @@ function vPanel(){
       +mpPreview(v);
   }
   var all=vUnread(v);
-  return '<div class="wrap page"><div class="adm-top-row"><h1 class="display h-page">'+esc(v.name)+'</h1><button type="button" class="bell'+(all?' on':'')+'" data-act="vbell" aria-expanded="'+ui.vbell+'" aria-label="Novedades'+(all?', '+all+' sin leer':'')+'">'+ico('bell',22)+'<span>Novedades</span>'+(all?'<span class="count">'+all+'</span>':'')+'</button></div>'
-    +(ui.vbell?vBell(v):'')+warn+tabsHTML(list,ui.tab)+body+'</div>';
+  return '<div class="wrap page"><div class="adm-top-row"><h1 class="display h-page">'+esc(v.name)+(v.status!=='active'?' '+vendorStatus(v).replace('Por aprobar','En revisión'):'')+'</h1><button type="button" class="bell'+(all?' on':'')+'" data-act="vbell" aria-expanded="'+ui.vbell+'" aria-label="Novedades'+(all?', '+all+' sin leer':'')+'">'+ico('bell',22)+'<span>Novedades</span>'+(all?'<span class="count">'+all+'</span>':'')+'</button></div>'
+    +(ui.vbell?vBell(v):'')+warn+tabsHTML(list,curTab)+body+'</div>';
 }
 function modelOpts(cat,cur){ var c=catBy(cat)||CATALOG[0]; return c.m.map(function(m){ return '<option'+(m[0]===cur?' selected':'')+'>'+esc(m[0])+'</option>'; }).join(''); }
 function sizeOpts(cat,model,cur){ var c=catBy(cat)||CATALOG[0], m=modelBy(c.n,model)||c.m[0]; return m[1].map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>'; }).join(''); }
@@ -2018,7 +2209,7 @@ function refreshWarn(){ var w=document.getElementById('p-warn'); if(!w) return; 
 function vProduct(){
   var v=me(), e=ui.editId?offer(ui.editId):null;
   if(!e||e.vendorId!==v.id) return '<div class="wrap page"><div class="empty">No encontramos ese producto.</div><div><button class="btn btn-primary" data-act="back-products">Volver a mis productos</button></div></div>';
-  var pct=pctOf(v), fmt=function(n){ return Math.round(n).toLocaleString('es-AR'); };
+  var pct=pctOf(v);
   var ro=function(k,x){ return '<div><dt>'+k+'</dt><dd>'+x+'</dd></div>'; };
   return '<div class="wrap page"><nav class="crumbs" aria-label="Ruta"><button class="linkbtn" data-act="back-products">Volver a mis productos</button></nav>'
     +'<h1 class="display h-page">Precio y stock</h1>'
@@ -2026,7 +2217,7 @@ function vProduct(){
     +'<div><b>'+esc(e.model)+' · '+esc(e.size)+'</b><p class="muted">'+esc(e.category)+' · '+perUnit(e.unit)+(e.brand?' · Marca: '+esc(e.brand):'')+(e.detail?' · '+esc(e.detail):'')+'</p>'+offerStatus(e)+'</div>'
     +'<div id="p-err" class="alert bad" role="alert" hidden></div>'
     +'<fieldset><legend>Precio</legend><div class="formgrid">'
-    +'<div class="field"><label for="p-min">Compra mínima (presentaciones)</label><input id="p-min" type="number" min="1" step="1" value="'+e.minQty+'"></div><div class="field"><label for="p-price">Precio con IVA ($)</label><input id="p-price" type="text" inputmode="numeric" value="'+(e.price?fmt(e.price):'')+'"></div><div class="field" style="grid-column:1 / -1"><label for="p-source">Fuente oficial del precio</label><input id="p-source" type="url" inputmode="url" value="'+esc(e.sourceUrl||'')+'" placeholder="https://..."><span class="hint">Solo si cambiás el precio: página oficial del producto o catálogo vigente.</span></div>'
+    +'<div class="field"><label for="p-min">Compra mínima</label><input id="p-min" type="number" min="1" step="1" inputmode="numeric" value="'+e.minQty+'"><span class="hint">En '+(e.unit==='Par'?'pares':e.unit==='Kit'?'kits':'unidades')+'.</span></div><div class="field"><label for="p-price">Precio con IVA ($)</label><input id="p-price" type="text" inputmode="decimal" value="'+(e.price?moneyIn(e.price):'')+'"><span class="hint">Con IVA. Podés usar centavos: 15.000,50.</span></div><div class="field" style="grid-column:1 / -1"><label for="p-source">Fuente oficial del precio</label><input id="p-source" type="url" inputmode="url" value="'+esc(e.sourceUrl||'')+'" placeholder="https://..."><span class="hint">Solo si cambiás el precio: página oficial del producto o catálogo vigente.</span></div>'
     +'<div id="p-warn" class="pwarn" aria-live="polite" style="grid-column:1 / -1">'+priceWarn()+'</div></div></fieldset>'
     +'<fieldset><legend>Stock</legend><div class="formgrid">'
     +'<div class="field"><label for="p-stock">Disponibilidad</label><select id="p-stock">'+[['stock','En stock'],['order','A pedido'],['none','Sin stock']].map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===e.stock?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select></div>'
@@ -2034,12 +2225,12 @@ function vProduct(){
     +'<div class="field"><label for="p-low">Aviso de bajo stock</label><input id="p-low" type="number" min="0" inputmode="numeric" placeholder="'+(v.lowAt!=null?v.lowAt:10)+'" value="'+(e.lowAt==null?'':e.lowAt)+'"><span class="hint">Te avisamos cuando queden esta cantidad o menos. Vacío = tu aviso general.</span></div>'
     +'</div></fieldset>'
     +volumeFields(e)+'<div class="card sub"><p class="eyebrow">Lo carga el equipo del sitio</p><dl class="dl">'
-    +ro('Compra', 'Mínimo '+e.minQty+' '+(e.unit==='Par'?'pares':e.unit==='Kit'?'kits':'unidades'))+ro('Entrega',days(e.lead))+ro('Garantía',months(e.warranty))+ro('Envío AMBA',e.shipAmba?money(e.shipAmba):(shipCoord(vendor(e.vendorId))?'A coordinar':'Sin cargo'))+ro('Envío resto del país',e.shipInt?money(e.shipInt):(shipCoord(vendor(e.vendorId))?'A coordinar':'Sin cargo'))+'</dl>'
+    +ro('Entrega',days(e.lead))+ro('Garantía',months(e.warranty))+ro('Envío AMBA',e.shipAmba?money(e.shipAmba):(shipCoord(vendor(e.vendorId))?'A coordinar':'Sin cargo'))+ro('Envío resto del país',e.shipInt?money(e.shipInt):(shipCoord(vendor(e.vendorId))?'A coordinar':'Sin cargo'))+'</dl>'
     +'<p class="note">Para cambiar estos datos, el modelo o la variante, escribinos y lo actualizamos.</p>'+contactCtas(v.name,e.category+': '+e.model+', '+e.size)+'</div>'
     +'<div class="actions"><button class="btn btn-accent btn-lg" type="submit">Guardar cambios</button><button class="btn btn-outline btn-lg" type="button" data-act="back-products">Cancelar</button></div></form>'
     +'<aside class="card strong side"><h2 class="display h-card">Lo que recibís por venta</h2>'
     +'<div class="rows num"><div><span class="muted">Precio publicado</span><span id="pv-price">'+money(e.price)+'</span></div><div><span class="muted">Comisión del sitio · '+pct+'%</span><span id="pv-com">'+money(e.price*pct/100)+'</span></div><div class="total"><span>Recibís</span><span id="pv-net" class="accent">'+money(e.price*(100-pct)/100)+'</span></div></div>'
-    +'<p class="muted small">Mercado Pago cobra aparte su costo por procesar el cobro.</p></aside></div></div>';
+    +'<p class="muted small">La comisión se cobra solo cuando hay una venta, sobre los productos y sin contar el envío.</p></aside></div></div>';
 }
 
 var VIEWS={landing:vLanding,login:vLogin,panel:vPanel,product:vProduct};
@@ -2057,28 +2248,56 @@ document.addEventListener('submit',async function(ev){
  if(ids.indexOf(f.id)<0)return;ev.preventDefault();ev.stopImmediatePropagation();var btn=f.querySelector('[type="submit"]');if(btn)btn.disabled=true;
  try{
   if(['alogin','slogin','f-login'].indexOf(f.id)>=0){
-   var em=val(f.id==='alogin'?'a-user':f.id==='slogin'?'l-user':'l-email').trim(),pw=val(f.id==='alogin'?'a-pass':'l-pass');db=await FC.login(em,pw);var id=db._identity;
+   var em=val(f.id==='alogin'?'a-user':f.id==='slogin'?'l-user':'l-email').trim(),pw=val(f.id==='alogin'?'a-pass':'l-pass');
+   if(f.id==='slogin'){ui.loginEmail=em;clearErrs(f);var le=[];if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))le.push(['l-user','Escribí el email de tu cuenta.']);if(!pw)le.push(['l-pass','Escribí tu clave.']);if(le.length){showErrs(f,le);return;}}
+   try{db=await FC.login(em,pw);}catch(e){if(f.id==='slogin'){showErrs(f,[[null,'']],e.message);return;}throw e;}var id=db._identity;
    if(f.id==='alogin'){if(!id||id.role!=='admin'){db=FC.logout();throw Error('Esta cuenta no tiene acceso de administrador.');}sset(AKEY,id.id);ui.loginErr='';ui.tab='resumen';rerender();}
-   else if(f.id==='slogin'){var pending;try{pending=JSON.parse(sessionStorage.getItem('fitness-pending-vendor')||'null');}catch(e){}if(pending&&norm(pending.email)===norm(em)&&!id.vendorId){db=FC.apply(pending);sessionStorage.removeItem('fitness-pending-vendor');id=db._identity;}if(!id||!id.vendorId||(id.role!=='vendor'&&id.role!=='admin')){ui.formError='Completá los datos de tu empresa para activar tu acceso de proveedor.';go('landing');return;}ui.vendorId=id.vendorId;ui.formError='';go('panel',{tab:'resumen'});}
+   else if(f.id==='slogin'){var pending;try{pending=JSON.parse(sessionStorage.getItem('fitness-pending-vendor')||'null');}catch(e){}
+    if(pending&&norm(pending.email)===norm(em)&&!id.vendorId){db=FC.apply(pending);id=db._identity;}
+    var lv=id&&id.vendorId?vendor(id.vendorId):null;
+    if(!id||!id.vendorId||(id.role!=='vendor'&&id.role!=='admin')){
+     // La cuenta existe pero no tiene acceso de proveedor: se explica según el estado, sin mandarlo a otro lado.
+     var lm=!lv?'Tu cuenta no tiene un alta de proveedor. Completá “Vender con catálogo” en la página de inicio.':lv.status==='pending'?'Tu cuenta está en revisión y todavía no tiene acceso al panel. Escribinos si necesitás ayuda.':lv.status==='rejected'?'Tu solicitud no fue aprobada. Escribinos y te contamos qué falta.':'Tu cuenta de proveedor está suspendida. Escribinos para más información.';
+     try{db=FC.logout();}catch(e){}showErrs(f,[[null,'']],lm);return;}
+    // Datos del alta que el servidor no guarda en el alta automática (por ejemplo, la razón social): se completan en el primer ingreso.
+    if(pending&&norm(pending.email)===norm(em)&&lv){var fill=false;['razon'].forEach(function(k){if(pending[k]&&!lv[k]){lv[k]=pending[k];fill=true;}});if(fill){try{saveOrRevert();}catch(e){}}}
+    try{sessionStorage.removeItem('fitness-pending-vendor');}catch(e){}
+    ui.vendorId=id.vendorId;ui.formError='';go('panel',{tab:'resumen'});}
    else{ui.authErr='';loginDone(acct(),'Ingresaste a tu cuenta.');}
   }else if(f.id==='f-register'){
    var pass=val('r-pass');if(pass!==val('r-pass2'))throw Error('Las claves no coinciden.');if(pass.length<8||!val('r-name').trim())throw Error('Ingresá el nombre y una clave de al menos 8 caracteres.');var res=await FC.signup(val('r-email').trim(),pass,val('r-name').trim());if(res.access_token){db=load();loginDone(acct(),'Cuenta creada.');}else{ui.authTab='login';ui.authErr='Revisá tu email y confirmá la cuenta antes de ingresar.';rerender();}
   }else if(f.id==='apply'){
-   var details={name:val('a-name').trim(),email:val('a-email').trim(),cuit:val('a-cuit'),contact:val('a-contact'),phone:waAR(val('a-phone'))||val('a-phone'),wa:waAR(val('a-phone')),type:val('a-type')};var existing=FC.identity()&&norm(FC.identity().email)===norm(details.email);if(!details.name||details.cuit.replace(/\D/g,'').length!==11||(!existing&&val('a-pass').length<8))throw Error('Revisá nombre, CUIT y clave de al menos 8 caracteres.');if(val('a-phone').trim()&&!details.wa)throw Error('Revisá el WhatsApp: código de área y número, 10 dígitos (ej. 11 2345 6789).');var res=existing?{access_token:true}:await FC.signup(details.email,val('a-pass'),details.name,details);if(res.access_token){db=FC.apply(details);ui.vendorId=db._identity.vendorId;ui.formError='';go('panel',{tab:'resumen'});}else{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));ui.formError='Te mandamos un email para confirmar la cuenta. Cuando lo confirmes (desde cualquier dispositivo), tu alta queda activa sola y ya podés ingresar con tu email y clave.';render();}
+   clearErrs(f);
+   var details={name:val('a-name').trim(),razon:val('a-razon').trim(),email:val('a-email').trim(),cuit:val('a-cuit').replace(/\D/g,''),contact:val('a-contact').trim(),phone:waAR(val('a-phone'))||val('a-phone').trim(),wa:waAR(val('a-phone')),type:val('a-type'),terms:new Date().toISOString()};
+   var existing=FC.identity()&&norm(FC.identity().email)===norm(details.email), ae=[];
+   if(details.name.length<2)ae.push(['a-name','Escribí el nombre comercial.']);
+   if(details.razon.length<2)ae.push(['a-razon','Escribí la razón social.']);
+   if(!/^\d{11}$/.test(details.cuit))ae.push(['a-cuit','El CUIT tiene 11 dígitos.']);else if(!cuitOk(details.cuit))ae.push(['a-cuit','Ese CUIT no es válido: revisá los números.']);
+   if(!details.contact)ae.push(['a-contact','Escribí el nombre de la persona de contacto.']);
+   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(details.email))ae.push(['a-email','Revisá el email: no parece válido.']);
+   if(!details.wa)ae.push(['a-phone','Revisá el WhatsApp: código de área y número, 10 dígitos (ej. 11 2345 6789).']);
+   if(!existing&&val('a-pass').length<8)ae.push(['a-pass','La clave tiene que tener al menos 8 caracteres.']);
+   if(!document.getElementById('a-terms').checked)ae.push(['a-terms','Para crear la cuenta tenés que aceptar los Términos y Condiciones.']);
+   if(ae.length){showErrs(f,ae);return;}
+   try{
+    var res=existing?{access_token:true}:await FC.signup(details.email,val('a-pass'),details.name,details);
+    if(res.access_token){db=FC.apply(details);ui.vendorId=db._identity.vendorId;if(details.razon&&me()&&!me().razon){me().razon=details.razon;try{saveOrRevert();}catch(e){}}ui.formError='';go('panel',{tab:'resumen'});}
+    else{try{sessionStorage.setItem('fitness-pending-vendor',JSON.stringify(details));}catch(e){}ui.applySent=details.email;ui.loginEmail=details.email;render();var al=document.getElementById('alta');if(al){try{al.scrollIntoView({block:'start'});}catch(e){}}}
+   }catch(e){showErrs(f,[[null,'']],'No pudimos crear la cuenta: '+e.message);}
   }else if(f.id==='f-forgot'){ui.forgotEmail=val('fg-email').trim();await FC.recover(ui.forgotEmail);ui.forgotSent=ui.forgotEmail;ui.authErr='';rerender();}
   else if(f.id==='f-pass'){if(val('pw-new').length<8||val('pw-new')!==val('pw-new2'))throw Error('Usá al menos 8 caracteres y repetí la misma clave.');await FC.password(val('pw-old'),val('pw-new'));toast('Clave actualizada.');}
   else if(f.id==='uform'){if(ui.uForm!==db._identity.id)throw Error('Para agregar administradores, creá la cuenta en Supabase Auth y asigná el permiso desde SQL.');if(val('u-pass').length<8||val('u-pass')!==val('u-pass2'))throw Error('Las claves deben coincidir y tener al menos 8 caracteres.');await FC.setPassword(val('u-pass'));ui.uForm=null;rerender();toast('Clave actualizada.');}
   else{throw Error('Usá el ingreso con email y clave. Este formulario de demostración fue desactivado.');}
- }catch(e){FC.fail(e);}finally{if(btn)btn.disabled=false;}
+ }catch(e){if(f.querySelector('.form-err'))showErrs(f,[[null,'']],e.message);else FC.fail(e);}finally{if(btn)btn.disabled=false;}
 },true);
 document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-forgot]');if(!b)return;ev.preventDefault();ev.stopImmediatePropagation();var on=b.getAttribute('data-forgot')==='1',u=document.getElementById('l-user');if(on&&u&&/@/.test(u.value))ui.forgotEmail=u.value.trim();ui.forgot=on;ui.forgotSent='';ui.formError='';rerender();var e=document.getElementById(on?'fg-email':'l-user');if(e)e.focus();},true);
 window.addEventListener('error',function(ev){if(ev.error)FC.fail(ev.error);});
 window.addEventListener('unhandledrejection',function(ev){FC.fail(ev.reason);});
-document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-act]');if(!b)return;var action=b.dataset.act;if(action==='new-offer'||action==='new-offer-cancel'){ev.stopImmediatePropagation();ui.adding=action==='new-offer';rerender();return;}if(action==='fitness-refresh'){ev.stopImmediatePropagation();try{db=FC.refresh();rerender();}catch(e){FC.fail(e);}}if(action==='fitness-cancel'){ev.stopImmediatePropagation();try{db=FC.cancel(b.dataset.id);rerender();}catch(e){FC.fail(e);}}if(['user-reset','u-reset','u-pw','u-del','u-delacc','u-block','g-open','reset','mp-toggle','mp-test','mp-reconnect','refund'].indexOf(action)>=0){ev.stopImmediatePropagation();FC.fail(Error((action.indexOf('mp-')===0||action==='refund')?'La conexión real de Mercado Pago sigue pendiente.':'Esta acción necesita ejecutarse en Supabase Auth; no se modifican identidades ni pagos desde el navegador.'));}if(action==='logout'){db=FC.logout();}},true);
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-act]');if(!b)return;var action=b.dataset.act;if(action==='new-offer'||action==='new-offer-cancel'){ev.stopImmediatePropagation();ui.adding=action==='new-offer';ui.customNew=false;if(ui.adding){ui.tab='productos';ui.ptab='lista';ui.bulk=false;}rerender();if(ui.adding){var nf=document.getElementById('supplier-create');if(nf){try{nf.scrollIntoView({block:'start'});}catch(e){}var q0=document.getElementById('new-q')||document.getElementById('new-cat');if(q0)q0.focus({preventScroll:true});}}return;}if(action==='new-custom'){ev.stopImmediatePropagation();ui.customNew=b.dataset.on==='1';rerender(ui.customNew?'new-cat':'new-q');return;}if(action==='fitness-refresh'){ev.stopImmediatePropagation();try{db=FC.refresh();rerender();}catch(e){FC.fail(e);}}if(action==='fitness-cancel'){ev.stopImmediatePropagation();try{db=FC.cancel(b.dataset.id);rerender();}catch(e){FC.fail(e);}}if(['user-reset','u-reset','u-pw','u-del','u-delacc','u-block','g-open','reset','mp-toggle','mp-test','mp-reconnect','refund'].indexOf(action)>=0){ev.stopImmediatePropagation();FC.fail(Error((action.indexOf('mp-')===0||action==='refund')?'La conexión real de Mercado Pago sigue pendiente.':'Esta acción necesita ejecutarse en Supabase Auth; no se modifican identidades ni pagos desde el navegador.'));}if(action==='logout'){db=FC.logout();}},true);
 document.addEventListener('click',function(ev){
   var t=ev.target.closest?ev.target.closest('[data-go],[data-act]'):null;
   if(!t||t.disabled) return;
-  if(t.hasAttribute('data-go')){ var r=t.getAttribute('data-go'); go(r,r==='landing'?{applied:false}:(r==='panel'?{tab:'resumen'}:null)); return; }
+  if(t.hasAttribute('data-go')){ var r=t.getAttribute('data-go'); go(r,r==='panel'?{tab:'resumen'}:null); var an=t.getAttribute('data-anchor'); if(an){ var ae=document.getElementById(an); if(ae){ try{ ae.scrollIntoView({block:'start'}); }catch(e){} } } return; }
   var a=t.getAttribute('data-act'), id=t.dataset.id, x;
   if(a!=='refund') ui.confirm=null;
   switch(a){
@@ -2099,26 +2318,34 @@ document.addEventListener('click',function(ev){
     case 'pf-del': x=me(); var gone=(x.views||[]).splice(+t.dataset.i,1)[0]; save(); rerender(); if(gone) toast('Filtro “'+gone.name+'” borrado'); break;
     case 'pf-save': ui.saveView=true; rerender('vw-name'); break;
     case 'pf-save-cancel': ui.saveView=false; rerender(); break;
+    case 'pf-toggle': ui.fopen=!(ui.fopen||pfActive()); rerender(); break;
+    case 'ptab-fotos': ui.tab='productos'; ui.ptab='fotos'; rerender(); break;
+    case 'ptab': ui.ptab=t.dataset.p; ui.imp=ui.ptab==='importar'?ui.imp:null; rerender(); break;
     case 'pf-clear': ui.pf=JSON.parse(JSON.stringify(PF_DEF)); ui.saveView=false; rerender(); break;
-    case 'sheet': ui.sheet=!ui.sheet; ui.imp=null; rerender(); break;
+    case 'sheet': ui.tab='productos'; ui.ptab='importar'; ui.imp=null; ui.adding=false; rerender(); break;
     case 'bulk': ui.bulk=!ui.bulk; ui.bulkVals=null; ui.bulkOdd=null; rerender(); break;
     case 'bulk-pct':
       var pc=parseFloat(String(val('bulk-pct')).replace(',','.')); if(isNaN(pc)||pc<=-90||pc>500){ toast('Escribí un porcentaje, por ejemplo 8 o -5.'); document.getElementById('bulk-pct').focus(); break; }
-      [].slice.call(document.querySelectorAll('[data-bp]')).forEach(function(inp2){ var o2=offer(inp2.getAttribute('data-bp')); if(o2) inp2.value=Math.round(o2.price*(1+pc/100)).toLocaleString('es-AR'); });
+      [].slice.call(document.querySelectorAll('[data-bp]')).forEach(function(inp2){ var o2=offer(inp2.getAttribute('data-bp')); if(o2) inp2.value=moneyIn(amount(o2.price*(1+pc/100))); });
       toast('Precios '+(pc>=0?'aumentados ':'bajados ')+Math.abs(pc)+'% en la lista. Revisalos y guardá.'); break;
-    case 'sheet-dl': downloadRows(sheetRows(db.offers.filter(function(o){ return o.vendorId===ui.vendorId; })),'mis-productos'); break;
+    case 'sheet-dl': x=db.offers.filter(function(o){ return o.vendorId===ui.vendorId; }); downloadRows(sheetRows(x),x.length?'mis-productos':'plantilla-productos-nexofit'); break;
     case 'sheet-copy': copyRows(sheetRows(db.offers.filter(function(o){ return o.vendorId===ui.vendorId; })),'Planilla copiada: pegala en Excel, cambiá precios y unidades, y volvé a pegarla acá'); break;
     case 'sheet-read': var txt=val('sheet-paste'); if(!txt.trim()){ toast('Pegá las filas o subí la planilla.'); document.getElementById('sheet-paste').focus(); break; } ui.imp=parseSheet(txt); rerender(); break;
     case 'imp-cancel': ui.imp=null; rerender(); break;
     case 'imp-apply':
-      var I=ui.imp; if(!I) break; if(I.kind==='tiendanube'){if(I.errors.length)break;try{var target=document.getElementById('catalog-vendor');db=FC.importCatalog(target?target.value:me().id,I.rows);ui.imp=null;ui.sheet=false;rerender();toast('Catálogo guardado para la portada. Falta completar y publicar las variantes desde el administrador para habilitar el carrito.');}catch(e){FC.fail(e);}break;}var needOk=I.rows.some(function(r){ return r.odd; }), okc=document.getElementById('imp-ok');
-      if(needOk&&!(okc&&okc.checked)){ toast('Hay precios raros: revisalos y marcá que están bien.'); if(okc) okc.focus(); break; }
+      var I=ui.imp; if(!I) break; var impErr=function(m){ var eb=document.querySelector('.imp-err'); if(eb){ eb.textContent=m; eb.hidden=false; try{ eb.scrollIntoView({block:'center'}); }catch(e){} } else FC.fail(Error(m)); };
+      if(I.kind==='tiendanube'){if(I.errors.length)break;try{var target=document.getElementById('catalog-vendor');db=FC.importCatalog(target?target.value:me().id,I.rows);ui.imp=null;rerender();toast('Catálogo recibido. Nexo Fit revisa cada producto antes de publicarlo.');}catch(e){impErr('No pudimos importar el catálogo: '+e.message);}break;}
+      var news=I.news||[], needOk=I.rows.some(function(r){ return r.odd; })||news.some(function(r){ return r.odd; }), okc=document.getElementById('imp-ok');
+      if(needOk&&!(okc&&okc.checked)){ impErr('Hay precios que parecen raros: revisalos y marcá que están bien.'); if(okc) okc.focus(); break; }
       I.rows.forEach(function(r){ var o3=offer(r.id); if(o3) applyPU(o3,r.np,r.nu,r.odd); });
-      vact(me(),'actualizó '+I.rows.length+' productos con una planilla'); ui.imp=null; ui.sheet=false; save(); rerender(); toast(I.rows.length+(I.rows.length===1?' producto actualizado':' productos actualizados')+(needOk?'. Los precios raros pasan por revisión.':'')); break;
+      news.forEach(function(r){ db.offers.push({id:'o_'+FC.key(),vendorId:me().id,category:r.category,model:r.model,size:r.size,unit:r.unit,brand:r.brand,detail:r.detail,sourceUrl:r.sourceUrl,price:r.price,units:r.units,minQty:r.minQty,lead:r.lead,warranty:r.warranty,shipAmba:0,shipInt:0,status:'review',stock:r.units===0?'none':'stock',volumeTiers:[],updated:today()}); });
+      vact(me(),(I.rows.length?'actualizó '+I.rows.length+' productos':'')+(I.rows.length&&news.length?' y ':'')+(news.length?'cargó '+news.length+' productos nuevos':'')+' con una planilla');
+      try{ saveOrRevert(); }catch(e){ impErr('No pudimos guardar la planilla: '+e.message); break; }
+      ui.imp=null; ui.ptab='lista'; rerender(); toast((news.length?news.length+(news.length===1?' producto nuevo enviado':' productos nuevos enviados')+' a revisión':'')+(news.length&&I.rows.length?' y ':'')+(I.rows.length?I.rows.length+(I.rows.length===1?' producto actualizado':' productos actualizados'):'')+(I.rows.some(function(r){ return r.odd; })?'. Los precios raros pasan por revisión.':'.')); break;
     case 'liq-dl': case 'liq-copy':
       var LR=[['Mes','Ventas','Productos $','Envíos $','Comisión del sitio $','Te quedó $','Devoluciones','Monto devuelto $']].concat(settlementRows(me()).map(function(r){ return [monthName(r.m),r.n,r.sub,r.ship,r.com,r.net,r.ref,r.refAmt]; }));
       if(a==='liq-dl') downloadRows(LR,'liquidacion'); else copyRows(LR); break;
-    case 'logout': ui.vendorId=null; sset(SKEY,null); go('landing',{applied:false}); toast('Saliste de tu panel'); break;
+    case 'logout': ui.vendorId=null; sset(SKEY,null); go('landing'); toast('Saliste de tu panel'); break;
     case 'mp-connect':
       t.disabled=true;
       fetch(paymentsUrl('/api/pagos/conectar'),{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+FC.token()},body:JSON.stringify({returnUrl:location.href.split('#')[0].split('?')[0]})})
@@ -2160,16 +2387,24 @@ document.addEventListener('click',function(ev){
 document.addEventListener('submit',function(ev){
   var f=ev.target; ev.preventDefault();
   if(submitPromotion(ev)) return;
-  if(f.id==='supplier-create'){var v0=me();if(!v0)return;var variant=ui.newVariants[Number(val('new-variant'))];if(!variant)return;if(variant.category==='Combos y kits'&&val('new-detail').trim().length<20){FC.fail(Error('Informá los componentes, variantes y cantidades del combo o kit.'));return;}var price=Number(val('new-price')),units=Number(val('new-units')),minimum=Number(val('new-min')),lead=Number(val('new-lead')),warranty=Number(val('new-warranty')),amba=Number(val('new-amba')),interior=Number(val('new-interior')),source=val('new-source').trim();if(!safeUrl(source)){FC.fail(Error('Ingresá el enlace https:// de la fuente oficial del precio.'));return;}if(price<=0||!Number.isFinite(price)||!Number.isInteger(units)||units<0||!Number.isInteger(minimum)||minimum<1||!Number.isInteger(lead)||lead<0||!Number.isInteger(warranty)||warranty<0||!Number.isFinite(amba)||amba<0||!Number.isFinite(interior)||interior<0){FC.fail(Error('Revisá precio, stock, mínimo, entrega, garantía y envíos.'));return;}db.offers.push(Object.assign({},variant,{id:'o_'+FC.key(),vendorId:v0.id,unit:val('new-unit'),brand:'',detail:val('new-detail').trim(),sourceUrl:source,price:price,units:units,minQty:minimum,lead:lead,warranty:warranty,shipAmba:amba,shipInt:interior,status:'review',stock:units?'stock':'none',volumeTiers:[],updated:today()}));save();ui.adding=false;rerender();toast('Producto enviado a revisión.');return;}
+  if(f.id==='supplier-create'){
+    var v0=me(); if(!v0) return; clearErrs(f);
+    var r0=readNewOffer(v0); if(r0.errs){ showErrs(f,r0.errs); return; }
+    var sb0=f.querySelector('[type="submit"]'); if(sb0) sb0.disabled=true;
+    db.offers.push(r0.offer);
+    try{ saveOrRevert(); }catch(e){ if(sb0) sb0.disabled=false; showErrs(f,[[null,'']],'No pudimos guardar el producto: '+e.message); return; }
+    vact(me(),'cargó '+r0.offer.model+' '+r0.offer.size+' para revisar');
+    ui.adding=false; ui.customNew=false; ui.ptab='lista'; rerender(); toast('Producto enviado a revisión. Cuando lo aprobemos lo vas a ver como Publicado.'); return;
+  }
   if(f.id==='shipform'){
     var so=order(f.getAttribute('data-id')), car=val('sh-car'), num=val('sh-num').trim().slice(0,40), tu=val('sh-url').trim();
     if(!so||so.vendorId!==ui.vendorId) return;
     var needNum=['Andreani','OCA','Correo Argentino','Vía Cargo'].indexOf(car)>=0;
     if(needNum&&!num){ var se=document.getElementById('sh-err'); se.textContent='Escribí el número de seguimiento de '+car+'.'; se.hidden=false; document.getElementById('sh-num').focus(); return; }
     if(tu&&!safeUrl(tu)){ var se2=document.getElementById('sh-err'); se2.textContent='El link tiene que empezar con https://'; se2.hidden=false; document.getElementById('sh-url').focus(); return; }
-    so.shipped=true; so.shippedAt=today(); so.carrier=car; so.tracking=num; so.trackUrl=tu;
+    so.shipped=true; so.shippedAt=today(); so.carrier=car; so.tracking=num; so.trackUrl=tu; so.trackingUrl=tu; /* el servidor guarda trackingUrl */
     notify('ship','ventas',me().name+' envió el pedido #'+so.id+' por '+car+(num?' ('+num+')':''),so.id); vact(me(),'envió el pedido #'+so.id+' por '+car);
-    save(); rerender(); toast('Pedido #'+so.id+' enviado. El seguimiento ya se puede consultar en Mi cuenta.'); return;
+    save(); rerender(); toast('Pedido #'+so.id+' marcado como enviado. El comprador ve el transporte y el número en su cuenta de Nexo Fit.'); return;
   }
   if(f.id==='viewform'){
     var vn=val('vw-name').trim().slice(0,24); if(!vn){ toast('Ponele un nombre al filtro.'); document.getElementById('vw-name').focus(); return; }
@@ -2194,31 +2429,8 @@ document.addEventListener('submit',function(ev){
     if(nP||nU) vact(me(),'editó en masa: '+nP+' precios y '+nU+' stocks');
     ui.bulk=false; ui.bulkVals=null; ui.bulkOdd=null; save(); rerender(); toast(nP||nU?'Listo: '+nP+(nP===1?' precio':' precios')+' y '+nU+(nU===1?' stock actualizados':' stocks actualizados')+(odd.length?'. Los precios raros pasan por revisión.':''):'No había cambios'); return;
   }
-  if(f.id==='slogin'){
-    db=load();
-    var typed=val('l-user'), u=norm(typed), pw=val('l-pass'), v=db.vendors.filter(function(x){ return u&&(norm(x.user)===u||norm(x.email)===u); })[0];
-    var lerr=!u||!pw?'Escribí tu usuario y tu clave.':(!v||!v.hash||v.hash!==pwHash(pw)?'El usuario o la clave no coinciden.':(v.status==='pending'?'Tu solicitud todavía está pendiente de aprobación.':(v.status==='rejected'?'Tu solicitud no fue aprobada. Escribinos para más información.':'')));
-    if(lerr){ ui.formError=lerr; render(); var lu=document.getElementById('l-user'); if(lu){ lu.value=typed; } var le=document.getElementById(!u?'l-user':'l-pass'); if(le) le.focus(); return; }
-    v.logins=v.logins||[]; v.logins.unshift(new Date().toISOString()); if(v.logins.length>300) v.logins.length=300; vact(v,'entró al panel'); save();
-    ui.formError=''; ui.vendorId=v.id; sset(SKEY,v.id); go('panel',{tab:'resumen'}); toast('Hola, '+v.name);
-    return;
-  }
-  if(f.id==='apply'){
-    var name=val('a-name').trim(), cuit=String(val('a-cuit')).replace(/\D/g,''), email=val('a-email').trim();
-    var keep={name:name,cuit:val('a-cuit'),contact:val('a-contact'),email:email,phone:val('a-phone'),type:val('a-type')};
-    var pass=val('a-pass'), dup=db.vendors.some(function(v){ return norm(v.email)===norm(email)||norm(v.user)===norm(email); });
-    var err=!name?'Falta la razón social.':(cuit.length!==11?'El CUIT tiene que tener 11 dígitos.':(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)?'Revisá el email: no parece válido.':(dup?'Ya hay una cuenta con ese email.':(pass.length<6?'La clave tiene que tener al menos 8 caracteres.':''))));
-    if(err){
-      ui.formError=err; ui.applied=false; render();
-      ['name','cuit','contact','email','phone','type'].forEach(function(k){ var el=document.getElementById('a-'+k); if(el) el.value=keep[k]; });
-      var fe=document.getElementById(!name?'a-name':(cuit.length!==11?'a-cuit':(pass.length<6&&!dup&&/@/.test(email)?'a-pass':'a-email'))); if(fe) fe.focus();
-      return;
-    }
-    db.vendors.push({id:'v'+(db.nextId++),name:name,type:keep.type,cuit:cuit.slice(0,2)+'-'+cuit.slice(2,10)+'-'+cuit.slice(10),contact:keep.contact.trim(),email:email,phone:keep.phone.trim(),status:'pending',mp:false,commission:null,user:norm(email),hash:pwHash(pass),since:today(),logins:[],act:[{t:new Date().toISOString(),what:'pidió el alta'}]});
-    notify('vendor','vendedores','Nueva solicitud de alta: '+name+' ('+keep.type+'). Revisala y aprobala para que pueda vender.',db.vendors[db.vendors.length-1].id);
-    save(); ui.formError=''; ui.applied=true; render(); toast('Solicitud enviada');
-    var fm=document.getElementById('alta'); if(fm&&fm.scrollIntoView){ try{ fm.scrollIntoView({block:'start'}); }catch(e){} }
-  } else if(f.id==='dform'){
+  /* El ingreso y el alta se resuelven en el manejador de arriba (fase de captura); acá no llegan. */
+  if(f.id==='dform'){
     var v=me(), ch=[], em=val('d-email').trim(), nm=val('d-name').trim().slice(0,40);
     if(!nm){ var eb=document.getElementById('d-err'); eb.textContent='Falta el nombre de la marca.'; eb.hidden=false; document.getElementById('d-name').focus(); return; }
     if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ var eb2=document.getElementById('d-err'); eb2.textContent='Revisá el email: no parece válido.'; eb2.hidden=false; document.getElementById('d-email').focus(); return; }
@@ -2229,8 +2441,8 @@ document.addEventListener('submit',function(ev){
     save(); rerender(); toast(ch.length?'Datos guardados':'No había cambios');
   } else if(f.id==='pform'){
     var cur=offer(ui.editId); if(!cur||cur.vendorId!==ui.vendorId) return;
-    var np=digits(val('p-price')), st=val('p-stock'), ut=val('p-units').trim(), lt=val('p-low').trim(), source=val('p-source').trim();
-    if(np<=0){ var box=document.getElementById('p-err'); box.textContent='El precio tiene que ser mayor a cero.'; box.hidden=false; document.getElementById('p-price').focus(); return; }
+    var np=parseMoney(val('p-price')), st=val('p-stock'), ut=val('p-units').trim(), lt=val('p-low').trim(), source=val('p-source').trim();
+    if(np==null||isNaN(np)||np<=0){ var box=document.getElementById('p-err'); box.textContent='Escribí el precio con IVA, por ejemplo 15.000 o 15000,50.'; box.hidden=false; document.getElementById('p-price').focus(); return; }
     // La fuente oficial solo se pide cuando cambia el precio: para actualizar stock no hace falta.
     if(np!==cur.price&&!safeUrl(source)){ var sb=document.getElementById('p-err'); sb.textContent='Cambiaste el precio: ingresá el enlace https:// de la fuente oficial del nuevo precio.'; sb.hidden=false; document.getElementById('p-source').focus(); return; }
     if(source&&!safeUrl(source)){ var sb3=document.getElementById('p-err'); sb3.textContent='El enlace de la fuente tiene que empezar con https://'; sb3.hidden=false; document.getElementById('p-source').focus(); return; }
@@ -2252,6 +2464,7 @@ document.addEventListener('submit',function(ev){
 });
 document.addEventListener('change',function(ev){
   var t=ev.target, x;
+  if(t.id==='new-cat'){ var of=document.getElementById('new-cat-other-f'); if(of) of.hidden=t.value!=='__otra'; if(t.value==='__otra') document.getElementById('new-cat-other').focus(); return; }
   if(t.id==='promo-mode'||t.id==='promo-zone'){var active=val('promo-mode')!=='none';document.getElementById('promo-zone').disabled=!active;document.getElementById('promo-threshold').disabled=val('promo-mode')!=='from';document.getElementById('promo-postal').disabled=!active||val('promo-zone')!=='amba';return;}
   if(t.dataset&&t.dataset.units){
     x=offer(t.dataset.units); if(!x||x.vendorId!==ui.vendorId) return;
@@ -2276,9 +2489,10 @@ document.addEventListener('change',function(ev){
 });
 document.addEventListener('input',function(ev){
   var t=ev.target, n, p;
+  if(t.id==='new-q'){ var sel=document.getElementById('new-variant'), r=variantOptions(ui.newVariants||[],t.value); if(sel){ sel.innerHTML=r.html; if(r.n&&plain(t.value)) sel.selectedIndex=0; } setText('new-q-h',r.n?(plain(t.value)?r.n+(r.n===1?' coincidencia. Elegila abajo.':' coincidencias. Elegí abajo.'):r.n+' productos en la lista. Escribí para achicarla.'):'No está en la lista: tocá “Mi producto no está en la lista”.'); return; }
   if(t.id==='pf-q'){ ui.pf.q=t.value; var pos=t.selectionStart; rerender('pf-q'); var q2=document.getElementById('pf-q'); if(q2){ try{ q2.setSelectionRange(pos,pos); }catch(e){} } return; }
   if(t.id==='sim-range'){ n=digits(t.value); ui.sim=n; p=db.commission; setText('sim-total',money(n)); setText('sim-net',money(n*(100-p)/100)); setText('sim-com',money(n*p/100)); }
-  else if(t.id==='p-price'){ n=digits(t.value); p=pctOf(me()); setText('pv-price',money(n)); setText('pv-com',money(n*p/100)); setText('pv-net',money(n*(100-p)/100)); refreshWarn(); }
+  else if(t.id==='p-price'){ n=parseMoney(t.value)||0; p=pctOf(me()); setText('pv-price',money(n)); setText('pv-com',money(n*p/100)); setText('pv-net',money(n*(100-p)/100)); refreshWarn(); }
 });
 /* ---------- Fotos de mis productos (a través del Worker) ---------- */
 function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}
@@ -2291,12 +2505,12 @@ function vendorPhotosPanel(v){
  if(P.loading||P.error)return P.error?'<section class="card"><h2 class="display h-card">Fotos de mis productos</h2><p class="muted">'+esc(P.error)+'</p></section>':'';
  var main=function(slug){return (P.images||[]).filter(function(i){return i.key===slug;})[0]||null;},list=(P.products||[]),pages=Math.max(1,Math.ceil(list.length/12));P.page=Math.min(Math.max(1,P.page||1),pages);
  var st={aprobada:'Publicada',pendiente:'En revisión',rechazada:'Rechazada'},src={tienda:'De tu tienda',proveedor:'Subida'};
- return '<section class="card" id="mis-fotos"><h2 class="display h-card">Fotos de mis productos</h2><p class="note">Usamos solo fotos reales de tus productos. Si tenés tienda online tomamos la foto principal de ahí; si falta o preferís otra, subila acá. La foto de un modelo se usa para todas sus medidas o pesos (JPG, PNG o WEBP, hasta 4 MB) y se publica en el momento.</p><div class="photos-grid">'
+ return '<section class="card" id="mis-fotos"><h2 class="display h-card">Fotos de mis productos</h2><p class="note">Usamos solo fotos reales de tus productos. Si tenés tienda online tomamos la foto principal de ahí; si falta o preferís otra, subila acá. La foto de un modelo se usa para todas sus medidas o pesos (JPG, PNG o WEBP, hasta 4 MB). Nexo Fit revisa cada foto antes de mostrarla; el estado aparece debajo de cada una.</p><div class="photos-grid">'
   +list.slice((P.page-1)*12,P.page*12).map(function(p,i){var img=main(p.slug);return '<article class="photo-card"><div class="pimg">'+(img?'<img src="'+esc(photoSrc(img.path))+'" alt="'+esc(p.name)+'" loading="lazy">':'Sin foto')+'</div><b>'+esc(p.name)+'</b><span class="small muted">'+(img?esc(src[img.source]||'')+' · '+esc(st[img.status]||''):'Todavía sin foto')+'</span><label class="btn btn-outline" for="my-photo-'+i+'">Subir foto</label><input class="photo-file" id="my-photo-'+i+'" type="file" accept="image/jpeg,image/png,image/webp" data-my-photo="'+esc(p.slug)+'"></article>';}).join('')+'</div>'
   +(pages>1?'<div class="actions"><button class="btn btn-outline btn-sm" data-act="my-photos-page" data-page="'+(P.page-1)+'"'+(P.page===1?' disabled':'')+'>Anterior</button><span class="small">'+P.page+' / '+pages+'</span><button class="btn btn-outline btn-sm" data-act="my-photos-page" data-page="'+(P.page+1)+'"'+(P.page===pages?' disabled':'')+'>Siguiente</button></div>':'')+'</section>';
 }
 document.addEventListener('click',function(ev){var t=ev.target.closest&&ev.target.closest('[data-act="my-photos-page"]');if(!t||t.disabled)return;ui.myPhotos.page=Number(t.dataset.page);rerender();});
-document.addEventListener('change',function(ev){var t=ev.target;if(!t.dataset||!t.dataset.myPhoto||!t.files||!t.files[0])return;var f=new FormData();f.append('vendorId',ui.myPhotos.vid);f.append('key',t.dataset.myPhoto);f.append('file',t.files[0]);photosCall('/api/fotos/subir',{method:'POST',form:f}).then(function(){toast('Foto subida y publicada.');return loadMyPhotos(ui.myPhotos.vid,true);}).catch(function(e){toast(e.message);});});
+document.addEventListener('change',function(ev){var t=ev.target;if(!t.dataset||!t.dataset.myPhoto||!t.files||!t.files[0])return;var f=new FormData();f.append('vendorId',ui.myPhotos.vid);f.append('key',t.dataset.myPhoto);f.append('file',t.files[0]);photosCall('/api/fotos/subir',{method:'POST',form:f}).then(function(){toast('Foto subida. Su estado aparece debajo de la foto.');return loadMyPhotos(ui.myPhotos.vid,true);}).catch(function(e){toast(e.message);});});
 /* Conexión con Mercado Pago a través del Worker. */
 function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+path;}
 fetch(paymentsUrl('/api/pagos/estado')).then(function(r){return r.ok?r.json():null;}).then(function(d){var ready=!!(d&&d.mercadoPago);if(ready!==mpReady){mpReady=ready;render();}}).catch(function(){});

@@ -1,3 +1,2 @@
-# Dirección pública del catálogo (el archivo sigue siendo nicolas.html por los pagos y enlaces existentes).
-/catalogo/ /catalogo 301
-/catalogo /nicolas 200
+# /catalogo sirve catalogo.html (vidriera de proveedores). La tienda anterior sigue en /nicolas
+# para los enlaces de pago, el carrito y las vueltas de Mercado Pago.

@@ -1853,10 +1853,28 @@ function cartPayModal(){
     +'<p class="eyebrow">Pago '+(ui.payStep+1)+' de '+total+'</p><h2 id="pay-title" class="display" style="font-size:1.8rem">'+(mpReady?'Pagar con Mercado Pago':'Pago de prueba')+'</h2>'
     +'<p class="muted">'+(mpReady?mpNote(g.v):'Medio elegido: '+esc(payLabel(g.method))+'. Los pedidos se registran sin cobro hasta conectar Mercado Pago. La transferencia o el efectivo deben confirmarse antes de aprobar el pedido; los planes de cuotas deben estar habilitados en el cobro real.')+'</p>'
     +'<div class="rows num"><div><span class="muted">Medio de pago</span><b>'+esc(payLabel(g.method))+'</b></div><div><span class="muted">Le pagás a</span><b>'+esc(mpName(g.v))+'</b></div><div><span class="muted">Productos</span><span>'+g.items.map(function(x){ return esc(x.o.model)+' × '+x.i.qty; }).join(', ')+'</span></div><div><span class="muted">En el resumen de tu tarjeta</span><b class="mono">'+esc(descriptor(g.v))+'</b></div><div class="total"><span>Total a pagar</span><b>'+money(g.total)+'</b></div></div>'
-    +'<div class="actions">'+(mpReady?mpButton(g.v,'cpay-mp'):'<button class="btn btn-accent" data-act="cpay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button>')+'<button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
+    +'<div class="actions">'+(mpReady?mpButton(g.v,'cpay-mp'):MP_ACTIVO?'<button class="btn btn-accent" data-act="cpay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button>':'<p class="muted small">El pago online todavía no está habilitado.</p>')+'<button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
 }
 /* Mercado Pago: el Worker crea el cobro con el total calculado en el servidor; esta página nunca ve claves. */
 var mpReady=false;
+/* Compra directa (Agregar al carrito, comprar ahora, checkout y "Registrar pedido pendiente de pago").
+   Apagada hasta conectar Mercado Pago: el pedido pendiente reserva stock y no avisa a nadie.
+   Con MP_ACTIVO=false los productos de proveedores muestran "Pedir oferta" (solicitud.html prellenada). */
+var MP_ACTIVO=false;
+function buyBtn(id,cls,label,qty){
+ var q=qty?' data-qty="'+esc(qty)+'"':'';
+ return MP_ACTIVO?'<button type="button" class="'+cls+'" data-act="add-cart" data-id="'+esc(id)+'"'+q+'>'+label+'</button>'
+  :'<button type="button" class="'+cls+'" data-act="ask-offer" data-id="'+esc(id)+'"'+q+'>Pedir oferta</button>';
+}
+/* Datos de confianza del proveedor sin su nombre (el comprador lo ve recién al elegir una oferta). */
+function vendorTrust(p){var t=String(p&&p.vendorType||'').trim(),pr=String(p&&p.vendorProvince||'').trim();return t&&pr?t+' · '+pr:(t||(pr?'Proveedor de '+pr:'Proveedor de la red'));}
+function askOffer(items){
+ items=items.filter(Boolean).slice(0,25);if(!items.length)return;
+ try{sessionStorage.setItem('nf-sol-prefill',JSON.stringify({items:items,detalles:'Productos elegidos en el catálogo de Nexo Fit. Los precios del catálogo son de referencia.'}));}catch(e){location.href='solicitud.html?producto='+encodeURIComponent(items[0].producto)+'&cantidad='+encodeURIComponent(items[0].cantidad);return;}
+ if(window.nfTrack)window.nfTrack('Lead',{name:'tienda pedir oferta'});
+ location.href='solicitud.html?desde=tienda';
+}
+function askOfferLine(name,detail,price,qty){return {producto:String(name||'Producto').slice(0,120),cantidad:String(Math.max(1,Math.min(999999,Math.floor(Number(qty)||1)))),detalle:[detail,price>0?'Precio de referencia visto: '+money(price):''].filter(Boolean).join(' · ').slice(0,300)};}
 function paymentsUrl(path){return String(PAYMENTS_API||'').replace(/\/$/,'')+path;}
 function mpNote(v){if(v&&!v.mp)return esc(v.name)+' todavía no conectó su cuenta de Mercado Pago, así que por ahora no puede cobrar en el sitio. Podés guardar el carrito y volver más tarde.';return 'Te llevamos a Mercado Pago para pagar de forma segura. Le pagás directo a '+esc(v?v.name:'el proveedor')+'. Tu pedido queda reservado 30 minutos mientras pagás y pasa a “Pagado” cuando Mercado Pago confirma el cobro.';}
 function mpButton(v,act){return v&&v.mp?'<button class="btn btn-accent" data-act="'+act+'">Ir a Mercado Pago</button>':'<button class="btn btn-outline" type="button" disabled>Pago no disponible para este proveedor</button>';}
@@ -1939,7 +1957,7 @@ function header(){
     +'<nav class="nav" aria-label="Principal">'
     +'<a class="navlink" href="solicitud.html" style="display:inline-flex;align-items:center;text-decoration:none">Pedir ofertas</a>'
     +'<a class="navlink" href="arma-tu-espacio.html" style="display:inline-flex;align-items:center;text-decoration:none">Armá tu espacio</a>'
-    +'<button class="navlink" data-go="buscar"'+(r!=='carrito'&&r!=='ingresar'&&r!=='cuenta'&&r!=='pedido'?' aria-current="page"':'')+'>Catálogo</button>'
+    +(MP_ACTIVO?'<button class="navlink" data-go="buscar"'+(r!=='carrito'&&r!=='ingresar'&&r!=='cuenta'&&r!=='pedido'?' aria-current="page"':'')+'>Catálogo</button>':'<a class="navlink" href="catalogo.html" style="display:inline-flex;align-items:center;text-decoration:none">Catálogo</a>')
     +'</nav><div class="top-acts">'+accountBtn()+cartBtn()+'</div></div></header>';
 }
 function footer(){
@@ -2053,9 +2071,9 @@ function supplierSearch(toks){
   var groups={},order=[];
   supplierCatalog.forEach(function(p){
     var props=(p.properties||[]).map(function(x){ return x.name+': '+x.value; }).join(' · ');
-    if(!toks.every(function(t){ return plain(p.name+' '+(p.category||'')+' '+p.vendorName+' '+props).indexOf(t)>=0; })) return;
-    var g=p.vendorId+'|'+String(p.key).split('#')[0];
-    if(!groups[g]){ groups[g]={name:p.name,vendor:p.vendorName,cat:p.category,items:[],score:toks.filter(function(t){ return plain(p.name).indexOf(t)>=0; }).length,pos:order.length}; order.push(g); }
+    if(!toks.every(function(t){ return plain(p.name+' '+(p.category||'')+' '+props).indexOf(t)>=0; })) return;
+    var g=(p.vendorRef||p.vendorId)+'|'+String(p.key).split('#')[0];
+    if(!groups[g]){ groups[g]={name:p.name,vendor:vendorTrust(p),cat:p.category,items:[],score:toks.filter(function(t){ return plain(p.name).indexOf(t)>=0; }).length,pos:order.length}; order.push(g); }
     groups[g].items.push({p:p,label:props||'Presentación única',hit:toks.every(function(t){ return plain(p.name+' '+props).indexOf(t)>=0; })});
   });
   var wantKits=toks.some(function(t){ return /^(kit|combo|set)/.test(t); });
@@ -2068,7 +2086,7 @@ function supplierResultsHTML(prods){
     var items=g.items.slice().sort(function(a,b){ return (b.hit?1:0)-(a.hit?1:0); }),shown=items.slice(0,6);
     return '<article class="q-prod">'+photoHTML(photoFor(g.items[0].p.key),g.name,'pimg-sm')+'<div class="q-prod-b"><b>'+esc(g.name)+'</b><span class="small muted">'+esc(g.vendor)+(g.cat?' · '+esc(g.cat):'')+' · '+(g.items.length===1?'1 variante':g.items.length+' variantes')+'</span>'
       +shown.map(function(x){ var o=x.p.offerId&&offer(x.p.offerId),live=o&&isLive(o);
-        return '<div class="q-var"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
+        return '<div class="q-var"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(!MP_ACTIVO?'<button type="button" class="btn btn-accent btn-sm" data-act="ask-cat" data-key="'+esc(x.p.key)+'">Pedir oferta</button>':live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
       +(items.length>6?'<span class="small muted">Y '+(items.length-6)+' variantes más: escribí la medida o el color para verlas.</span>':'')+'</div></article>';
   }).join('')+'</div>'+(prods.length>6?'<div class="q-more">Hay '+(prods.length-6)+' productos más. Escribí otra palabra para afinar.</div>':'');
 }
@@ -2120,12 +2138,15 @@ function photoIndex(){
 function photoFor(key,slug){var ix=photoIndex();return (key&&ix.byKey[key])||(slug&&ix.bySlug[slug])||(key&&ix.bySlug[String(key).split('#')[0]])||null;}
 function photoSrc(path){return /^https:\/\//.test(path)?path:paymentsUrl('/fotos/'+path);}
 function photoHTML(ph,alt,cls){if(!ph)return '';return '<div class="pimg'+(cls?' '+cls:'')+'"><img src="'+esc(photoSrc(ph.path))+'" alt="'+esc(alt)+'" loading="lazy" decoding="async"></div>';}
+/* Productos de proveedores: la vidriera vive en catalogo.html (precios de referencia, "Pedir oferta", sin nombres de proveedores).
+   Con MP_ACTIVO se mantiene la grilla anterior con compra directa. */
 function supplierCatalogSection(){
- var list=supplierCatalog.filter(function(p){return !ui.supplierVendor||p.vendorId===ui.supplierVendor;});
- var q=plain(ui.supplierQuery||'');if(q)list=list.filter(function(p){return plain(p.name+' '+p.category+' '+p.vendorName+' '+(p.properties||[]).map(function(x){return x.value;}).join(' ')).indexOf(q)>=0;});
+ if(!MP_ACTIVO) return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Catálogo de proveedores</h2><p class="muted">Precios de referencia de proveedores de la red. Elegí productos, pedí ofertas y compará en privado: costo total puesto en tu localidad, plazo y garantía.</p><div class="actions"><a class="btn btn-accent" href="catalogo.html">Mirá el catálogo ↗</a></div></div></section>';
+ var list=supplierCatalog.filter(function(p){return !ui.supplierVendor||(p.vendorRef||p.vendorId)===ui.supplierVendor;});
+ var q=plain(ui.supplierQuery||'');if(q)list=list.filter(function(p){return plain(p.name+' '+p.category+' '+(p.properties||[]).map(function(x){return x.value;}).join(' ')).indexOf(q)>=0;});
  var page=Math.max(1,Math.min(ui.supplierPage||1,Math.max(1,Math.ceil(list.length/12))));ui.supplierPage=page;
- var vendors=Array.from(new Map(supplierCatalog.map(function(p){return [p.vendorId,p.vendorName];})).entries());
- return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Productos de nuestros proveedores</h2><p class="muted">Los catálogos cargados por las empresas, reunidos acá.</p><div class="ab-filters"><div class="field"><label for="supplier-search">Buscar producto</label><input id="supplier-search" type="search" value="'+esc(ui.supplierQuery||'')+'"></div><div class="field"><label for="supplier-vendor">Proveedor</label><select id="supplier-vendor"><option value="">Todos los proveedores</option>'+vendors.map(function(v){return '<option value="'+esc(v[0])+'"'+(v[0]===ui.supplierVendor?' selected':'')+'>'+esc(v[1])+'</option>';}).join('')+'</select></div></div><p role="status">'+(supplierCatalogError?'No se pudo actualizar el catálogo de proveedores. Intentá actualizar los datos.':list.length+' variantes disponibles para consultar')+'</p><div class="ab-grid">'+list.slice((page-1)*12,page*12).map(function(p){var o=p.offerId&&offer(p.offerId),active=o&&isLive(o);return '<article class="ab-card">'+photoHTML(photoFor(p.key),p.name)+'<span class="small muted">'+esc(p.vendorName)+' · '+esc(p.category||'Catálogo')+'</span><h3>'+esc(p.name)+'</h3><p class="small">'+esc((p.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · '))+'</p><b>'+money(active?o.price:p.price)+'</b>'+(active?'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar al carrito</button>':'<span class="small muted">'+(p.units===0?'Sin stock':'Precio de catálogo · disponibilidad y condiciones por confirmar')+'</span>')+'</article>';}).join('')+'</div><div class="ab-pages"><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page-1)+'" '+(page===1?'disabled':'')+'>Anterior</button><span>'+page+' / '+Math.max(1,Math.ceil(list.length/12))+'</span><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page+1)+'" '+(page*12>=list.length?'disabled':'')+'>Siguiente</button></div></div></section>';
+ var vendors=Array.from(new Map(supplierCatalog.map(function(p){return [p.vendorRef||p.vendorId,vendorTrust(p)];})).entries());
+ return '<section class="section" id="productos-proveedores"><div class="wrap"><h2 class="display">Productos de nuestros proveedores</h2><p class="muted">Los catálogos cargados por las empresas, reunidos acá.</p><div class="ab-filters"><div class="field"><label for="supplier-search">Buscar producto</label><input id="supplier-search" type="search" value="'+esc(ui.supplierQuery||'')+'"></div><div class="field"><label for="supplier-vendor">Proveedor</label><select id="supplier-vendor"><option value="">Todos los proveedores</option>'+vendors.map(function(v){return '<option value="'+esc(v[0])+'"'+(v[0]===ui.supplierVendor?' selected':'')+'>'+esc(v[1])+'</option>';}).join('')+'</select></div></div><p role="status">'+(supplierCatalogError?'No se pudo actualizar el catálogo de proveedores. Intentá actualizar los datos.':list.length+' variantes disponibles para consultar')+'</p><div class="ab-grid">'+list.slice((page-1)*12,page*12).map(function(p){var o=p.offerId&&offer(p.offerId),active=o&&isLive(o);return '<article class="ab-card">'+photoHTML(photoFor(p.key),p.name)+'<span class="small muted">'+esc(vendorTrust(p))+' · '+esc(p.category||'Catálogo')+'</span><h3>'+esc(p.name)+'</h3><p class="small">'+esc((p.properties||[]).map(function(x){return x.name+': '+x.value;}).join(' · '))+'</p><b>'+money(active?o.price:p.price)+'</b>'+(active?'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar al carrito</button>':'<span class="small muted">'+(p.units===0?'Sin stock':'Precio de catálogo · disponibilidad y condiciones por confirmar')+'</span>')+'</article>';}).join('')+'</div><div class="ab-pages"><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page-1)+'" '+(page===1?'disabled':'')+'>Anterior</button><span>'+page+' / '+Math.max(1,Math.ceil(list.length/12))+'</span><button class="btn btn-outline" data-act="supplier-page" data-page="'+(page+1)+'" '+(page*12>=list.length?'disabled':'')+'>Siguiente</button></div></div></section>';
 }
 function vFront(){
  return '<section class="hero"><div class="wrap hero-in hero-layout"><div class="hero-copy"><p class="eyebrow">Gimnasios · Clubes · Colegios</p>'
@@ -2221,6 +2242,7 @@ function cmpResults(d){
     if(r===warr&&rows.length>1) tags+='<span class="tag alt">Mayor garantía</span>';
     var ship=!ok?'A calcular':shipLbl(vendor(o.vendorId),r.q.shipping,r.q.subtotal,ui.cp);
     var btn=!r.can?'<button class="btn btn-outline" disabled>'+(r.few?(o.units<o.minQty?'Sin stock suficiente':'Quedan '+o.units+' u.'):'Mínimo '+o.minQty+' u.')+'</button>'
+      :!MP_ACTIVO?buyBtn(o.id,'btn '+(r===cheap?'btn-accent':'btn-primary'),'',Math.max(1,ui.qty|0))
       :(!ok?'<button class="btn btn-outline" disabled>Falta el código postal</button>'
       :'<button class="btn '+(r===cheap?'btn-accent':'btn-primary')+'" data-act="add-cart" data-id="'+o.id+'">'+(cartFind(o.id)?ico('check',18)+'En el carrito · actualizar':'Agregar al carrito')+'</button><button class="linkbtn small" data-act="buy" data-id="'+o.id+'">o comprar ahora</button>');
     return '<article class="offer'+(r===cheap?' best':'')+'">'
@@ -2310,7 +2332,7 @@ function vendorTabsHTML(){
     +vendorMinimumNote(v)+contactCtas(v.name,'')+'<div class="tablewrap"><table style="min-width:960px"><thead><tr><th>Producto</th><th>Variante</th><th>Marca</th><th class="r">Precio</th><th>Stock</th><th>Compra</th><th></th></tr></thead><tbody>'
     +list.map(function(o){
       return '<tr><td><b>'+esc(o.model)+'</b><span class="sub">'+esc(o.category)+(o.detail?' · '+esc(o.detail):'')+'</span></td><td>'+esc(o.size)+'<span class="sub">'+perUnit(o.unit)+'</span></td><td class="nw">'+esc(o.brand||'—')+'</td><td class="r num"><b>'+money(o.price)+'</b></td><td class="nw">'+stockName(o.stock)+'</td><td>'+o.minQty+' presentaciones</td>'
-        +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn btn-outline btn-sm" data-act="cmp-offer" data-id="'+o.id+'">Comparar</button>'+(o.units!=null&&o.units<o.minQty?'<button class="btn btn-outline btn-sm" disabled>Sin stock suficiente</button>':'<button class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+o.id+'">'+(cartFind(o.id)?'En el carrito':'Agregar')+'</button>')+'</div></td></tr>';
+        +'<td><div class="actions nw" style="justify-content:flex-end"><button class="btn btn-outline btn-sm" data-act="cmp-offer" data-id="'+o.id+'">Comparar</button>'+(o.units!=null&&o.units<o.minQty?'<button class="btn btn-outline btn-sm" disabled>Sin stock suficiente</button>':buyBtn(o.id,'btn btn-accent btn-sm',cartFind(o.id)?'En el carrito':'Agregar'))+'</div></td></tr>';
     }).join('')+'</tbody></table></div>';
 }
 /* Fecha aproximada de llegada: hoy + días hábiles. */
@@ -2338,7 +2360,7 @@ function vsHTML(){
       +'<span class="small">Envío: '+(!ok?'A calcular':q.shipping?money(q.shipping):shipCoord(vendor(o.vendorId))&&!freeShipping(vendor(o.vendorId),q.subtotal,cp)?'a coordinar con el proveedor':'Gratis')+'</span>'
       +'<span class="small">'+ico('truck',14)+' '+days(o.lead)+' · llega aprox. '+arrival(o.lead)+'</span><span class="muted small">Garantía '+months(o.warranty)+'</span>'+benefitText(o)
       +(win?'<span class="tag">'+(ok?'Menor precio final':'Menor precio de productos')+'</span>':'')
-      +(few?'<button class="btn btn-outline btn-sm" disabled>Quedan '+o.units+' · no alcanza para '+qty+'</button>':'<button class="btn '+(win?'btn-accent':'btn-primary')+' btn-sm" data-act="add-cart" data-id="'+o.id+'" data-qty="'+qty+'">'+(cartFind(o.id)?'En el carrito · actualizar':'Agregar al carrito')+'</button>')+'</td>';
+      +(few?'<button class="btn btn-outline btn-sm" disabled>Quedan '+o.units+' · no alcanza para '+qty+'</button>':buyBtn(o.id,'btn '+(win?'btn-accent':'btn-primary')+' btn-sm',cartFind(o.id)?'En el carrito · actualizar':'Agregar al carrito',qty))+'</td>';
   }
   return '<div class="vs-ctrl"><div class="field"><label for="vs-qty">Cantidad por producto</label><input id="vs-qty" type="number" min="1" step="1" value="'+qty+'"></div><div class="field"><label for="vs-cp">Código postal de entrega</label><input id="vs-cp" type="text" inputmode="numeric" maxlength="4" value="'+esc(cp)+'"></div><label class="check sm"><input id="vs-shared" type="checkbox"'+(ui.vsShared?' checked':'')+'> Solo variantes ofrecidas por dos o más proveedores</label></div>'
     +'<p class="sumline"><b>'+vs.length+' proveedores</b> · '+list.length+' variantes. '+(ok?'El menor precio final incluye los descuentos por volumen, el medio de pago seleccionado y el envío para la cantidad indicada.':'Ingresá un código postal válido para comparar el total con envío.')+' Los empates se destacan por igual.</p><p class="note">Deslizá la tabla hacia los lados para ver todos los proveedores. Unidad, par y kit se comparan por separado.</p>'
@@ -2357,7 +2379,7 @@ function payModal(){
     +'<h2 id="pay-title" class="display" style="font-size:1.8rem">'+(mpReady?'Pagar con Mercado Pago':'Pago de prueba')+'</h2>'
     +'<p class="muted">'+(mpReady?mpNote(v):'Medio elegido: '+esc(payLabel(selectedMethod(v)))+'. Los pedidos se registran sin cobro hasta conectar Mercado Pago. Transferencia y efectivo requieren confirmación del cobro antes de aprobar el pedido.')+'</p>'
     +'<div class="rows num"><div><span class="muted">Le pagás a</span><b>'+esc(mpName(v))+'</b></div><div><span class="muted">En el resumen de tu tarjeta</span><b class="mono">'+esc(descriptor(v))+'</b></div><div class="total"><span>Total a pagar</span><b>'+money(q.total)+'</b></div></div>'
-    +'<div class="actions">'+(mpReady?mpButton(v,'pay-mp'):'<button class="btn btn-accent" data-act="pay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button>')+'<button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
+    +'<div class="actions">'+(mpReady?mpButton(v,'pay-mp'):MP_ACTIVO?'<button class="btn btn-accent" data-act="pay-ok">Registrar pedido pendiente de pago</button><button class="btn btn-outline" type="button" disabled>Mercado Pago pendiente</button>':'<p class="muted small">El pago online todavía no está habilitado.</p>')+'<button class="btn btn-outline" data-act="pay-cancel">Cancelar</button></div></div></div>';
 }
 function vDone(){
   var o=order(ui.orderId);
@@ -2387,7 +2409,7 @@ function vTrack(){
     +'<div class="split"><div class="card main"><div><b>'+esc(o.desc.split(': ').slice(1).join(': ')||o.desc)+' × '+o.qty+'</b><p class="muted">Le compraste a '+esc(v?v.name:'')+' · '+money(o.subtotal+o.shipping)+'</p></div>'
     +(st==='refunded'?'':'<ol class="tl">'+steps.map(function(s,i){ return '<li class="'+(i<=idx?'done':'')+'"><span class="tl-dot" aria-hidden="true"></span><b>'+s[1]+'</b><span class="muted small">'+(i<=idx?s[2]:(i===1?'Llega en hasta '+days(o.lead)+' desde la compra':''))+'</span></li>'; }).join('')+'</ol>')
     +(o.carrier?'<div class="rows"><div><span class="muted">Transporte</span><b>'+esc(o.carrier)+'</b></div>'+(o.tracking?'<div><span class="muted">Número de seguimiento</span><b class="mono">'+esc(o.tracking)+'</b></div>':'')+'</div>':'')
-    +(o.trackUrl&&safeUrl(o.trackUrl)?'<div><a class="btn btn-outline" href="'+esc(safeUrl(o.trackUrl))+'" target="_blank" rel="noopener">Ver en la página del transporte</a></div>':'')
+    +((o.trackingUrl||o.trackUrl)&&safeUrl((o.trackingUrl||o.trackUrl))?'<div><a class="btn btn-outline" href="'+esc(safeUrl((o.trackingUrl||o.trackUrl)))+'" target="_blank" rel="noopener">Ver en la página del transporte</a></div>':'')
     +'</div><aside class="card side"><h2 class="display" style="font-size:1.3rem">Entrega</h2><p>'+esc([o.ship.address,o.ship.city,o.ship.prov].filter(Boolean).join(', '))+'</p>'
     +'<p class="muted small">Para cambios, factura o garantía, consultá con Nico indicando tu pedido.</p>'+contactCtas(v?v.name:'',o.desc+' · Pedido #'+o.id)+'</aside></div>'
     +'<div><button class="btn btn-outline" data-act="track-other">Buscar otro pedido</button></div></div>';
@@ -2408,8 +2430,8 @@ function supplierGroups(test){
   var props=(p.properties||[]).map(function(x){ return x.name+': '+x.value; }).join(' · ');
   var r=test(plain(p.name+' '+(p.category||'')),plain(p.name+' '+props),p);
   if(!r) return;
-  var g=p.vendorId+'|'+String(p.key).split('#')[0];
-  if(!groups[g]){ groups[g]={name:p.name,vendor:p.vendorName,cat:p.category,items:[],score:0,pos:order.length}; order.push(g); }
+  var g=(p.vendorRef||p.vendorId)+'|'+String(p.key).split('#')[0];
+  if(!groups[g]){ groups[g]={name:p.name,vendor:vendorTrust(p),cat:p.category,items:[],score:0,pos:order.length}; order.push(g); }
   groups[g].items.push({p:p,label:props||'Presentación única',hit:r===2});
   if(r===2) groups[g].score=1;
  });
@@ -2439,7 +2461,7 @@ function availableHTML(groups,opts){
    var items=g.items.slice().sort(function(a,b){ return (b.hit?1:0)-(a.hit?1:0); }),shown=items.slice(0,6);
    return '<article class="q-prod">'+photoHTML(photoFor(g.items[0].p.key),g.name,'pimg-sm')+'<div class="q-prod-b"><b>'+esc(g.name)+'</b><span class="small muted">'+esc(g.vendor)+(g.cat?' · '+esc(g.cat):'')+' · '+(g.items.length===1?'1 variante':g.items.length+' variantes')+'</span>'
     +shown.map(function(x){ var o=x.p.offerId&&offer(x.p.offerId),live=o&&isLive(o);
-     return '<div class="q-var'+(x.hit&&opts.mark?' q-hit':'')+'"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
+     return '<div class="q-var'+(x.hit&&opts.mark?' q-hit':'')+'"><span>'+esc(x.label)+'</span><b class="num">'+money(live?o.price:x.p.price)+'</b>'+(!MP_ACTIVO?'<button type="button" class="btn btn-accent btn-sm" data-act="ask-cat" data-key="'+esc(x.p.key)+'">Pedir oferta</button>':live?'<button type="button" class="btn btn-accent btn-sm" data-act="add-cart" data-id="'+esc(o.id)+'">Agregar</button>':'<span class="small muted">'+(x.p.units===0?'Sin stock':'No disponible')+'</span>')+'</div>'; }).join('')
     +(items.length>6?'<span class="small muted">Y '+(items.length-6)+' variantes más.</span>':'')+'</div></article>';
   }).join('')+'</div>'
   +(groups.length>max&&opts.q?'<div class="actions"><button type="button" class="btn btn-outline" data-nf-q="'+esc(opts.q)+'">Ver los '+groups.length+' productos</button></div>':'')+'</section>';
@@ -2539,9 +2561,11 @@ document.addEventListener('click',function(ev){
     case 'qty-dec': ui.qty=Math.max(1,(ui.qty|0)-1); document.getElementById('c-qty').value=ui.qty; updateCompare(); break;
     case 'qty-inc': ui.qty=(ui.qty|0)+1; document.getElementById('c-qty').value=ui.qty; updateCompare(); break;
     case 'sort': ui.sort=t.dataset.sort; updateCompare(); break;
-    case 'buy': trackVendorOf(t.dataset.id); go('checkout',{offerId:t.dataset.id,cartMode:false}); break;
+    case 'ask-offer': x=offer(t.dataset.id); if(x) askOffer([askOfferLine(x.model||x.category,[x.size,x.unit&&x.unit!=='Unidad'?x.unit:''].filter(Boolean).join(' · '),x.price,t.dataset.qty||x.minQty)]); break;
+    case 'ask-cat': x=supplierCatalog.find(function(p){ return p.key===t.dataset.key; }); if(x) askOffer([askOfferLine(x.name,(x.properties||[]).map(function(y){ return y.name+': '+y.value; }).join(' · '),x.price,1)]); break;
+    case 'buy': if(!MP_ACTIVO){ x=offer(t.dataset.id); if(x) askOffer([askOfferLine(x.model,x.size,x.price,x.minQty)]); break; } trackVendorOf(t.dataset.id); go('checkout',{offerId:t.dataset.id,cartMode:false}); break;
     case 'add-cart':
-      x=offer(t.dataset.id); if(!x||!isLive(x)) break; if(x.units!=null&&x.units<x.minQty){ toast('No alcanza el stock para la compra mínima de este proveedor.'); break; } trackVendorOf(x.id);
+      x=offer(t.dataset.id); if(!x||!isLive(x)) break; if(!MP_ACTIVO){ askOffer([askOfferLine(x.model,x.size,x.price,t.dataset.qty||x.minQty)]); break; } if(x.units!=null&&x.units<x.minQty){ toast('No alcanza el stock para la compra mínima de este proveedor.'); break; } trackVendorOf(x.id);
       var aq=t.dataset.qty?Math.max(1,parseInt(t.dataset.qty,10)||1):(ui.route==='compare'?Math.max(1,ui.qty|0):x.minQty), upd=cartAdd(x,aq), it=cartFind(x.id);
       if(window.nfTrack) window.nfTrack('AddToCart',{value:x.price*it.qty,name:x.model+' '+x.size});
       if(ui.route==='compare') updateCompare(); else { var vt=document.getElementById('vt'); if(vt) vt.innerHTML=vendorTabsHTML(); var vb2=document.getElementById('vs-box'); if(vb2) vb2.innerHTML=vsHTML(); }
@@ -2582,8 +2606,8 @@ document.addEventListener('click',function(ev){
       x=cartFind(t.dataset.id); var co=offer(t.dataset.id); if(!x) break;
       x.qty=Math.min(999999,Math.max(1,x.qty+(a==='cq-inc'?1:-1))); if(co&&co.units!=null&&x.qty>co.units){ x.qty=co.units; toast('Quedan '+co.units+' unidades de este producto.'); } cartSave(); rerender(); break;
     case 'cart-clear': if(ui.confirm!=='cart-clear'){ ui.confirm='cart-clear'; rerender(); break; } cart=[]; ui.confirm=null; cartSave(); rerender(); toast('Vaciaste el carrito'); break;
-    case 'cart-pay': if(window.nfTrack) window.nfTrack('InitiateCheckout',{value:cartGroups().total}); ui.paidOrders=[]; ui.payStep=0; ui.payError=''; go('checkout',{cartMode:true}); break;
-    case 'cpay-ok':
+    case 'cart-pay': if(!MP_ACTIVO){ var cit=cartToOffersItems(); if(cit.length){ try{ sessionStorage.setItem('nf-sol-prefill',JSON.stringify({items:cit,detalles:'Lista enviada desde el carrito de Nexo Fit.'})); }catch(e){} location.href='solicitud.html?desde=carrito'; } break; } if(window.nfTrack) window.nfTrack('InitiateCheckout',{value:cartGroups().total}); ui.paidOrders=[]; ui.payStep=0; ui.payError=''; go('checkout',{cartMode:true}); break;
+    case 'cpay-ok': if(!MP_ACTIVO) break;
       var ids=payFirstGroup(); ui.paidOrders=(ui.paidOrders||[]).concat(ids); ui.payStep++;
       if(!cartGroups().groups.length){ ui.pay=false; go('done',{doneOrders:ui.paidOrders.slice()}); toast(ui.payTotal>1?'Listo: pedidos registrados sin cobro':'Pedido pendiente de pago'); }
       else { rerender(); toast('Pedido registrado sin cobro. Sigue el proveedor '+(ui.payStep+1)+' de '+ui.payTotal+'.'); }
@@ -2601,9 +2625,9 @@ document.addEventListener('click',function(ev){
     case 'space-clear': ui.space=null; render(); break;
     case 'wa-missing': toast('Todavía falta cargar el número de WhatsApp. Se configura en el administrador.'); break;
     case 'vtab': ui.vTab=t.dataset.id; track('v',ui.vTab); x=document.getElementById('vt'); if(x){ x.innerHTML=vendorTabsHTML(); var sel=x.querySelector('[aria-selected="true"]'); if(sel){ try{ sel.focus(); }catch(e){} } } break;
-    case 'buy-direct': x=offer(t.dataset.id); if(x){ track('v',x.vendorId); } if(x) go('checkout',{offerId:x.id,qty:Math.max(1,x.minQty),cat:x.category,model:x.model,size:x.size,unit:x.unit}); break;
+    case 'buy-direct': if(!MP_ACTIVO){ x=offer(t.dataset.id); if(x) askOffer([askOfferLine(x.model,x.size,x.price,x.minQty)]); break; } x=offer(t.dataset.id); if(x){ track('v',x.vendorId); } if(x) go('checkout',{offerId:x.id,qty:Math.max(1,x.minQty),cat:x.category,model:x.model,size:x.size,unit:x.unit}); break;
     case 'cmp-offer': x=offer(t.dataset.id); if(x) go('compare',{cat:x.category,model:x.model,size:x.size,unit:x.unit,sort:'total'}); break;
-    case 'pay-ok': x=createOrder(); go('done',{orderId:x.id,doneOrders:null}); toast('Pedido pendiente de pago'); break;
+    case 'pay-ok': if(!MP_ACTIVO) break; x=createOrder(); go('done',{orderId:x.id,doneOrders:null}); toast('Pedido pendiente de pago'); break;
     case 'pay-fail': ui.pay=false; ui.payError='El pago fue rechazado y no se cobró nada. Podés intentar de nuevo.'; rerender(); break;
     case 'pay-cancel': ui.pay=false; rerender(); break;
     case 'track-open': x=order(t.dataset.id); if(x){ ui.trackQ=String(x.id); ui.trackE=(x.ship||{}).email||''; ui.trackErr=''; go('pedido'); } break;
@@ -2748,7 +2772,7 @@ document.addEventListener('change',function(ev){if(ev.target.id==='ab-category')
 /* Link de pago: index.html#pagar-<id> abre directo el pago de esa oferta. */
 function fromHash(){
   if(location.hash==='#carrito'){ui.route='carrito';ui.cartMode=false;return true;}
-  if(location.hash==='#catalogo'||(!location.hash&&/\/catalogo\/?$/.test(location.pathname))){ui.route='buscar';return true;}
+  if(location.hash==='#catalogo'||(!location.hash&&/\/catalogo\/?$/.test(location.pathname))){if(!MP_ACTIVO){location.replace('catalogo.html');return true;}ui.route='buscar';return true;}
   var m=/^#pagar-([A-Za-z0-9]+)$/.exec(location.hash||''); if(!m) return false;
   var o=offer(m[1]); ui.route='checkout'; ui.offerId=m[1]; ui.cartMode=false; ui.doneOrders=null; ui.pay=false; ui.payError='';
   if(o){ ui.qty=Math.max(1,o.minQty); ui.cat=o.category; ui.model=o.model; ui.size=o.size; ui.unit=o.unit; track('v',o.vendorId); }

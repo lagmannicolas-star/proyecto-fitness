@@ -60,7 +60,10 @@
     if (pre.detalles) $('detalles').value = String(pre.detalles).slice(0, 1500);
     if (pre.tipo && $('tipo').querySelector('option[value="' + pre.tipo + '"]')) $('tipo').value = pre.tipo;
     var aviso = d.getElementById('prefill-aviso');
-    if (aviso) { aviso.hidden = false; aviso.textContent = 'Cargamos tu lista de ' + pre.items.length + (pre.items.length === 1 ? ' producto' : ' productos') + '. Revisala y completá los datos de entrega.'; }
+    var cuantos = pre.items.length + (pre.items.length === 1 ? ' producto' : ' productos');
+    if (aviso) { aviso.hidden = false; aviso.textContent = q.get('desde') === 'catalogo'
+      ? 'Cargamos ' + (pre.items.length === 1 ? 'el producto que elegiste' : 'los ' + cuantos + ' que elegiste') + ' en el catálogo. Los precios del catálogo son de referencia: el precio final llega en cada oferta, con envío, cuotas y factura. Revisá las cantidades y completá los datos de entrega.'
+      : 'Cargamos tu lista de ' + cuantos + '. Revisala y completá los datos de entrega.'; }
   } else {
     addItem(q.get('producto'), (q.get('cantidad') || '').replace(/\D/g, ''));
   }
@@ -153,6 +156,7 @@
         var seg = $('ok-track'); if (seg) seg.href = 'mi-solicitud.html?codigo=' + encodeURIComponent(res.j.code);
         try {
           w.sessionStorage.removeItem('nf-sol-prefill');
+          if (q.get('desde') === 'catalogo') w.localStorage.removeItem('nf-cat-pedido'); // "Mi pedido" del catálogo ya se envió
           w.sessionStorage.setItem('nf-sol-ultima', JSON.stringify({ code: res.j.code, email: s.email }));
         } catch (e) { /* sin almacenamiento */ }
         var wa = $('ok-wa'), link = waLink(resumen(s, res.j.code));
