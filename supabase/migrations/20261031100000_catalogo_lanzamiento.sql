@@ -402,8 +402,7 @@ begin
  end;
  return new;
 end $$;
-drop trigger if exists fitness_red_pausar_suspendidos on public.fitness_state;
-create trigger fitness_red_pausar_suspendidos after update of data on public.fitness_state
+create or replace trigger fitness_red_pausar_suspendidos after update of data on public.fitness_state
  for each row execute function public.fitness_red_pausar_suspendidos_trg();
 
 -- Postulación a la red (desde la definición vigente, 20261030140000_rubro_crossfit.sql): el CUIT, si se carga,

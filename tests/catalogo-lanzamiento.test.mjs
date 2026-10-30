@@ -42,7 +42,7 @@ assert.match(apr, /r\.id in \(select public\.fitness_red_ids_proveedor\(v\)\)/, 
 const pausa = fn('fitness_red_pausar_suspendidos_trg');
 assert.match(pausa, /not in \('suspended','rejected'\)/); assert.match(pausa, /set activo=false/);
 assert.match(pausa, /id in \(select public\.fitness_red_ids_proveedor\(v\)\)/);
-assert.match(sql, /create trigger fitness_red_pausar_suspendidos after update of data on public\.fitness_state/);
+assert.match(sql, /create or replace trigger fitness_red_pausar_suspendidos after update of data on public\.fitness_state/);
 const post = fn('fitness_red_postular');
 assert.match(post, /if v_cuit is not null and not public\.fitness_cuit_valido\(v_cuit\) then raise exception 'Revisá el CUIT/);
 assert.match(post, /'crossfit'/); assert.match(post, /'cesped'/);
