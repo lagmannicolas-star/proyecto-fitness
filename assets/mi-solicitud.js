@@ -24,6 +24,12 @@
     var h = (new Date(o.validaHasta) - Date.now()) / 36e5;
     return '<p class="of-vence' + (h < 6 ? ' pronto' : '') + '">' + (h < 6 ? 'Vence pronto: ' : 'Vale ') + 'hasta el ' + esc(dia(o.validaHasta)) + ' (las ofertas valen 24 horas).</p>';
   }
+  // Datos de confianza del proveedor sin revelar su nombre: tipo de empresa, localidad, CUIT verificado y ventas en Nexo Fit.
+  function confianzaHTML(o) {
+    var c = o.confianza || {}, v = Number(c.ventas) || 0;
+    var l = [c.tipo, c.localidad ? 'Desde ' + c.localidad : '', c.cuitVerificado ? 'CUIT verificado por Nexo Fit' : '', v ? (v === 1 ? '1 venta concretada en Nexo Fit' : v + ' ventas concretadas en Nexo Fit') : ''].filter(Boolean);
+    return l.length ? '<p class="tags of-conf" aria-label="Sobre el proveedor">' + l.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</p>' : '';
+  }
   function thumbsHTML(o) {
     var f = o.fotos || [];
     if (!f.length) return '';
@@ -146,11 +152,13 @@
       }
       return '<article class="' + cls + '"><div class="of-h"><b>Oferta ' + esc(o.letra) + '</b>' + (esMejor ? '<span class="pill">Recomendada</span>' : '') + (o.elegida ? '<span class="pill">Elegida</span>' : '') + '</div>'
         + '<p class="of-tot">' + money(o.total) + '<span class="muted small"> costo total</span></p>'
+        + confianzaHTML(o)
         + (marcas.length ? '<p class="tags">' + marcas.map(function (m) { return '<span class="tag' + (/después|parte|Vencida/.test(m) ? ' warn' : '') + '">' + esc(m) + '</span>'; }).join('') + '</p>' : '')
         + '<dl class="of-dl">' + row('Productos', money(o.precio)) + row('Envío', Number(o.envio) ? money(o.envio) : 'Incluido') + row('Entrega', o.plazo + (o.plazo === 1 ? ' día hábil' : ' días hábiles'))
         + row('Cuotas', o.cuotas ? o.cuotas + ' sin interés' : 'No') + row('Garantía', o.garantia ? o.garantia + (o.garantia === 1 ? ' mes' : ' meses') : 'Sin garantía') + '</dl>'
         + thumbsHTML(o) + venceHTML(o)
-        + (o.notas ? '<p class="small"><b>Notas del proveedor:</b> ' + esc(o.notas) + '</p>' : '') + btn + '</article>';
+        + (o.notas ? '<p class="small"><b>Notas del proveedor:</b> ' + esc(o.notas) + '</p>' : '')
+        + (o.notasOcultas ? '<p class="muted small">El proveedor incluyó datos de contacto en sus notas y las ocultamos: sus datos te llegan cuando pagás la compra por Nexo Fit.</p>' : '') + btn + '</article>';
     }).join('');
     return h + '</div></section>';
   }

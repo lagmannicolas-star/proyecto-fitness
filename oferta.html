@@ -52,11 +52,12 @@
         </div>
         <div><label for="notas">Notas para el comprador <span class="muted">(opcional)</span></label>
           <textarea id="notas" maxlength="600" placeholder="Ej.: marca y modelo, colores disponibles, si incluye instalación."></textarea>
+          <p class="hint" id="notas-hint">Sin teléfonos, mails, webs ni redes: tus datos le llegan al comprador cuando paga la compra por Nexo Fit.</p>
           <p class="hint">No incluyas teléfonos, emails ni redes: el contacto se comparte cuando el comprador elige.</p></div>
       </fieldset>
       <fieldset class="of-fotos" aria-describedby="fotos-hint">
         <legend>Fotos de lo que ofrecés <span class="muted">(opcional, hasta 5)</span></legend>
-        <p class="hint" id="fotos-hint">Fotos reales de los productos: ayudan al comprador a elegir. Se guardan en el momento. Evitá fotos con teléfonos, emails o redes.</p>
+        <p class="hint" id="fotos-hint">Fotos reales de los productos: ayudan al comprador a elegir. Se guardan en el momento. No subas fotos con teléfonos, mails, webs, redes ni logos con datos de contacto: el comprador no ve tu nombre hasta elegir.</p>
         <ul class="of-fotos-list" id="of-fotos" aria-live="polite"></ul>
         <button class="btn btn-outline" type="button" id="fotos-btn">Agregar fotos</button>
         <input id="fotos-input" type="file" accept="image/*" multiple class="sr-only" tabindex="-1" aria-hidden="true">

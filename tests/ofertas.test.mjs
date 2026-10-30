@@ -25,7 +25,7 @@ const ofertaHtml = fs.readFileSync('oferta.html', 'utf8'), ofertaJs = fs.readFil
 assert.match(ofertaHtml, /name="robots" content="noindex, nofollow"/);
 assert.match(ofertaHtml, /name="referrer" content="no-referrer"/);
 assert.match(ofertaJs, /location\.hash/);
-assert.match(ofertaJs, /\/\@\|https\?:/, 'las notas no aceptan emails ni links');
+assert.match(ofertaJs, /tieneContacto\(notas\)/, 'las notas no aceptan emails ni links');
 
 // La base nunca le da al proveedor los datos del comprador, y los nombres de proveedores no se ven hasta elegir.
 const sql = fs.readFileSync('supabase/migrations/20261016200000_ofertas_de_proveedores.sql', 'utf8');

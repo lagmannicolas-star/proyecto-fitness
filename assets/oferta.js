@@ -28,6 +28,16 @@
   }
 
   var token = (new URLSearchParams((w.location.hash || '').slice(1)).get('t') || '').toLowerCase();
+  // Mismo criterio que fitness_tiene_contacto en la base: mails, webs, @usuarios, redes y teléfonos.
+  function tieneContacto(t) {
+    t = String(t || ''); var l = t.toLowerCase();
+    return /[a-z0-9._%+-]+ ?(@|\(at\)|\[at\]| arroba ) ?[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}/.test(l)
+      || /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|ar|shop|store|site|online|info)\b)/.test(l)
+      || /(^|[^a-z0-9.])@[a-z0-9_.]{3,}/.test(l)
+      || /(^|[^a-záéíóúñ])(whats ?app|whatsap|wasap|watsap|wsp|wpp|instagram|facebook|tik ?tok|telegram|celular|tel[eé]fono|ll[aá]mame|ll[aá]manos)(?![a-záéíóúñ])/.test(l)
+      || /(^|[^$\d.,])(\+?54[ -]?)?(9[ -]?)?\(?0?\d{2,4}\)?[ -]?(15[ -]?)?\d{3,4}[ -]?\d{4}(?![\d.,])/.test(t);
+  }
+  w.nfTieneContacto = tieneContacto;
   var mpQS = new URLSearchParams(w.location.search).get('mp');
   var err = $('of-error'), form = $('of-form');
   function fail(msg) { err.textContent = msg; err.hidden = false; }
@@ -73,6 +83,9 @@
         : o.mp ? '<p>Tu Mercado Pago está conectado: el comprador ya puede pagar. Cuando se acredite te avisamos por email con sus datos para la entrega.</p>'
         : '<p><b>Para cobrar, conectá tu cuenta de Mercado Pago.</b> El comprador paga desde Nexo Fit y el dinero llega a tu cuenta, menos la comisión del ' + esc(String(Number(o.comision)).replace('.', ',')) + '% sobre los productos (el envío no paga comisión). Mercado Pago aplica además su propio cargo.</p>' + conectar;
       est.innerHTML = mpMsg + '<div class="alert ok"><b>¡El comprador eligió tu oferta!</b></div>' + pagoTxt;
+      form.hidden = true;
+    } else if (o.abierta && o.exigeMp && !o.mp && !of) {
+      est.innerHTML = mpMsg + '<div class="alert"><b>Para ofertar, primero conectá tu cuenta de Mercado Pago.</b> Así el comprador te paga por Nexo Fit apenas te elige y el dinero llega a tu cuenta, menos la comisión del ' + esc(String(Number(o.comision)).replace('.', ',')) + '% sobre los productos (el envío no paga comisión). Después de conectarla volvés a este mismo link y cargás tu oferta.</div>' + conectar;
       form.hidden = true;
     } else if (!o.abierta) {
       est.innerHTML = '<div class="alert">' + (o.estado === 'vencida' ? 'Esta solicitud venció y ya no recibe ofertas.' : of ? 'El comprador ya decidió y esta solicitud no recibe más ofertas. ¡Gracias por participar!' : 'Esta solicitud ya no recibe ofertas.') + '</div>';
@@ -195,7 +208,7 @@
       : !(plazo >= 1 && plazo <= 180) ? ['Indicá el plazo de entrega en días hábiles (1 a 180).', 'plazo']
       : !(gar >= 0 && gar <= 120) ? ['Revisá la garantía (0 a 120 meses).', 'garantia']
       : cumple === 'parcial' && notas.length < 5 ? ['Contá en las notas qué parte del pedido no cubrís.', 'notas']
-      : /\d{10,}/.test(notas.replace(/[\s().-]/g, '')) || /@|https?:\/\/|www\./i.test(notas) ? ['Sacá de las notas los teléfonos, emails o links: el contacto se comparte cuando el comprador elige.', 'notas'] : null;
+      : tieneContacto(notas) ? ['Sacá de las notas los teléfonos, mails, webs o redes: los datos de contacto se comparten cuando el comprador paga la compra por Nexo Fit. Si escribiste un precio, ponelo con puntos (ej. 1.250.000).', 'notas'] : null;
     if (bad) { fail(bad[0]); $(bad[1]).focus(); return; }
     busy = true; var btn = $('of-enviar'), label = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…';
     rpc('fitness_oferta_enviar', { p_token: token, p: { precio_total: String(precio), envio: String(envio || 0), plazo_dias: String(plazo), cuotas: $('cuotas').value, garantia_meses: String(gar), cumple: cumple, notas: notas } })
