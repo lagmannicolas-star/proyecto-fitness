@@ -23,7 +23,7 @@
           if (full) l.push(['Topes para barra (pares)', barras, ''], ['Barra curva', 1, ''], ['Soporte para discos', C(n / 15), '']);
           return l;
         }],
-        funcional: ['Funcional / cross', function (n, full) {
+        funcional: ['Funcional', function (n, full) {
           var l = [
             ['Pesas rusas', n, 'Combinadas de 4 a 16 kg'],
             ['Cajones de salto', C(n / 3), ''],
@@ -34,6 +34,21 @@
             ['Escaleras de coordinación', C(n / 6), ''],
             ['Conos', r10(n), '']];
           if (full) l.push(['Bandas de suspensión', C(n / 2), ''], ['Discos bumper', Math.max(60, r10(n * 6)), 'Kilos en total']);
+          return l;
+        }],
+        crossfit: ['CrossFit', function (n, full) {
+          var barras = C(n / 2), l = [
+            ['Rig de CrossFit', C(n / 10), 'Estructura con barras de dominadas y soportes para barra'],
+            ['Barra olímpica', barras, '20 kg (hombre) y 15 kg (mujer)'],
+            ['Discos bumper', Math.max(100, r10(n * 15)), 'Kilos en total, de 5 a 25 kg'],
+            ['Topes para barra (pares)', barras, ''],
+            ['Pesas rusas', C(n / 2), 'Combinadas de 8 a 24 kg'],
+            ['Cajones de salto', C(n / 2), 'De 50, 60 y 75 cm'],
+            ['Wall balls', C(n / 2), 'De 6 a 9 kg'],
+            ['Sogas para saltar', n, 'Speed rope'],
+            ['Remo ergómetro', C(n / 8), ''],
+            ['Air bike', C(n / 8), '']];
+          if (full) l.push(['Anillas de gimnasia (pares)', C(n / 5), ''], ['Mancuernas hexagonales (pares)', C(n / 4), 'De 10 a 25 kg'], ['Paralelas bajas (paralettes)', C(n / 5), ''], ['Piso de caucho para box', r10(n * 4), 'm² · placas de 15 a 20 mm']);
           return l;
         }],
         grupales: ['Clases grupales', function (n, full) {

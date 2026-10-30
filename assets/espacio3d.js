@@ -15,8 +15,11 @@
   // f: figura · w,dp: huella en metros (ancho × profundidad) · c: espacio libre alrededor para usarlo · n(q): cuántas figuras · tag: etiqueta
   var REGLAS = [
     // El césped, el relleno y la colocación cubren el piso: no se dibujan como piezas.
-    [/c[eé]sped|relleno|arena s[ií]lice|colocaci[oó]n/i, { none: true }],
+    [/c[eé]sped|relleno|arena s[ií]lice|colocaci[oó]n|piso de caucho/i, { none: true }],
+    [/\brig\b/i, { f: 'rack', w: 3, dp: 1.5, c: 1, n: function (q) { return q; }, tag: 'Rig de CrossFit' }],
     [/rack|jaula/i, { f: 'rack', w: 1.4, dp: 1.5, c: 0.9, n: function (q) { return q; }, tag: 'Rack' }],
+    [/remo erg[oó]metro/i, { f: 'banco', w: 0.6, dp: 2.4, c: 0.6, n: function (q) { return q; }, tag: 'Remo ergómetro' }],
+    [/air ?bike/i, { f: 'banco', w: 0.7, dp: 1.3, c: 0.6, n: function (q) { return q; }, tag: 'Air bike' }],
     [/banco/i, { f: 'banco', w: 0.6, dp: 1.3, c: 0.7, n: function (q) { return q; }, tag: 'Banco' }],
     [/barra ol[ií]mpica|barras ol[ií]mpicas|barra con discos/i, { f: 'barras', w: 0.6, dp: 0.6, c: 0.3, n: function (q) { return Math.ceil(q / 6); }, tag: 'Soporte de barras' }],
     [/disco/i, { f: 'discos', w: 0.7, dp: 0.7, c: 0.4, n: function (q) { return q >= 40 ? Math.ceil(q / 150) : 1; }, tag: 'Árbol de discos' }],

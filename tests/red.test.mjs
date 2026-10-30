@@ -14,12 +14,15 @@ assert.match(prov, /id="r-web"/, 'campo trampa para robots');
 const rub = s => [...s.matchAll(/\['([a-z]+)','[^']+'(?:,\/)?/g)].map(m => m[1]);
 const rubProv = rub(prov.match(/var RED_RUBROS=(\[.*?\]);/)[1]);
 const rubAdmin = rub(admin.match(/var RUBROS=(.*)/)[1]);
-const sqlRub = fs.readFileSync('supabase/migrations/20261027180000_rubro_cesped_sintetico.sql', 'utf8');
+const sqlRub = fs.readFileSync('supabase/migrations/20261030140000_rubro_crossfit.sql', 'utf8');
 const rubSql = sqlRub.match(/where x in \(([^)]*)\)/)[1].match(/'([a-z]+)'/g).map(x => x.slice(1, -1));
 assert.deepEqual(rubProv, rubSql); assert.deepEqual(rubAdmin, rubSql);
 assert.ok(rubSql.includes('cesped'), 'rubro césped sintético');
 for (const m of sqlRub.matchAll(/where x in \(([^)]*)\)/g)) assert.deepEqual(m[1].match(/'([a-z]+)'/g).map(x => x.slice(1, -1)), rubSql);
 assert.match(sqlRub, /\('cesped','c\[eé\]sped\|pasto sint'\)/);
+assert.ok(rubSql.includes('crossfit'), 'rubro CrossFit');
+assert.match(sqlRub, /\('crossfit','crossfit\|cross fit\|/);
+assert.match(sqlRub, /\('funcional','[^']*wall \?ball/, 'lo de CrossFit también llega a funcional');
 
 // La postulación entra pausada, avisa al administrador y no revela si la empresa ya estaba.
 assert.match(sql, /v_rubros,v_zonas,false,'web'/, 'entra pausado');

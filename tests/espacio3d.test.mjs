@@ -25,3 +25,9 @@ assert.doesNotMatch(js, /https?:\/\/(cdn|unpkg)/);
 for (const t of ['gimnasio', 'club', 'colegio', 'casa']) assert.match(js, new RegExp(t + ':\\s*\\['));
 assert.match(js, /no entra/);
 console.log('OK: planificador 3D en Armá tu espacio.');
+// CrossFit es un uso propio del gimnasio, con rig, remo y air bike en el 3D.
+assert.match(esp, /crossfit: \['CrossFit'/);
+assert.match(esp, /funcional: \['Funcional',/);
+for (const p of ['Rig de CrossFit', 'Remo ergómetro', 'Air bike', 'Wall balls', 'Discos bumper']) assert.ok(esp.includes("['" + p + "'"), p);
+assert.match(js, /tag: 'Rig de CrossFit'/); assert.match(js, /tag: 'Remo ergómetro'/); assert.match(js, /tag: 'Air bike'/);
+console.log('OK: CrossFit en Armá tu espacio.');
