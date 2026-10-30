@@ -193,9 +193,9 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-22,material deportivo,As Equipamiento Deportivo,,Tucumán,ventas@asequipamientodeportivo.com.ar,,,rebote,1a16392df338abd9,
 2026-10-22,pádel,Empire Padel,San Francisco,Córdoba,ventas@empirepadel.net,,,seguimiento,1a1639300650f5bb,2026-10-29
 2026-10-22,natación,Speed,Villa Martelli,Buenos Aires,localmitre@natacion.com.ar,,,seguimiento,1a163932342917b4,2026-10-29
-2026-10-22,redes deportivas,Persev Deportes,,,persev2010@gmail.com,,,seguimiento,1a16393447d2a9a7,2026-10-29
+2026-10-22,redes deportivas,Persev Deportes,,,persev2010@gmail.com,,,baja,1a16393447d2a9a7,2026-10-29
 2026-10-22,material deportivo,Materiales Deportivos Rosario,Rosario,Santa Fe,isabellaprofe@yahoo.com.ar,,,seguimiento,1a1639367af10277,2026-10-29
-2026-10-22,rugby/hockey,In Goal,La Lucila,Buenos Aires,ingoaltienda@gmail.com,,,seguimiento,1a1639392e499268,2026-10-29
+2026-10-22,rugby/hockey,In Goal,La Lucila,Buenos Aires,ingoaltienda@gmail.com,,,baja,1a1639392e499268,2026-10-29
 2026-10-22,material deportivo/atletismo,Rota Deportes,,,info@rotadeportes.com.ar,,,seguimiento,1a16393b71404175,2026-10-29
 2026-10-22,musculación,Destino Fitness,Neuquén,Neuquén,contacto@destinofitness.com,,,seguimiento,1a16393d779d0d65,2026-10-29
 2026-10-22,material deportivo,Pasión al Deporte,,,ventas@pasionaldeporte.com.ar,,,seguimiento,1a16393fb1f52353,2026-10-29
@@ -216,7 +216,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-22,pesas/musculación/crossfit,FM Pesas,General Pacheco,Buenos Aires,,5491138026600,https://fm-pesas.com/,solo_whatsapp,,
 2026-10-22,cardio profesional (Movement),Bicimundo,Córdoba,Córdoba,,5493518115686,https://www.bicimundoshop.com.ar/como-llegar/,solo_whatsapp,,
 2026-10-22,mesas de ping pong y juegos,1PINGPONG,Santa Fe,Santa Fe,,5493425178668,https://www.1pingpong.com/,solo_whatsapp,,
-2026-10-22,Artículos deportivos / boxeo / fitness,Montero Sport,Santiago del Estero,Santiago del Estero,consultas@monterosport.com.ar,5493855190739,https://monterosport.com.ar/categoria-producto/artes-marciales/boxeo/,seguimiento,1a164a7d01b37a5a,2026-10-29
+2026-10-22,Artículos deportivos / boxeo / fitness,Montero Sport,Santiago del Estero,Santiago del Estero,consultas@monterosport.com.ar,5493855190739,https://monterosport.com.ar/categoria-producto/artes-marciales/boxeo/,respondio,1a164a7d01b37a5a,2026-10-29
 2026-10-22,Equipamiento de gimnasio / musculación / racks,Gorilla Fitness,CABA,CABA,gorillafitnessventas@gmail.com,5491178915345,https://www.gorillafitness.com.ar/rigs/jaulas-a-pared/,seguimiento,1a164a7f31839ca0,2026-10-29
 2026-10-22,Cardio / multigimnasios / repuestos,Fitness Parts,Morón,Buenos Aires,fitnessparts@gmail.com,,https://www.fitnessparts.com.ar/cintas/randers1/,rebote,1a164a81408a9830,
 2026-10-22,Artículos deportivos / pelotas / redes,Katz Sport,Resistencia,Chaco,ventas@katzsport.com.ar,5493624713393,https://katzsport.com.ar/productos/red-mini-voley-o-futbol-tenis-de-5-metros-853/,seguimiento,1a164a837b46e9df,2026-10-29
@@ -238,44 +238,44 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-22,pilates (camas reformer),iProfe,,,,5491135600136,https://www.iprofe.com.ar/producto/cama-de-pilates-reformer/,solo_whatsapp,,
 2026-10-22,redes deportivas,TodoRed,José Ingenieros,Buenos Aires,todored@hotmail.com,5491158535003,https://todored.com.ar/,solo_whatsapp,,
 2026-10-22,equipamiento fitness y boxeo,Fitness Point,La Plata,Buenos Aires,,5492216769575,https://fitnesspointstore.com/,solo_whatsapp,,
-2026-10-23,césped sintético y pisos de caucho,Bosco CS,Mendoza,Mendoza,boscocsmendoza@gmail.com,5492615445543,https://boscocs.com.ar/,enviado,1a168e141da60bff,
-2026-10-23,"gym, kinesiología y rehabilitación",Estetic Center,Cañada de Gómez,Santa Fe,info@esteticcenter.com.ar,,https://esteticcenter.com.ar/,enviado,1a168e162f071a46,
-2026-10-23,"accesorios fitness, pilates/yoga",ECK Fitness,Mar del Plata,Buenos Aires,eckfitnesshop@gmail.com,5492236007000,https://www.eckfitness.com.ar/contacto/,enviado,1a168e185f781cb9,
-2026-10-23,"artículos deportivos y fitness (Randers, MIR)",A'S Mundo Deporte,Mar del Plata,Buenos Aires,atlantic_sports@yahoo.com.ar,5492236347103,https://www.asmundodeporte.com.ar/,enviado,1a168e1a663dd980,
-2026-10-23,"musculación (MIR, G Fitness)",Suplementos Nutricionales Salta,Salta,Salta,ventas@suplementosnutricionalessalta.com.ar,5493874442021,https://www.suplementosnutricionalessalta.com.ar/catalogo/musculacion-4/maquinas-80,enviado,1a168e1c87eef0ca,
+2026-10-23,césped sintético y pisos de caucho,Bosco CS,Mendoza,Mendoza,boscocsmendoza@gmail.com,5492615445543,https://boscocs.com.ar/,seguimiento,1a168e141da60bff,2026-10-30
+2026-10-23,"gym, kinesiología y rehabilitación",Estetic Center,Cañada de Gómez,Santa Fe,info@esteticcenter.com.ar,,https://esteticcenter.com.ar/,seguimiento,1a168e162f071a46,2026-10-30
+2026-10-23,"accesorios fitness, pilates/yoga",ECK Fitness,Mar del Plata,Buenos Aires,eckfitnesshop@gmail.com,5492236007000,https://www.eckfitness.com.ar/contacto/,seguimiento,1a168e185f781cb9,2026-10-30
+2026-10-23,"artículos deportivos y fitness (Randers, MIR)",A'S Mundo Deporte,Mar del Plata,Buenos Aires,atlantic_sports@yahoo.com.ar,5492236347103,https://www.asmundodeporte.com.ar/,seguimiento,1a168e1a663dd980,2026-10-30
+2026-10-23,"musculación (MIR, G Fitness)",Suplementos Nutricionales Salta,Salta,Salta,ventas@suplementosnutricionalessalta.com.ar,5493874442021,https://www.suplementosnutricionalessalta.com.ar/catalogo/musculacion-4/maquinas-80,seguimiento,1a168e1c87eef0ca,2026-10-30
 2026-10-23,"césped sintético, redes e iluminación deportiva",Sportnoa,Salta,Salta,,5493875630274,https://sportnoa.com.ar/,solo_whatsapp,,
 2026-10-23,gimnasios a cielo abierto y juegos,Solcito Juegos,Firmat,Santa Fe,,5493465590437,https://solcitojuegos.com.ar/contacto/,solo_whatsapp,,
-2026-10-23,pelotas y elementos de gimnasia/kinesiología,Top Ball,Munro,Buenos Aires,info@topball.com.ar,,https://www.topball.com.ar/,enviado,1a1696383e7b1c06,
-2026-10-23,"ping pong, camas elásticas, pool y metegoles",Cornilleau Argentina,Troncos del Talar,Buenos Aires,cornilleauremeros@gmail.com,5491131093676,https://cornilleau.com.ar/collection/categories/mesas-de-ping-pong,enviado,1a16963a2b702d5b,
-2026-10-23,repuestos y accesorios para gimnasios,SVG Sport,CABA,CABA,servicegym@hotmail.com,5491156329233,https://svgsport.com.ar/agarres-y-traccion/,enviado,1a16963c59a9f65e,
+2026-10-23,pelotas y elementos de gimnasia/kinesiología,Top Ball,Munro,Buenos Aires,info@topball.com.ar,,https://www.topball.com.ar/,seguimiento,1a1696383e7b1c06,2026-10-30
+2026-10-23,"ping pong, camas elásticas, pool y metegoles",Cornilleau Argentina,Troncos del Talar,Buenos Aires,cornilleauremeros@gmail.com,5491131093676,https://cornilleau.com.ar/collection/categories/mesas-de-ping-pong,seguimiento,1a16963a2b702d5b,2026-10-30
+2026-10-23,repuestos y accesorios para gimnasios,SVG Sport,CABA,CABA,servicegym@hotmail.com,5491156329233,https://svgsport.com.ar/agarres-y-traccion/,seguimiento,1a16963c59a9f65e,2026-10-30
 2026-10-23,equipamiento fitness hogar y profesional,Fitness Show,Martínez,Buenos Aires,,5491171443307,https://www.fitness-show.com.ar/,solo_whatsapp,,
 2026-10-23,"pádel, tenis y hockey (mayorista)",Meta Padel,Córdoba,Córdoba,,5493518358787,https://www.metapadel.com.ar/,solo_whatsapp,,
-2026-10-23,material deportivo y educación física,Entretiempo,Chivilcoy,Buenos Aires,entretiempomd@gmail.com,,https://entretiempomd.com.ar/,enviado,1a169ce26b36aa6d,
-2026-10-23,kinesiología y rehabilitación,CAMSI,La Tablada,Buenos Aires,info@camsi.com.ar,5491168671577,https://www.camsi.com.ar/equipos-de-rehabilitacion-fisica/,enviado,1a169ce48f250a1b,
-2026-10-23,"pesas, racks y funcional (fábrica)",Herrero Fitness,Caseros,Buenos Aires,ventas@herrerofitness.com,5491162083630,https://herrerofitness.com.ar/,enviado,1a169ce6ac323d54,
-2026-10-23,pesas y material deportivo,Fundiciones del Norte,Martínez,Buenos Aires,fundicionesdelnorte@hotmail.com,,https://fundicionesdelnorte.com.ar/producto-cat/pesas/discos/,enviado,1a169ce8c58f012e,
-2026-10-23,yoga (mayorista),Yoga Mat,Martínez,Buenos Aires,info@yogamat.com.ar,5491136985022,https://yogamat.com.ar/,enviado,1a169ceae55f737c,
-2026-10-23,"fitness, boxeo y deportes",Apolo Deportes,Lomas de Zamora,Buenos Aires,Apolo-deportes@hotmail.com,5491135788848,https://www.apolo-deportes.com.ar/categoria.php?categoria=70,enviado,1a169ced02b7a3cb,
-2026-10-23,cubiertas de natatorios,Lonasur,Bernal,Buenos Aires,consultas@lonasur.com.ar,,https://lonasur.com.ar/natatorios/,enviado,1a169cef2aa32fdc,
+2026-10-23,material deportivo y educación física,Entretiempo,Chivilcoy,Buenos Aires,entretiempomd@gmail.com,,https://entretiempomd.com.ar/,seguimiento,1a169ce26b36aa6d,2026-10-30
+2026-10-23,kinesiología y rehabilitación,CAMSI,La Tablada,Buenos Aires,info@camsi.com.ar,5491168671577,https://www.camsi.com.ar/equipos-de-rehabilitacion-fisica/,seguimiento,1a169ce48f250a1b,2026-10-30
+2026-10-23,"pesas, racks y funcional (fábrica)",Herrero Fitness,Caseros,Buenos Aires,ventas@herrerofitness.com,5491162083630,https://herrerofitness.com.ar/,seguimiento,1a169ce6ac323d54,2026-10-30
+2026-10-23,pesas y material deportivo,Fundiciones del Norte,Martínez,Buenos Aires,fundicionesdelnorte@hotmail.com,,https://fundicionesdelnorte.com.ar/producto-cat/pesas/discos/,seguimiento,1a169ce8c58f012e,2026-10-30
+2026-10-23,yoga (mayorista),Yoga Mat,Martínez,Buenos Aires,info@yogamat.com.ar,5491136985022,https://yogamat.com.ar/,seguimiento,1a169ceae55f737c,2026-10-30
+2026-10-23,"fitness, boxeo y deportes",Apolo Deportes,Lomas de Zamora,Buenos Aires,Apolo-deportes@hotmail.com,5491135788848,https://www.apolo-deportes.com.ar/categoria.php?categoria=70,seguimiento,1a169ced02b7a3cb,2026-10-30
+2026-10-23,cubiertas de natatorios,Lonasur,Bernal,Buenos Aires,consultas@lonasur.com.ar,,https://lonasur.com.ar/natatorios/,seguimiento,1a169cef2aa32fdc,2026-10-30
 2026-10-23,"arcos, tableros y redes (fábrica)",Lukas Sports,San Isidro,Buenos Aires,,5491169732733,https://www.lukassports.com/,solo_whatsapp,,
 2026-10-23,tenis de mesa,Bar Ping Pong (Solo Juega SRL),CABA,CABA,,5491158767333,https://www.barpingpong.com.ar/venta,solo_whatsapp,,
-2026-10-23,equipamiento de fuerza outdoor (plazas y municipios),Street Barbell Argentina,Buenos Aires,Buenos Aires,hola@streetbarbell.com.ar,5491132422021,https://streetbarbell.com.ar/,enviado,1a16a465dd5262ff,
-2026-10-23,pisos deportivos modulares,SDR Pisos Modulares (Sonder),Rosario,Santa Fe,sdr.pisosmodulares@sonder.com.ar,5493416772074,https://www.sonder.com.ar/pisos-plasticos-modulares,enviado,1a16a467e7de86fb,
-2026-10-23,"redes, psicomotricidad y fitness",La Mancha Deportes y Fitness,Rafael Calzada,Buenos Aires,manchadeportes@gmail.com,5491156041098,https://lamanchadeportes.com.ar/redes-deportivas/,enviado,1a16a469ea3b8390,
-2026-10-23,colchonetas (fábrica) y equipamiento funcional,Alsol Deportes,Villa Lynch,Buenos Aires,alsoldeportes@gmail.com,5491164600007,https://www.alsoldeportes.com.ar/colchoneta/,enviado,1a16a46c88578bb7,
-2026-10-23,gimnasios al aire libre (fábrica),Grupo Alta Gracia,Alta Gracia,Córdoba,contacto@grupo-alta-gracia.com,5493513707297,https://grupo-alta-gracia.com/,enviado,1a16a46eb2bcdc9d,
-2026-10-23,material deportivo multideporte y fitness,El Sanatorio del Fútbol,Córdoba,Córdoba,ventas@sanatoriodelfutbol.com.ar,5493516602151,https://tienda.safdeportes.com/deportes-de-raqueta-paleta/tenis-de-mesa/,enviado,1a16a470aef5c794,
-2026-10-23,canchas de pádel (fábrica e instalación),World Padel Court,CABA,CABA,info@worldpadelcourt.com.ar,,https://worldpadelcourt.com.ar/,enviado,1a16a473306b77fa,
-2026-10-23,natación (elementos de entrenamiento),Nadadores ARG,San Miguel,Buenos Aires,nadadoresarg@gmail.com,5491165157374,https://www.nadadoresarg.com.ar/accesorios/pull-y-tablas,enviado,1a16a47550e8046b,
+2026-10-23,equipamiento de fuerza outdoor (plazas y municipios),Street Barbell Argentina,Buenos Aires,Buenos Aires,hola@streetbarbell.com.ar,5491132422021,https://streetbarbell.com.ar/,seguimiento,1a16a465dd5262ff,2026-10-30
+2026-10-23,pisos deportivos modulares,SDR Pisos Modulares (Sonder),Rosario,Santa Fe,sdr.pisosmodulares@sonder.com.ar,5493416772074,https://www.sonder.com.ar/pisos-plasticos-modulares,seguimiento,1a16a467e7de86fb,2026-10-30
+2026-10-23,"redes, psicomotricidad y fitness",La Mancha Deportes y Fitness,Rafael Calzada,Buenos Aires,manchadeportes@gmail.com,5491156041098,https://lamanchadeportes.com.ar/redes-deportivas/,seguimiento,1a16a469ea3b8390,2026-10-30
+2026-10-23,colchonetas (fábrica) y equipamiento funcional,Alsol Deportes,Villa Lynch,Buenos Aires,alsoldeportes@gmail.com,5491164600007,https://www.alsoldeportes.com.ar/colchoneta/,seguimiento,1a16a46c88578bb7,2026-10-30
+2026-10-23,gimnasios al aire libre (fábrica),Grupo Alta Gracia,Alta Gracia,Córdoba,contacto@grupo-alta-gracia.com,5493513707297,https://grupo-alta-gracia.com/,seguimiento,1a16a46eb2bcdc9d,2026-10-30
+2026-10-23,material deportivo multideporte y fitness,El Sanatorio del Fútbol,Córdoba,Córdoba,ventas@sanatoriodelfutbol.com.ar,5493516602151,https://tienda.safdeportes.com/deportes-de-raqueta-paleta/tenis-de-mesa/,seguimiento,1a16a470aef5c794,2026-10-30
+2026-10-23,canchas de pádel (fábrica e instalación),World Padel Court,CABA,CABA,info@worldpadelcourt.com.ar,,https://worldpadelcourt.com.ar/,seguimiento,1a16a473306b77fa,2026-10-30
+2026-10-23,natación (elementos de entrenamiento),Nadadores ARG,San Miguel,Buenos Aires,nadadoresarg@gmail.com,5491165157374,https://www.nadadoresarg.com.ar/accesorios/pull-y-tablas,seguimiento,1a16a47550e8046b,2026-10-30
 2026-10-23,natación,Andarivel 4,Rosario,Santa Fe,info@andarivel4.com.ar,,https://andarivel4.com.ar/,rebote,1a16a47757293860,
 2026-10-23,"accesorios de entrenamiento (calleras, mayorista)",Power Grip Argentina,CABA,CABA,,5491130592887,https://www.powergrip.com.ar/productos/calleras-barras-paralelas/,solo_whatsapp,,
 2026-10-23,pisos de caucho para gimnasios,Reciclado de Caucho y Plástico,Rosario,Santa Fe,,5493418203000,https://recicladodecauchoyplastico.com/,solo_whatsapp,,
 2026-10-23,calistenia (fábrica y parques),BÄR Calistenia,Buenos Aires,Buenos Aires,,5491123978270,https://barcalistenia.com/,solo_whatsapp,,
-2026-10-23,"pelotas, redes, arcos y material deportivo",Wolfi,Buenos Aires,Buenos Aires,contacto@wolfiequipamientos.com.ar,5491170629829,https://wolfi.com.ar/contacto/,enviado,1a16ab02bf4c0efe,
-2026-10-23,pelotas y material educación física/fitness,Alteza Global,Quilmes,Buenos Aires,altezaglobal@gmail.com,5491161591217,https://www.altezaglobal.com.ar/,enviado,1a16ab04ce504cd1,
-2026-10-23,redes deportivas,Hipocampo (Agrotejidos),Pilar,Buenos Aires,hipocampo@agrotejidos.com.ar,5491137560110,https://agrotejidos.com.ar/dp.html,enviado,1a16ab06e4bade7b,
+2026-10-23,"pelotas, redes, arcos y material deportivo",Wolfi,Buenos Aires,Buenos Aires,contacto@wolfiequipamientos.com.ar,5491170629829,https://wolfi.com.ar/contacto/,seguimiento,1a16ab02bf4c0efe,2026-10-30
+2026-10-23,pelotas y material educación física/fitness,Alteza Global,Quilmes,Buenos Aires,altezaglobal@gmail.com,5491161591217,https://www.altezaglobal.com.ar/,seguimiento,1a16ab04ce504cd1,2026-10-30
+2026-10-23,redes deportivas,Hipocampo (Agrotejidos),Pilar,Buenos Aires,hipocampo@agrotejidos.com.ar,5491137560110,https://agrotejidos.com.ar/dp.html,seguimiento,1a16ab06e4bade7b,2026-10-30
 2026-10-23,pisos de caucho,Sirolo,Córdoba,Córdoba,ventas@sirolo.com.ar,5493512141245,https://www.sirolo.com.ar/bolsas_de_caucho.html,respondio,1a16ab0915f292d7,
-2026-10-23,hockey,Hockey Equipment,San Martín,Buenos Aires,info@hockey-equipment.com.ar,,https://hockey-equipment.com.ar/puntos-de-venta/,enviado,1a16ab0b3548f97c,
+2026-10-23,hockey,Hockey Equipment,San Martín,Buenos Aires,info@hockey-equipment.com.ar,,https://hockey-equipment.com.ar/puntos-de-venta/,seguimiento,1a16ab0b3548f97c,2026-10-30
 2026-10-23,pelotas,Wallmate,Carcarañá,Santa Fe,,5493413369449,https://wallmate.com.ar/contacto/,solo_whatsapp,,
 2026-10-23,"canchas de tenis: redes, postes e insumos",Pro Canchas,City Bell,Buenos Aires,,5492216101246,https://procanchas.com.ar/venta-insumos-canchas-de-tenis/,solo_whatsapp,,
 2026-10-23,natación,Guardavidas3D,Mar de Ajó,Buenos Aires,,5491158407732,https://www.guardavidas3d.com.ar/ar,solo_whatsapp,,
@@ -377,7 +377,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-28,pilates,Armonía Pilates (Coop. Profega),,Santa Fe,,5493425688888,https://armoniapilates.com.ar/,solo_whatsapp,,
 2026-10-28,pádel,La Liga Pádel Argentina,,Córdoba,,5493513371567,https://www.laligapadelargentina.com/courts,solo_whatsapp,,
 2026-10-28,kinesiología y rehabilitación,Ortopedia Kinen,Santa Fe,Santa Fe,,5493425204303,https://tienda.ortopediakinen.com.ar/rehabilitacion-y-kinesiologia/ejercitacion/bicicletas-fijas/,solo_whatsapp,,
-2026-10-28,gimnasia artística,Air Track Gym,Paso del Rey,Buenos Aires,info@blimpworks.com,,https://airtrackgym.com.ar/,enviado,1a183955aab653f5,
+2026-10-28,gimnasia artística,Air Track Gym,Paso del Rey,Buenos Aires,info@blimpworks.com,,https://airtrackgym.com.ar/,respondio,1a183955aab653f5,
 2026-10-28,tableros electrónicos,Multiled,CABA,CABA,,5491132396675,https://multiled.com.ar/,solo_whatsapp,,
 2026-10-28,tableros electrónicos,SEI Soluciones Electrónicas Integrales,Río Tercero,Córdoba,,5493571622222,https://www.tienda-seiweb.com.ar/productos/,solo_whatsapp,,
 2026-10-28,material deportivo y fitness,ABC Deportes,Río Grande,Tierra del Fuego,,5492964525794,https://www.abcdeportes.com.ar/contacto/,solo_whatsapp,,
@@ -401,3 +401,17 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-29,cardio (cintas para gimnasios y service),Athletic Service,,Buenos Aires,,5491132957150,https://athleticservice.com.ar/,solo_whatsapp,,
 2026-10-29,pelotas (fábrica futsal/vóley),Pelotas NAPRU,CABA,CABA,,5491172673708,https://www.napru.com.ar/,solo_whatsapp,,
 2026-10-29,"natación (accesorios, venta mayorista)",Boutique Acuática,CABA,CABA,,5491123992122,https://www.boutiqueacuatica.com.ar/,solo_whatsapp,,
+2026-10-30,musculación (fabricante),BMG Metalúrgica,Paraná,Entre Ríos,bmgmet@hotmail.com,5493434597355,https://bmgmetalurgica.mitiendanube.com/equipamiento-de-gimnasio/,enviado,1a18d053521f6229,
+2026-10-30,musculación/cardio (repuestos y equipos),Maxmetal Fitness,Moreno,Buenos Aires,info@maxmetal.com.ar,5491173854656,https://www.maxmetal.com.ar/,enviado,1a18d05575a73228,
+2026-10-30,boxeo/artes marciales (importador),Fighters Argentina,Buenos Aires,Buenos Aires,info@fightersargentina.com.ar,5491170634539,https://fightersargentina.com.ar/,enviado,1a18d0579c75dd67,
+2026-10-30,pisos de caucho,Plasticaucho,San Miguel de Tucumán,Tucumán,comercial@plasticaucho.com.ar,5493813000242,https://plasticaucho.com.ar/tienda/piso-de-caucho-reciclado/,enviado,1a18d059a02efafb,
+2026-10-30,kinesiología/rehabilitación,Kreiff,Venado Tuerto,Santa Fe,info@kreiff.com.ar,5493462415656,https://kreiff.com.ar/barras-paralelas/,enviado,1a18d05ba5534aea,
+2026-10-30,redes deportivas,Don Andamio,Mar del Plata,Buenos Aires,donandamiomdp@gmail.com,,https://donandamio.com.ar/redes-deportivas/,enviado,1a18d05dc0a4450a,
+2026-10-30,canchas de pádel (cristales),Superglass,El Talar,Buenos Aires,ventas@superglass.com.ar,5491127432946,https://www.superglass.com.ar/novedad/vidrio-templado-de-12mm-para-canchas-de-paddle-mas-profesionales-con-superglass,enviado,1a18d0604d03989b,
+2026-10-30,kinesiología/mecanoterapia,BHM Metal,GBA oeste,Buenos Aires,info@bhmmetal.com,,https://www.bhmmetal.com/contactenos/contactenos.php,enviado,1a18d062666b8bf8,
+2026-10-30,kinesiología/rehabilitación,Biotecnica,Hurlingham,Buenos Aires,biotecnica@biotecnica.com.ar,,https://biotecnica.com.ar/_BARRAS_PARALELAS_SIN_PISO_1085.html,enviado,1a18d0649b3221ba,
+2026-10-30,tableros electrónicos,Arbial Soft,Córdoba,Córdoba,info@arbialsoft.com.ar,,https://www.arbialsoft.com.ar/tb15m.html,enviado,1a18d0668b68d25e,
+2026-10-30,pisos deportivos (vinílicos),Profloor,CABA,CABA,info@profloor.com.ar,5491157280170,https://profloor.com.ar/,enviado,1a18d068a94817f4,
+2026-10-30,pisos deportivos (parquet),Aronzon Parquet,CABA,CABA,consultas@aronzonparquet.com.ar,5491158246892,https://aronzonparquet.com.ar/,enviado,1a18d06aca4d1df3,
+2026-10-30,boxeo/artes marciales (distribuidor),Shogun Ventas,CABA,CABA,,5491159912393,https://www.shogunventas.com.ar/index.php,solo_whatsapp,,
+2026-10-30,equipamiento natatorios,Airbom Rosario,Rosario,Santa Fe,,5493415527008,https://www.airbomrosario.com.ar/productos/natatorios,solo_whatsapp,,
