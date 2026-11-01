@@ -25,7 +25,7 @@ def wrap(d, s, font, maxw):
     lines = []
     for para in s.split("\n"):
         cur = ""
-        for wd in para.split():
+        for wd in [x for x in para.split(" ") if x]:
             t = (cur + " " + wd).strip()
             if d.textlength(t, font=font) <= maxw: cur = t
             else: lines.append(cur); cur = wd
@@ -232,7 +232,9 @@ def sc_steps(d, t, sc, bg):
         for j, ln in enumerate(ls): d.text((300, y + 40 + j * 66 + (1 - clamp(p)) * 30), ln, font=f2, fill=mix(bg, WHITE, clamp(p)))
 
 def sc_cta(d, t, sc, bg):
-    text_c(d, 360, sc.get("pre", "Comentá"), F(FB, 100), WHITE, ease(t / 0.3), bg)
+    pre = sc.get("pre", "Comentá"); ps = 100
+    while ps > 50 and d.textlength(pre, font=F(FB, ps)) > W - 120: ps -= 4
+    text_c(d, 360 + (100 - ps) * 0.6, pre, F(FB, ps), WHITE, ease(t / 0.3), bg)
     q = back((t - 0.4) / 0.5)
     if q > 0:
         pulse = 1 + 0.04 * math.sin(t * 6)
@@ -301,7 +303,66 @@ def sc_plan(d, t, sc, bg):
             d.text(((W - tw) / 2, yy + 22), s, font=f, fill=BLACK)
     if sc.get("note"): text_c(d, H - 120, sc["note"], F(FR, 34), GREY, ease((t - 0.8) / 0.4), bg)
 
-R = dict(plan=sc_plan, title=sc_title, number=sc_number, chat=sc_chat, notifs=sc_notifs, chips=sc_chips, checklist=sc_checklist,
+def _shade(c, f): return tuple(max(0, min(255, int(v * f))) for v in c)
+
+def sc_iso(d, t, sc, bg):
+    """Vista 3D isométrica de un espacio: room=(ancho_m, largo_m), items=[(label, x, y, w, h, alto_m[, at, color])].
+    Opcional: verdict, vcolor, vt, note, stats=[(valor, rótulo), ...] (fila de tarjetas abajo), st (tiempo de stats)."""
+    headline(d, t, sc["text"], 200, sc.get("size", 84), WHITE, bg, 0, sc.get("hl"))
+    rw, rh = sc["room"]; cx = W / 2; top = sc.get("top", 700)
+    c30, s30 = 0.866, 0.5
+    hmax = max([it[5] for it in sc["items"]] + [0.5])
+    k = min((W - 90) / ((rw + rh) * c30), sc.get("maxh", 640) / ((rw + rh) * s30 + hmax + 0.4))
+    def P(x, y, z=0): return (cx + (x - y) * k * c30 + (rh - rw) * k * c30 / 2, top + (x + y) * k * s30 - z * k)
+    p = ease((t - 0.2) / 0.45)
+    if p > 0:
+        d.polygon([P(0, 0), P(rw, 0), P(rw, rh), P(0, rh)], fill=mix(bg, DARK, p))
+        for gx in range(1, int(rw)): d.line([P(gx, 0), P(gx, rh)], fill=mix(bg, (32, 42, 36), p), width=2)
+        for gy in range(1, int(rh)): d.line([P(0, gy), P(rw, gy)], fill=mix(bg, (32, 42, 36), p), width=2)
+        d.line([P(0, 0), P(rw, 0), P(rw, rh), P(0, rh), P(0, 0)], fill=mix(bg, GREEN, p), width=6)
+        f = F(FB, 38)
+        a, b = P(rw / 2, rh); lab = sc.get("wlabel", f"{rw:g} m".replace(".", ","))
+        d.text((a - d.textlength(lab, font=f) - 10, b + 14), lab, font=f, fill=mix(bg, GREEN, p))
+        a, b = P(rw, rh / 2); lab2 = sc.get("hlabel", f"{rh:g} m".replace(".", ","))
+        d.text((a + 14, b + 14), lab2, font=f, fill=mix(bg, GREEN, p))
+    items = list(enumerate(sc["items"]))
+    first = {}
+    for i, it in items: first.setdefault(it[0], i)
+    items.sort(key=lambda e: e[1][1] + e[1][2] + e[1][3] / 2 + e[1][4] / 2)
+    for i, it in items:
+        lab, ix, iy, iw, ih, hz = it[:6]; at = it[6] if len(it) > 6 else 0.8 + i * 0.3
+        col = it[7] if len(it) > 7 else (GREEN if i % 2 == 0 else LIME)
+        q = back((t - at) / 0.35)
+        if q <= 0: continue
+        z = hz * max(0.02, q)
+        x1, y1 = ix + iw, iy + ih
+        d.polygon([P(ix, y1), P(x1, y1), P(x1, y1, z), P(ix, y1, z)], fill=_shade(col, 0.55))
+        d.polygon([P(x1, iy), P(x1, y1), P(x1, y1, z), P(x1, iy, z)], fill=_shade(col, 0.75))
+        d.polygon([P(ix, iy, z), P(x1, iy, z), P(x1, y1, z), P(ix, y1, z)], fill=col)
+        if lab and first.get(lab) == i and clamp(q) > 0.8:
+            fs = sc.get("lsize", 28); ff = F(FB, fs); a, b = P(ix + iw / 2, iy + ih / 2, z)
+            lw = d.textlength(lab, font=ff)
+            pill(d, a - lw / 2 - 12, b - fs - 34, lw + 24, fs + 18, BLACK, r=12)
+            d.text((a - lw / 2, b - fs - 26), lab, font=ff, fill=WHITE)
+    if sc.get("stats"):
+        n = len(sc["stats"]); gw = (W - 180 - (n - 1) * 24) / n
+        for j, (v, r) in enumerate(sc["stats"]):
+            q = ease((t - sc.get("st", 2.6) - j * 0.2) / 0.35)
+            if q <= 0: continue
+            x = 90 + j * (gw + 24); y = 1440 + (1 - q) * 40
+            pill(d, x, y, gw, 190, mix(bg, CARD, q), r=30)
+            fv = F(FX, 64); d.text((x + (gw - d.textlength(v, font=fv)) / 2, y + 26), v, font=fv, fill=mix(bg, LIME, q))
+            fr = F(FR, 32); d.text((x + (gw - d.textlength(r, font=fr)) / 2, y + 120), r, font=fr, fill=mix(bg, GREY, q))
+    if sc.get("verdict"):
+        q = back((t - sc.get("vt", 3.0)) / 0.4)
+        if q > 0:
+            f = F(FX, sc.get("vsize", 70)); s = sc["verdict"]; tw = d.textlength(s, font=f)
+            yy = sc.get("vy", 1470) + (1 - clamp(q)) * 50
+            pill(d, (W - tw) / 2 - 50, yy, tw + 100, sc.get("vsize", 70) + 60, sc.get("vcolor", LIME), r=36)
+            d.text(((W - tw) / 2, yy + 22), s, font=f, fill=BLACK)
+    if sc.get("note"): text_c(d, H - 120, sc["note"], F(FR, 34), GREY, ease((t - 0.8) / 0.4), bg)
+
+R = dict(iso=sc_iso, plan=sc_plan, title=sc_title, number=sc_number, chat=sc_chat, notifs=sc_notifs, chips=sc_chips, checklist=sc_checklist,
          split=sc_split, cards=sc_cards, grid=sc_grid, logo=sc_logo, steps=sc_steps, cta=sc_cta, end=sc_end)
 
 def frame(sc, t, g, total):

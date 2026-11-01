@@ -544,3 +544,371 @@ Proveedor: en Nexo Fit el comprador compara las ofertas sin ver los nombres hast
 **Texto de la publicación:**
 
 Equipás tu gimnasio de cero: ¿qué comprás primero? 🏋️ Comentá y armamos la lista entre todos 👇 #gimnasio #dueñodegimnasio #equipamientofitness #fitnessargentina #nexofit
+
+# Semana 04/11 al 10/11/2026 (semana_2026_11_04.py)
+
+Cambio: la demo de Armá tu espacio en 3D fue el reel con más vistas por lejos y "¿Entra o no entra?" lo mejor de TikTok. Más 3D (escena nueva "iso"), plantas con medidas y quiz de "¿cuántos entran?"; menos encuestas genéricas.
+
+## 2026-11-04 10:00 · Reel IG + TikTok · Mirá tu gimnasio en 3D antes de comprar
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.8 | DUEÑOS DE GIMNASIO / Mirá tu gimnasio en 3D antes de gastar un peso |
+| 2.8–7.4 | En Armá tu espacio: / Elegís Gimnasio, Ponés cuántos entrenan a la vez, Te sugiere la lista con cantidades |
+| 7.4–12.4 | Para 20 personas, musculación y funcional: / 4 bancos regulables, 3 barras olímpicas, 2 racks de sentadillas, 20 pesas rusas, 20 colchonetas |
+| 12.4–18.4 | [3D 14 × 9 m] / Cargás tus medidas: 14 × 9 / ENTRA TODO / Rack, Banco, Mancuernas, Colchonetas, Cajones, Pesas rusas / (Medidas de ejemplo) |
+| 18.4–21.8 | Movés cada pieza, la girás y ves cuánto piso queda libre / A escala real |
+| 21.8–26.4 | Y con esa lista: / Pedís ofertas por todo junto, Te ofertan varios proveedores, Elegís la que te conviene |
+| 26.4–30.6 | 3D / y te mandamos el link |
+| 30.6–33.6 | Guardalo para cuando equipes / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Mirá tu gimnasio en 3D antes de gastar un peso 👀
+
+En Armá tu espacio elegís Gimnasio, ponés cuántos entrenan a la vez y te sugiere la lista con cantidades. Cargás las medidas de tu lugar, movés cada pieza, la girás y ves cuánto piso queda libre, a escala real.
+
+Con esa lista pedís ofertas a varios proveedores y elegís la que te conviene.
+
+👉 Comentá 3D y te mandamos el link.
+
+#gimnasio #dueñodegimnasio #abrirungimnasio #equipamientofitness #fitnessargentina #nexofit
+
+## 2026-11-05 10:00 · Reel IG + TikTok · Pretemporada: ¿entra la sala de pesas del club en 12 × 8?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | CLUBES / Pretemporada: ¿entra la sala de pesas del club en 12 × 8? |
+| 3–9 | [planta 12 × 8 m] / 3 racks, 4 bancos, 4 bicis y zona funcional / ¿ENTRA? / Rack, Discos, Mancuernas, Banco, Funcional, Bici / (Medidas de ejemplo) |
+| 9–14.4 | [3D 12 × 8 m] / Así se ve en 3D / ENTRA Y QUEDA PASO / Rack, Discos, Mancuernas, Banco, Funcional, Bici / (Medidas de ejemplo) |
+| 14.4–17.8 | Probalo con las medidas reales del club / En Armá tu espacio lo ves en 3D, a escala, antes de comprar |
+| 17.8–22.8 | Después: / Pedís ofertas por la lista, Comparás costo total, plazo y garantía, Bajás el cuadro comparativo para la comisión |
+| 22.8–27 | Mandáselo / AL PROFE / que arma la pretemporada del club |
+| 27–30 | Guardalo para la pretemporada / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Pretemporada: ¿entra la sala de pesas del club en 12 × 8? 🏟️
+
+3 racks, 4 bancos, 4 bicis y una zona funcional. En Armá tu espacio cargás las medidas reales y lo ves en 3D, a escala, antes de comprar.
+
+Después pedís ofertas por la lista, comparás costo total, plazo y garantía, y bajás el cuadro comparativo para la comisión.
+
+👉 Mandáselo al profe que arma la pretemporada.
+
+#clubes #clubdebarrio #pretemporada #preparacionfisica #equipamientodeportivo #nexofit
+
+## 2026-11-06 10:00 · Reel IG + TikTok · ¿Entran 30 colchonetas en el SUM de la escuela?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | PROFES DE EDUCACIÓN FÍSICA / ¿Entran 30 colchonetas en el SUM de la escuela? |
+| 3–8.4 | [planta 10 × 7 m] / Un SUM de 10 × 7 / ¿ENTRAN 30? /  / (Medidas de ejemplo) |
+| 8.4–12 | [planta 10 × 7 m] / Sí, y con paso entre filas / ENTRAN /  / (Medidas de ejemplo) |
+| 12–16 | Para la clase, sumá: / CONOS, AROS, PELOTAS, SOGAS |
+| 16–21 | En Nexo Fit: / Armás la lista con cantidades, Te ofertan varios proveedores, Bajás el cuadro comparativo para el expediente |
+| 21–25.2 | ESCUELA / y te mandamos el link |
+| 25.2–28.2 | Compartilo con el equipo de educación física / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Entran 30 colchonetas en el SUM de la escuela? 🏫
+
+En un SUM de 10 × 7, con colchonetas de 1 × 0,50: entran, y con paso entre filas. Probalo con las medidas de tu escuela en Armá tu espacio.
+
+Armás la lista con cantidades, te ofertan varios proveedores y bajás el cuadro comparativo para el expediente de compra.
+
+👉 Comentá ESCUELA y te mandamos el link.
+
+#educacionfisica #profedeeducacionfisica #escuelas #colegios #equipamientodeportivo #nexofit
+
+## 2026-11-07 10:00 · Reel IG + TikTok · Tu estudio de funcional en 6 × 5: ¿cuál de estos 3 armados elegís?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | ENTRENADORES / Mismo estudio de 6 × 5, mismo equipo. ¿Cuál armado elegís? |
+| 3–7.4 | [planta 6 × 5 m] / Armado 1: todo contra las paredes / 1 / Remo, Bici, Cajones, Pesas rusas, Colchonetas, Soga / (Medidas de ejemplo) |
+| 7.4–11.8 | [planta 6 × 5 m] / Armado 2: por zonas / 2 / Colchonetas, Cajones, Pesas rusas, Remo, Bici, Soga / (Medidas de ejemplo) |
+| 11.8–16.2 | [planta 6 × 5 m] / Armado 3: colchonetas en filas / 3 / Mat, Cajones, Pesas rusas, Remo / (Medidas de ejemplo) |
+| 16.2–20.4 | ¿Cuál elegís? / 1, 2 o 3 / Comentalo y contanos por qué |
+| 20.4–24 | Probá los tuyos: arrastrás cada pieza y la girás 90° / Armá tu espacio, en Nexo Fit |
+| 24–27 | Guardalo para cuando armes tu estudio / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Mismo estudio de 6 × 5, mismo equipo, 3 armados distintos 🏋️
+
+1️⃣ Todo contra las paredes
+2️⃣ Por zonas
+3️⃣ Colchonetas en filas
+
+¿Cuál elegís? Comentá 1, 2 o 3 y contanos por qué 👇
+
+Probá los tuyos en Armá tu espacio: cargás tus medidas, arrastrás cada pieza y la girás 90°.
+
+#entrenadorpersonal #estudiodeentrenamiento #entrenamientofuncional #equipamientofitness #nexofit
+
+## 2026-11-08 10:00 · Reel IG + TikTok · Proveedor: así te llega un pedido con lista y cantidades
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | PROVEEDORES / Te llega el pedido con la lista y las cantidades. Vos ofertás. |
+| 3–8.4 | Un pedido de ejemplo: / Pesas rusas × 20, Colchonetas × 20, Bancos regulables × 4, Barras olímpicas × 3, Racks de sentadillas × 2 |
+| 8.4–12 | Cargás tu oferta en un solo formato / Precio, envío, plazo, cuotas, garantía y validez |
+| 12–17 | El comprador compara sin ver nombres / Oferta A · $2.300.000, Oferta B · $2.450.000, Oferta C · $2.380.000 / (Precios de ejemplo) |
+| 17–20 | Sin salir a buscar clientes: el pedido te llega por mail |
+| 20–24.2 | PROVEEDOR / y te contamos cómo sumarte |
+| 24.2–27.2 | Compartilo con alguien que venda equipamiento / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Proveedor: así te llega un pedido en Nexo Fit 📩
+
+Con la lista y las cantidades ya armadas. Cargás tu oferta en un solo formato (precio, envío, plazo, cuotas, garantía y validez) y el comprador compara sin ver nombres hasta elegir.
+
+Sin salir a buscar clientes: el pedido te llega por mail con tu link privado.
+
+👉 Comentá PROVEEDOR y te contamos cómo sumarte.
+
+#proveedoresfitness #equipamientofitness #mayorista #distribuidor #fitnessargentina #nexofit
+
+## 2026-11-09 10:00 · Reel IG + TikTok · Te mudás a un local más chico: ¿qué entra?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | DUEÑOS DE GIMNASIO / Te mudás a un local más chico. ¿Qué se viene con vos? |
+| 3–7.8 | [3D 15 × 10 m] / Hoy: 15 × 10 / Cinta, Bici, Rack, Multi, Banco, Mancuernas, Funcional, Remo / (Medidas de ejemplo) |
+| 7.8–12.8 | [3D 11 × 7 m] / Local nuevo: 11 × 7 / NO ENTRA TODO / Cinta, Bici, Rack, Multi, Banco, Mancuernas, Funcional, Remo / (Medidas de ejemplo) |
+| 12.8–17.8 | [planta 11 × 7 m] / Sacás un rack, una cinta y los remos / ASÍ SÍ / Cinta, Bici, Rack, Multi, Banco, Mancuernas, Funcional, Remo / (Medidas de ejemplo) |
+| 17.8–21.2 | Probá cada versión en 3D antes de mudarte / Armá tu espacio, en Nexo Fit |
+| 21.2–25.6 | ¿Qué sacarías vos? / COMENTÁ / cardio, máquinas o peso libre |
+| 25.6–28.6 | Guardalo si estás por mudarte / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Te mudás a un local más chico: ¿qué se viene con vos? 📦
+
+De 15 × 10 a 11 × 7 no entra todo. Antes de mudarte, probá cada versión en 3D con las medidas reales en Armá tu espacio: movés, girás y sacás piezas hasta que quede paso.
+
+👉 ¿Qué sacarías primero: cardio, máquinas o peso libre? Comentalo 👇
+
+#gimnasio #dueñodegimnasio #mudanza #equipamientofitness #fitnessargentina #nexofit
+
+## 2026-11-10 10:00 · Reel IG + TikTok · Club: ¿y si el salón que usan de depósito fuera el gimnasio?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–3 | CLUBES / Ese salón del club que usan de depósito... |
+| 3–5.4 | ¿Y si fuera el gimnasio? |
+| 5.4–10.4 | [planta 8 × 6 m] / Salón de 8 × 6 / ¿ENTRA? / Rack, Mancuernas, Banco, Colchonetas, Bici, Cajones / (Medidas de ejemplo) |
+| 10.4–15.4 | [3D 8 × 6 m] / Así se ve en 3D / ENTRA / Rack, Mancuernas, Banco, Colchonetas, Bici, Cajones / (Medidas de ejemplo) |
+| 15.4–20.4 | Para llevarlo a la comisión: / Armás la lista en Armá tu espacio, Pedís ofertas a varios proveedores, Bajás el cuadro comparativo |
+| 20.4–24.6 | Mandáselo / A LA COMISIÓN / de tu club |
+| 24.6–27.6 | Guardalo para la próxima reunión / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Ese salón del club que usan de depósito… ¿y si fuera el gimnasio? 🏟️
+
+En Armá tu espacio cargás las medidas, ves en 3D cómo entra el equipamiento y armás la lista. Pedís ofertas a varios proveedores y bajás el cuadro comparativo para llevar a la comisión.
+
+👉 Mandáselo a la comisión de tu club.
+
+#clubes #clubdebarrio #comisiondirectiva #gimnasio #equipamientodeportivo #nexofit
+
+## 2026-11-04 12:00 · TikTok · ¿Entran 6 cintas y 4 elípticos en 8 × 4?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ¿ENTRA O NO ENTRA? / 6 cintas y 4 elípticos en una sala de 8 × 4 |
+| 2.4–8 | [planta 8 × 4 m] / ¿Y el paso para circular? / ¿ENTRAN? / Cinta, Elíptico / (Medidas de ejemplo) |
+| 8–11.6 | ¿Vos qué decís? / SÍ o NO / Comentalo |
+| 11.6–14.6 | Probalo con tus medidas, en 3D / Armá tu espacio, en Nexo Fit |
+| 14.6–17 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Entran 6 cintas y 4 elípticos en una sala de 8 × 4? 🏃 Comentá SÍ o NO. Después probalo con tus medidas en 3D en Armá tu espacio 📐 #gimnasio #dueñodegimnasio #cardio #equipamientofitness #nexofit
+
+## 2026-11-04 18:00 · TikTok · Clase de 30 chicos: ¿cuántas pelotas necesitás?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | PROFES / Clase de 30 chicos: ¿cuántas pelotas necesitás? |
+| 2.4–5.8 | ¿Cómo lo hacés vos? / UNA POR CHICO, UNA CADA DOS, UNA POR GRUPO |
+| 5.8–9.4 | Contanos / COMENTÁ / y vemos qué hace cada profe |
+| 9.4–12.2 | Cuando lo tengas claro, pedí ofertas por la lista en Nexo Fit |
+| 12.2–14.6 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Profe: clase de 30 chicos, ¿cuántas pelotas necesitás? ⚽ ¿Una por chico, una cada dos o una por grupo? Comentá cómo lo hacés 👇 #educacionfisica #profedeeducacionfisica #escuelas #equipamientodeportivo #nexofit
+
+## 2026-11-05 12:00 · TikTok · ¿Entran 10 alumnas de pilates mat en 5 × 4?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ¿ENTRA O NO ENTRA? / Pilates mat para 10 en un estudio de 5 × 4 |
+| 2.4–8 | [planta 5 × 4 m] / Mats de 1,80 × 0,60 / ¿ENTRAN 10? / Mat / (Medidas de ejemplo) |
+| 8–11.6 | ¿Vos qué decís? / SÍ o NO / Comentalo |
+| 11.6–14.6 | Probalo con tus medidas, en 3D / Armá tu espacio, en Nexo Fit |
+| 14.6–17 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Entra una clase de pilates mat para 10 en un estudio de 5 × 4? 🧘 Comentá SÍ o NO. Después probalo con tus medidas en 3D en Armá tu espacio 📐 #pilates #pilatesmat #entrenadorpersonal #equipamientofitness #nexofit
+
+## 2026-11-05 18:00 · TikTok · Proveedor: así ve tu oferta el comprador
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | PROVEEDORES / Así ve tu oferta el comprador en Nexo Fit |
+| 2.4–7.2 | Todas en el mismo formato / Oferta A · $980.000, Oferta B · $910.000, Oferta C · $1.020.000 / (Precios de ejemplo) |
+| 7.2–10 | Y recibe una recomendación según lo que más le importa |
+| 10–13.6 | PROVEEDOR / y te contamos cómo sumarte |
+| 13.6–16 | Compartilo con alguien que venda equipamiento / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Proveedor: así ve tu oferta el comprador en Nexo Fit 👀 Todas en el mismo formato y con una recomendación según lo que más le importa: precio, envío, plazo o garantía. Comentá PROVEEDOR. #proveedoresfitness #equipamientofitness #mayorista #fitnessargentina #nexofit
+
+## 2026-11-06 12:00 · TikTok · ¿El rack va contra la pared o en el medio?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ¿El rack va contra la pared o en el medio de la sala? |
+| 2.4–5.4 | ¿Dónde lo ponés? / PARED, MEDIO |
+| 5.4–9 | Comentá / PARED o MEDIO / y contanos por qué |
+| 9–12 | Probá las dos en 3D con tus medidas / Armá tu espacio, en Nexo Fit |
+| 12–14.4 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿El rack va contra la pared o en el medio de la sala? 🏋️ Comentá PARED o MEDIO y contanos por qué 👇 Después probá las dos en 3D en Armá tu espacio. #gimnasio #dueñodegimnasio #equipamientofitness #fitnessargentina #nexofit
+
+## 2026-11-06 18:00 · TikTok · Club: ¿entra una sala de pesas en el vestuario viejo?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | CLUBES / ¿Entra una sala de pesas en el vestuario viejo del club? |
+| 2.4–8 | [planta 6 × 5 m] / Vestuario de 6 × 5 / ¿ENTRA? / Rack, Banco, Mancuernas, Bici, Colchonetas / (Medidas de ejemplo) |
+| 8–11.6 | ¿Vos qué decís? / SÍ o NO / Comentalo |
+| 11.6–14.6 | Probalo con tus medidas, en 3D / Armá tu espacio, en Nexo Fit |
+| 14.6–17 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Entra una sala de pesas en el vestuario viejo del club? 🏟️ 6 × 5: comentá SÍ o NO. Después probalo con las medidas del club en Armá tu espacio 📐 #clubes #clubdebarrio #equipamientodeportivo #fitnessargentina #nexofit
+
+## 2026-11-07 12:00 · TikTok · Entrenador: ¿entra el home gym de tu alumno en 3 × 3?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ENTRENADORES / ¿Entra el home gym de tu alumno en 3 × 3? |
+| 2.4–7.8 | [3D 3 × 3 m] / Banco, mancuernas, pesa rusa y colchoneta / ¿ENTRA? / Colchoneta, Banco, Mancuernas, Pesa rusa / (Medidas de ejemplo) |
+| 7.8–11.4 | ¿Vos qué decís? / SÍ o NO / Comentalo |
+| 11.4–14.4 | En Armá tu espacio elegís Mi casa y lo ves en 3D / Mandale el link a tu alumno |
+| 14.4–16.8 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Entrenador: ¿entra el home gym de tu alumno en 3 × 3? 🏠 Comentá SÍ o NO. En Armá tu espacio elegís Mi casa, cargás las medidas y lo ves en 3D. #entrenadorpersonal #entrenamientofuncional #equipamientofitness #fitnessargentina #nexofit
+
+## 2026-11-07 18:00 · TikTok · Girás una pieza 90° y te queda el paso libre
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | Girás una pieza 90° y te cambia la sala |
+| 2.4–6 | [planta 6 × 4 m] / Así, el banco tapa el paso / SIN PASO / Rack, Banco, Mancuernas, Colchonetas / (Medidas de ejemplo) |
+| 6–9.6 | [planta 6 × 4 m] / Girado 90° / PASO LIBRE / Rack, Banco, Mancuernas, Colchonetas / (Medidas de ejemplo) |
+| 9.6–13.2 | 3D / y te mandamos el link para probarlo |
+| 13.2–15.6 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Girás una pieza 90° y te cambia la sala 🔄 En Armá tu espacio arrastrás cada pieza y la girás con un botón, a escala real. Comentá 3D y te mandamos el link. #gimnasio #dueñodegimnasio #equipamientofitness #fitnessargentina #nexofit
+
+## 2026-11-08 12:00 · TikTok · Profe: si mañana te aprueban la compra, ¿qué pedís?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | PROFES / Si mañana te aprueban la compra, ¿qué pedís primero? |
+| 2.4–6 | Elegí uno: / COLCHONETAS, PELOTAS, AROS Y CONOS, RED DE VÓLEY |
+| 6–9.6 | Comentá / LO PRIMERO / y armamos la lista entre todos |
+| 9.6–12.4 | Después pedís ofertas por la lista en Nexo Fit |
+| 12.4–14.8 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Profe: si mañana te aprueban la compra, ¿qué pedís primero? 🏐 Comentá y armamos la lista entre todos 👇 #educacionfisica #profedeeducacionfisica #escuelas #equipamientodeportivo #nexofit
+
+## 2026-11-08 18:00 · TikTok · ¿Cuántas bicis de spinning entran en 7 × 5?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ¿Cuántas bicis de spinning entran en 7 × 5? |
+| 2.4–5.4 | Arriesgá: / 10, 15, 20 |
+| 5.4–11 | [planta 7 × 5 m] / En este armado: / 15, CON LUGAR PARA EL PROFE / Profe, Bici / (Medidas de ejemplo) |
+| 11–14.4 | ¿Le sacarías una fila? / COMENTÁ / ¿cuántas pondrías vos? |
+| 14.4–16.8 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Cuántas bicis de spinning entran en 7 × 5? 🚴 En este armado de ejemplo, 15 con lugar para el profe. ¿Cuántas pondrías vos? Comentalo 👇 Probalo con tus medidas en Armá tu espacio. #spinning #gimnasio #dueñodegimnasio #equipamientofitness #nexofit
+
+## 2026-11-09 12:00 · TikTok · Proveedor: ¿qué es lo que más te piden?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | PROVEEDORES / ¿Qué es lo que más te piden los gimnasios? |
+| 2.4–6 | Elegí uno: / MANCUERNAS, DISCOS, COLCHONETAS, MÁQUINAS |
+| 6–9.6 | Contanos / COMENTÁ / ¿qué te piden a vos? |
+| 9.6–12.4 | En Nexo Fit te llegan pedidos con lista y cantidades |
+| 12.4–14.8 | Compartilo con alguien que venda equipamiento / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Proveedor: ¿qué es lo que más te piden los gimnasios? 🏋️ Comentá 👇 En Nexo Fit te llegan pedidos con lista y cantidades, y ofertás desde tu link privado. #proveedoresfitness #equipamientofitness #mayorista #fitnessargentina #nexofit
+
+## 2026-11-09 18:00 · TikTok · Club: ¿qué deporte se lleva el presupuesto de material?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | CLUBES / En tu club, ¿qué deporte se lleva el presupuesto de material? |
+| 2.4–6 | Sé sincero: / FÚTBOL, HOCKEY, BÁSQUET, VÓLEY |
+| 6–9.6 | Comentá / TU DEPORTE / nadie se entera |
+| 9.6–12.4 | Cuando toque comprar, pedí ofertas por todo junto en Nexo Fit |
+| 12.4–14.8 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+En tu club, ¿qué deporte se lleva el presupuesto de material? 😅 Comentá el tuyo 👇 #clubes #clubdebarrio #equipamientodeportivo #fitnessargentina #nexofit
+
+## 2026-11-10 12:00 · TikTok · ¿Entra una zona de peso libre en 5 × 4?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ¿ENTRA O NO ENTRA? / Una zona de peso libre en 5 × 4 |
+| 2.4–8 | [3D 5 × 4 m] / Rack, 2 bancos, discos y mancuernas / ¿ENTRA? / Rack, Banco, Discos, Mancuernas / (Medidas de ejemplo) |
+| 8–11.6 | ¿Vos qué decís? / SÍ o NO / Comentalo |
+| 11.6–14.6 | Probalo con tus medidas, en 3D / Armá tu espacio, en Nexo Fit |
+| 14.6–17 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+¿Entra una zona de peso libre en 5 × 4? 🏋️ Rack, 2 bancos, discos y mancuernas. Comentá SÍ o NO y después probalo en 3D en Armá tu espacio 📐 #pesolibre #gimnasio #dueñodegimnasio #equipamientofitness #nexofit
+
+## 2026-11-10 18:00 · TikTok · Circuito de 8 estaciones en 6 × 4: ¿te alcanza?
+
+| Seg | Texto en pantalla |
+|---|---|
+| 0–2.4 | ENTRENADORES / Circuito de 8 estaciones en 6 × 4: ¿te alcanza? |
+| 2.4–8 | [planta 6 × 4 m] / Una estación por alumno / ¿TE ALCANZA? / Remo, Cajón, Pesas, Soga, Bandas, Bici, Mat, Balón / (Medidas de ejemplo) |
+| 8–11.6 | ¿Qué estación cambiarías? / COMENTÁ / y armamos el circuito entre todos |
+| 11.6–14.6 | Probalo con tus medidas, en 3D / Armá tu espacio, en Nexo Fit |
+| 14.6–17 | Seguinos para más / NEXO FIT · nexofitt.com.ar |
+
+**Texto de la publicación:**
+
+Circuito de 8 estaciones en 6 × 4: ¿te alcanza? 🔁 ¿Qué estación cambiarías? Comentalo 👇 Probalo con tus medidas en Armá tu espacio. #entrenadorpersonal #entrenamientofuncional #equipamientofitness #fitnessargentina #nexofit
+
