@@ -489,3 +489,6 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-11-02,pesas y barras,Black Iron,"Villa Lynch, San Martín",Buenos Aires,ventas@blackiron.com.ar,5491130479509,https://blackiron.com.ar/contacto/,enviado,1a19cfcc6e04f58c,
 2026-11-02,mantenimiento de canchas (fútbol y hockey),Maxigreen,"Parque Leloir, Ituzaingó",Buenos Aires,cesped@maxigreen.com.ar,,https://www.maxigreen.com.ar/contacto.html,enviado,1a19cfccb56c2beb,
 2026-11-02,redes para arcos (fútbol y hockey),Redes y Sogas (Grupo Botix),CABA,CABA,info@botix.com.ar,,https://redesysogas.com.ar/contacto/mail-y-chat,enviado,1a19cfccd0efd2e1,
+2026-11-02,hockey,Hockey Shop,San Juan,San Juan,,5492645306947,https://hockeyshop.com.ar/contacto/,solo_whatsapp,,
+2026-11-02,hockey,Culs Hockey,Córdoba,Córdoba,,5493517466782,https://culshockey.com.ar/contacto/,solo_whatsapp,,
+2026-11-02,hockey,Pousser Hockey,Florida,Buenos Aires,info@pousserhockey.com,5491160046261,https://pousserhockey.com/contacto,solo_whatsapp,,
