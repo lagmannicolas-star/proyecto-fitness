@@ -8,13 +8,23 @@ def out_path(v, reel):
     d, h = v["date"].split("T"); hh, mm = h.split(":")[:2]
     if reel: return os.path.join(REDES, v["folder"], f"reel-{hh}{mm}-{v['slug']}.mp4")
     return os.path.join(REDES, "tiktok", f"{d}_{hh}h_{v['slug']}.mp4")
+def elegir_fondo(v):
+    """Imagen de fondo según el público del video (o v["fondo"] si el guion lo fija). Nunca color liso."""
+    if v.get("fondo"): return v["fondo"]
+    x = (v["slug"] + " " + v.get("caption", "")).lower()
+    if any(k in x for k in ("pilates", "yoga", "estudio-", "mat-")): return "estudio"
+    if any(k in x for k in ("#educacionfisica", "escuela", "colegio", "clase-")): return "polideportivo"
+    if any(k in x for k in ("hockey", "futbol", "fútbol", "cancha")): return "cancha"
+    if "#clubes" in x or "club" in x: return "cancha" if v["seed"] % 2 else "polideportivo"
+    if any(k in x for k in ("#entrenadorpersonal", "funcional", "circuito", "crossfit", "home-gym", "box")): return "box"
+    return "gimnasio"
 items = [(v, True) for v in getattr(mod, "REELS", [])] + [(v, False) for v in getattr(mod, "T", [])]
 for v, reel in items:
     if only and v["slug"] not in only: continue
     dur = sum(s["dur"] for s in v["scenes"])
     if mode == "preview":
-        os.makedirs("/tmp/prev", exist_ok=True); preview(v["scenes"], f"/tmp/prev/{v['slug']}.png"); print(v["slug"], dur); continue
+        os.makedirs("/tmp/prev", exist_ok=True); preview(v["scenes"], f"/tmp/prev/{v['slug']}.png", elegir_fondo(v)); print(v["slug"], dur); continue
     out = out_path(v, reel); os.makedirs(os.path.dirname(out), exist_ok=True)
     wav = os.path.join(tempfile.gettempdir(), f"beat-{v['slug']}.wav")
     subprocess.run(["python3", os.path.join(HERE, "beat.py"), wav, str(dur + 0.5), str(v["seed"])], check=True)
-    render(v["scenes"], out, wav); os.remove(wav); print("OK", out, dur, flush=True)
+    render(v["scenes"], out, wav, elegir_fondo(v)); os.remove(wav); print("OK", out, dur, flush=True)

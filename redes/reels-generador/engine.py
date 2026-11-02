@@ -213,10 +213,11 @@ def sc_grid(d, t, sc, bg):
     if sc.get("bottom"): headline(d, t, sc["bottom"], 1500, 50, WHITE, bg, sc.get("bt", 3.2), font=FR)
 
 def sc_logo(d, t, sc, bg):
-    text_c(d, 660, sc.get("pre", "Por eso existe"), F(FB, 70), BLACK, ease((t - 0.2) / 0.3), bg)
+    ink = BLACK if bg == GREEN else WHITE
+    text_c(d, 660, sc.get("pre", "Por eso existe"), F(FB, 70), ink, ease((t - 0.2) / 0.3), bg)
     s = back((t - 0.5) / 0.5)
-    if s > 0: logo(d, 860, 220 * s, 1, bg, WHITE, BLACK)
-    if sc.get("sub"): headline(d, t, sc["sub"], 1180, 52, BLACK, bg, 1.4, font=FR)
+    if s > 0: logo(d, 860, 220 * s, 1, bg, WHITE if bg == GREEN else GREEN, BLACK if bg == GREEN else WHITE)
+    if sc.get("sub"): headline(d, t, sc["sub"], 1180, 52, ink, bg, 1.4, font=FR)
 
 def sc_steps(d, t, sc, bg):
     headline(d, t, sc["text"], 230, sc.get("size", 84), WHITE, bg, 0, sc.get("hl"))
@@ -365,37 +366,72 @@ def sc_iso(d, t, sc, bg):
 R = dict(iso=sc_iso, plan=sc_plan, title=sc_title, number=sc_number, chat=sc_chat, notifs=sc_notifs, chips=sc_chips, checklist=sc_checklist,
          split=sc_split, cards=sc_cards, grid=sc_grid, logo=sc_logo, steps=sc_steps, cta=sc_cta, end=sc_end)
 
-def frame(sc, t, g, total):
-    bg = GREEN if sc.get("bg") == "green" else BLACK
-    if sc["type"] == "logo": bg = mix(BLACK, GREEN, ease(t / 0.25))
-    im = Image.new("RGB", (W, H), bg); d = ImageDraw.Draw(im)
+# ---------------- fondos con imagen (fondos.py): nunca color liso
+import os as _os, glob as _glob
+_FDIR = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "fondos")
+_FCACHE = {}
+FONDOS_POR_DEFECTO = ["gimnasio", "box", "polideportivo", "cancha", "estudio"]
+
+def fondo_img(tema, n):
+    """Variante n del tema (gimnasio, box, polideportivo, cancha, estudio). Genera los fondos si faltan."""
+    fs = sorted(_glob.glob(_os.path.join(_FDIR, f"{tema}-*.jpg")))
+    if not fs:
+        import fondos; fondos.generar(); fs = sorted(_glob.glob(_os.path.join(_FDIR, f"{tema}-*.jpg")))
+    f = fs[n % len(fs)]
+    if f not in _FCACHE: _FCACHE[f] = Image.open(f).convert("RGB")
+    return _FCACHE[f]
+
+def fondo_frame(img, t, dur, k):
+    """Zoom lento (Ken Burns) con paneo suave; dirección alternada según k."""
+    bw, bh = img.size; p = clamp(t / max(dur, 0.1))
+    z = 1.0 + 0.06 * (p if k % 2 == 0 else 1 - p)
+    cw, ch = bw / z, bh / z
+    dx = (bw - cw) * (0.5 + 0.35 * (p - 0.5) * (1 if k % 3 else -1)); dy = (bh - ch) * 0.5
+    return img.resize((W, H), Image.BILINEAR, box=(dx, dy, dx + cw, dy + ch))
+
+def frame(sc, t, g, total, fondo=None):
+    """fondo = (tema, n_escena): la escena se dibuja en una capa transparente sobre la imagen."""
+    if fondo is None:
+        bg = GREEN if sc.get("bg") == "green" else BLACK
+        if sc["type"] == "logo": bg = mix(BLACK, GREEN, ease(t / 0.25))
+        im = Image.new("RGB", (W, H), bg); d = ImageDraw.Draw(im)
+        if sc.get("brand"): brand_bar(d, bg)
+        R[sc["type"]](d, t, sc, bg)
+        d.rectangle([0, H - 10, int(W * g / total), H], fill=GREEN if bg != GREEN else BLACK)
+        return im
+    tema, k = fondo; bg = BLACK
+    base = fondo_frame(fondo_img(tema, sc.get("fondo_n", k)), t, sc["dur"], k).convert("RGBA")
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     if sc.get("brand"): brand_bar(d, bg)
     R[sc["type"]](d, t, sc, bg)
-    d.rectangle([0, H - 10, int(W * g / total), H], fill=GREEN if bg != GREEN else BLACK)
-    return im
+    d.rectangle([0, H - 10, int(W * g / total), H], fill=GREEN)
+    base.alpha_composite(lay)
+    return base.convert("RGB")
 
-def render(scenes, out, audio=None):
+def render(scenes, out, audio=None, fondo="gimnasio"):
+    """fondo: tema de imagen de fondo (ver fondos.py). fondo=None vuelve al color liso (no usar en redes)."""
     total = sum(s["dur"] for s in scenes)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
     cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo"]
-    cmd += ["-map", "0:v", "-map", "1:a", "-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+    cmd += ["-map", "0:v", "-map", "1:a", "-shortest", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     g = 0.0
-    for sc in scenes:
-        n = int(sc["dur"] * FPS)
+    for i, sc in enumerate(scenes):
+        n = int(sc["dur"] * FPS); fd = (sc.get("fondo", fondo), i) if fondo else None
         for k in range(n):
-            t = k / FPS; im = frame(sc, t, g + t, total)
-            if k < 4: im = Image.blend(Image.new("RGB", (W, H), BLACK), im, (k + 1) / 5)
+            t = k / FPS; im = frame(sc, t, g + t, total, fd)
+            if g == 0 and k < 4: im = Image.blend(Image.new("RGB", (W, H), BLACK), im, (k + 1) / 5)
             p.stdin.write(im.tobytes())
         g += sc["dur"]
     p.stdin.close(); p.wait()
     return total
 
-def preview(scenes, out):
+def preview(scenes, out, fondo="gimnasio"):
     total = sum(s["dur"] for s in scenes); g = 0; ims = []
-    for sc in scenes:
-        ims.append(frame(sc, sc["dur"] - 0.2, g + sc["dur"], total).resize((360, 640))); g += sc["dur"]
+    for i, sc in enumerate(scenes):
+        fd = (sc.get("fondo", fondo), i) if fondo else None
+        ims.append(frame(sc, sc["dur"] - 0.2, g + sc["dur"], total, fd).resize((360, 640))); g += sc["dur"]
     cols = 6; rows = (len(ims) + cols - 1) // cols
     sheet = Image.new("RGB", (360 * cols, 640 * rows), (70, 70, 70))
     for i, im in enumerate(ims): sheet.paste(im, ((i % cols) * 360, (i // cols) * 640))
