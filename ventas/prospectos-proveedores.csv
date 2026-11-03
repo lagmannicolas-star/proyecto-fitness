@@ -180,7 +180,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-22,yoga/pilates,Sukha,,,info@sukhaonline.com,,,respondio,1a163913753f987d,
 2026-10-22,fitness/herrería,Sportigre,,,sportigrefm@gmail.com,,,seguimiento,1a1639107fc6a38f,2026-10-29
 2026-10-22,material deportivo,SGC Deportes,,,sgcdeportes1@gmail.com,,,seguimiento,1a163915734f6459,2026-10-29
-2026-10-22,natación,Todo en Natación,,,todoennatacion@gmail.com,,,seguimiento,1a16391794bc0ee1,2026-10-29
+2026-10-22,natación,Todo en Natación,,,todoennatacion@gmail.com,,,respondio,1a16391794bc0ee1,2026-10-29
 2026-10-22,material deportivo,Dexvida Deportes,,,contacto@dexvidadeportes.com.ar,,,seguimiento,1a163919b687c19d,2026-10-29
 2026-10-22,cardio,HFitness,,,ventas@hfitness.com.ar,,,seguimiento,1a16391bc580ee7d,2026-10-29
 2026-10-22,pisos deportivos,Multieva,,,multieva@barama.com.ar,,,seguimiento,1a16391e6642c5ee,2026-10-29
@@ -406,7 +406,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-10-30,boxeo/artes marciales (importador),Fighters Argentina,Buenos Aires,Buenos Aires,info@fightersargentina.com.ar,5491170634539,https://fightersargentina.com.ar/,enviado,1a18d0579c75dd67,
 2026-10-30,pisos de caucho,Plasticaucho,San Miguel de Tucumán,Tucumán,comercial@plasticaucho.com.ar,5493813000242,https://plasticaucho.com.ar/tienda/piso-de-caucho-reciclado/,enviado,1a18d059a02efafb,
 2026-10-30,kinesiología/rehabilitación,Kreiff,Venado Tuerto,Santa Fe,info@kreiff.com.ar,5493462415656,https://kreiff.com.ar/barras-paralelas/,enviado,1a18d05ba5534aea,
-2026-10-30,redes deportivas,Don Andamio,Mar del Plata,Buenos Aires,donandamiomdp@gmail.com,,https://donandamio.com.ar/redes-deportivas/,enviado,1a18d05dc0a4450a,
+2026-10-30,redes deportivas,Don Andamio,Mar del Plata,Buenos Aires,donandamiomdp@gmail.com,,https://donandamio.com.ar/redes-deportivas/,rebote,1a18d05dc0a4450a,
 2026-10-30,canchas de pádel (cristales),Superglass,El Talar,Buenos Aires,ventas@superglass.com.ar,5491127432946,https://www.superglass.com.ar/novedad/vidrio-templado-de-12mm-para-canchas-de-paddle-mas-profesionales-con-superglass,respondio,1a18d0604d03989b,
 2026-10-30,kinesiología/mecanoterapia,BHM Metal,GBA oeste,Buenos Aires,info@bhmmetal.com,,https://www.bhmmetal.com/contactenos/contactenos.php,enviado,1a18d062666b8bf8,
 2026-10-30,kinesiología/rehabilitación,Biotecnica,Hurlingham,Buenos Aires,biotecnica@biotecnica.com.ar,,https://biotecnica.com.ar/_BARRAS_PARALELAS_SIN_PISO_1085.html,enviado,1a18d0649b3221ba,
@@ -486,7 +486,7 @@ fecha_contacto,rubro,nombre,ciudad,provincia,email,whatsapp,fuente_url,estado,th
 2026-11-02,tenis y pádel,Padel Shop Mendoza,Guaymallén,Mendoza,padelshop10@gmail.com,5492614187073,https://padelshopmendoza.com.ar/about/,enviado,1a19c72d1aa0af0c,
 2026-11-02,hockey sobre patines,Vitox Sports,Mendoza,Mendoza,,5492613312120,https://vitox.com.ar/,solo_whatsapp,,
 2026-11-02,tenis y pádel,Sportcros,Salta,Salta,,5493876105625,https://www.sportcros.com.ar/,solo_whatsapp,,
-2026-11-02,pesas y barras,Black Iron,"Villa Lynch, San Martín",Buenos Aires,ventas@blackiron.com.ar,5491130479509,https://blackiron.com.ar/contacto/,enviado,1a19cfcc6e04f58c,
+2026-11-02,pesas y barras,Black Iron,"Villa Lynch, San Martín",Buenos Aires,ventas@blackiron.com.ar,5491130479509,https://blackiron.com.ar/contacto/,rebote,1a19cfcc6e04f58c,
 2026-11-02,mantenimiento de canchas (fútbol y hockey),Maxigreen,"Parque Leloir, Ituzaingó",Buenos Aires,cesped@maxigreen.com.ar,,https://www.maxigreen.com.ar/contacto.html,enviado,1a19cfccb56c2beb,
 2026-11-02,redes para arcos (fútbol y hockey),Redes y Sogas (Grupo Botix),CABA,CABA,info@botix.com.ar,,https://redesysogas.com.ar/contacto/mail-y-chat,enviado,1a19cfccd0efd2e1,
 2026-11-02,hockey,Hockey Shop,San Juan,San Juan,,5492645306947,https://hockeyshop.com.ar/contacto/,solo_whatsapp,,
