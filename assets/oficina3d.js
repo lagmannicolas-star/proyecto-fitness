@@ -798,7 +798,7 @@ export function crear(THREE, Orbit, cont, opciones) {
   }
 
   /* ---------- Nicolás, el mensajero, el perro y la aspiradora ---------- */
-  var mPelo = 0x0F0B09, mPiel = 0xC4916A, mRemera = 0x121416, mJean = 0x17191C; /* Morocho, ropa negra, sin barba ni anteojos */
+  var mPelo = 0x2B1A10, mPiel = 0xE7BF9C, mRemera = 0x121416, mJean = 0x17191C; /* Pelo oscuro con rulos cortos, ropa negra, sin barba ni anteojos */
   function armarJefe() {
     var g = new THREE.Group();
     g.add(fundir(conLote(function () {
@@ -813,7 +813,10 @@ export function crear(THREE, Orbit, cont, opciones) {
       if (conMate) { esf(0.19, 0, -0.5, -0.06, 0x5A3A22); cil(0.16, 0.02, 0, -0.42, -0.06, C.metal); cil(0.13, 0.015, 0, -0.405, -0.06, 0x6E8B3D); poner(BASE.cil, matriz(0.02, -0.3, -0.08, 0.016, 0.28, 0.016, 0, 0.28, -0.1), C.metal); }
     }), mCuerpos); };
     bd.add(geoB(true)); bi.add(geoB(false));
-    var c = fundir(conLote(function () { esf(0.34, 0, 0, 0, mPiel); poner(BASE.esf, matriz(0, 0.06, 0.03, 0.36, 0.28, 0.34), mPelo); }), mCuerpos);
+    var c = fundir(conLote(function () {
+      esf(0.34, 0, 0, 0, mPiel); poner(BASE.esf, matriz(0, 0.05, 0.03, 0.355, 0.26, 0.34), mPelo);
+      [[-0.1, 0.17, -0.09], [0, 0.2, -0.12], [0.1, 0.17, -0.09], [-0.13, 0.15, 0.02], [-0.04, 0.2, 0], [0.06, 0.2, 0.01], [0.14, 0.15, 0.02], [-0.08, 0.17, 0.1], [0.04, 0.17, 0.11], [0.12, 0.13, 0.1]].forEach(function (r) { esf(0.14, r[0], r[1], r[2], mPelo); });
+    }), mCuerpos);
     c.position.y = 1.12;
     var pi = pierna(0, -0.1), pd = pierna(0, 0.1);
     pi.material = pd.material = mCuerpos;
