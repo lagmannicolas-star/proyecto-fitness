@@ -69,7 +69,8 @@
     var proximas = ((foto.redes && foto.redes.proximas) || []).filter(function (p) { return new Date(p.fecha) >= new Date(ahora); });
     var igHoy = ((foto.redes && foto.redes.proximas) || []).filter(function (p) {
       return diaBA(p.fecha) === hoy && (p.redes || []).indexOf('instagram') >= 0;
-    }).length + ((d0.instagram && d0.instagram.hoy) || 0);
+    }).length + ((d0.instagram && d0.instagram.hoy) || 0) + ((d0.meta && d0.meta.hoy) || 0);
+    var meta = d0.meta || {}, colaFin = d0.cola_hasta || null;
     return {
       hoy: hoy, ahora: ahora, foto: foto, fotoVieja: vieja, mpListo: mpListo,
       diasLanzamiento: diasEntre(hoy, LANZAMIENTO), diasCierre: diasEntre(hoy, CIERRE),
@@ -81,7 +82,9 @@
       vendido: pagados.reduce(function (s, p) { return s + Number(p.pago_monto || 0); }, 0),
       comision: pagados.reduce(function (s, p) { return s + Number(p.pago_comision || 0); }, 0),
       ig: d0.instagram || {}, igHoy: igHoy, proximas: proximas, fb: d0.facebook || {},
-      cola: d0.cola || [], colaTotal: d0.cola_total || 0, colaHasta: d0.cola_hasta || null,
+      cola: d0.cola || [], colaTotal: d0.cola_total || 0, colaHasta: colaFin, meta: meta,
+      cubierto: (d0.cola_total || 0) + (meta.programados || 0),
+      cubiertoHasta: [colaFin, meta.hasta].filter(Boolean).sort(function (a, b) { return new Date(b) - new Date(a); })[0] || null,
       encargos: d0.encargos || [], metricas: d0.metricas || {}, ofertas: d0.ofertas_total || 0,
       promoCargadas: d0.promo_cargadas || 0, novedades: d0.novedades || [], avisos: d0.avisos || {}, automatismos: d0.automatismos || [], exigirMp: !!d0.exigir_mp,
       ventas: foto.ventas || null, tareas: foto.tareas || null
@@ -111,7 +114,7 @@
       if (tareasCaidas(x)) return 'frenada';
       return (x.fotoVieja || x.avisos.errores_7d) ? 'atencion' : 'orden';
     }
-    if (id === 'diseno') return x.colaTotal >= COLA_MINIMA ? 'orden' : 'atencion';
+    if (id === 'diseno') return x.cubierto >= COLA_MINIMA ? 'orden' : 'atencion';
     return (novedadesDe(x, id).length || encargosDe(x, id).length) ? 'orden' : 'nada';
   }
 
@@ -137,10 +140,49 @@
       var prox = turnos.filter(function (t) { return aMinutos(t.h) > ahora; })[0] || turnos[0];
       var u = x.novedades.filter(function (n) { return n.espacio === id; })[0];
       var trabajando = enTurno || enCurso;
-      o[id] = { nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null,
-        ultima: u || null, texto: trabajando ? 'Trabajando ahora' : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
+      var turnoAhora = turnos.filter(function (t) { var d = ahora - aMinutos(t.h); return d >= 0 && d < VENTANA_TURNO; })[0];
+      var encargoAhora = x.encargos.filter(function (e) { return e.espacio === id && e.estado === 'en_curso'; })[0];
+      var tarea = turnoAhora ? turnoAhora.t : encargoAhora ? encargoAhora.titulo : null;
+      o[id] = { nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null, proximoT: prox ? prox.t : null,
+        ultima: u || null, tarea: tarea, pantalla: pantallaSala(id, x), texto: trabajando ? (tarea || 'Trabajando ahora') : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
     });
     return o;
+  }
+
+  /* Lo que muestra la pantalla de pared de cada sala: siempre sale de los datos, nunca de un ejemplo. */
+  function pantallaSala(id, x) {
+    var v = x.ventas || {}, r = x.foto.redes || {}, pend = pendientes(x), l = listaLanzamiento(x);
+    var proximaMeta = x.meta.proxima ? fechaHora(x.meta.proxima.fecha) : null;
+    if (id === 'direccion') return { cifra: Math.max(0, x.diasLanzamiento), unidad: 'días para lanzar', nota: pend[0] ? 'Primero: ' + pend[0].t : 'Nada pendiente',
+      filas: [['Lista lista', l.filter(function (i) { return i.ok; }).length + ' de ' + l.length], ['Pendientes', pend.length], ['Frenados', pend.filter(function (p) { return p.n === 'frenada'; }).length], ['Cierre promo', Math.max(0, x.diasCierre) + ' días']] };
+    if (id === 'comercial') return { cifra: x.red.length, unidad: 'proveedores', nota: 'Pedidos reales: ' + x.pedidos.length + ', con ofertas: ' + x.conOfertas,
+      filas: [['Nuevos 7 días', x.nuevos7], ['Contactadas', v.prospectos || 0], ['Respondieron', v.respondieron || 0], ['Ofertas', x.ofertas]] };
+    if (id === 'administracion') return { cifra: x.conMp + ' de ' + x.red.length, unidad: 'con Mercado Pago', nota: x.mpListo === false ? 'Falta activar Mercado Pago en la página' : x.mpListo ? 'Mercado Pago activo' : '',
+      filas: [['Vendido', plata(x.vendido)], ['Comisión', plata(x.comision)], ['Pagados', x.pagados.length], ['Exigir MP', x.exigirMp ? 'Sí' : 'No']] };
+    if (id === 'redes') return { cifra: x.meta.programados || 0, unidad: 'programadas en Meta', nota: x.meta.proxima ? 'Próxima: ' + x.meta.proxima.titulo : 'Sin próxima publicación cargada',
+      filas: [['Próxima', proximaMeta ? proximaMeta.replace(/^\S+ /, '') : '—'], ['Hoy', x.igHoy], ['Seguidores', r.seguidores_ig == null ? '—' : r.seguidores_ig], ['Fallidas 7 d', r.fallidas_7d == null ? '—' : r.fallidas_7d]] };
+    if (id === 'marketing') return { cifra: x.promoCargadas, unidad: 'empresas con la promo', nota: 'El 5 % vale hasta el 13/11',
+      filas: [['Sumadas con 5 %', x.conPromo], ['Días de promo', Math.max(0, x.diasCierre)], ['Alcance diario', r.alcance_ig_7d == null ? '—' : r.alcance_ig_7d]] };
+    if (id === 'diseno') { var dv = x.foto.diseno || {}; return { cifra: x.cubierto, unidad: 'piezas cargadas', nota: x.cubiertoHasta ? 'Contenido hasta el ' + fechaCorta(x.cubiertoHasta) : 'Sin contenido cargado',
+      filas: [['Cubierto hasta', x.cubiertoHasta ? fechaCorta(x.cubiertoHasta) : '—'], ['En Meta', x.meta.programados || 0], ['Última tanda', dv.videos_semana == null ? '—' : dv.videos_semana]] }; }
+    if (id === 'investigacion') { var inf = novedadesDe(x, id).filter(function (i) { return i.tipo === 'reporte'; }); return { cifra: inf.length, unidad: 'informes', nota: inf[0] ? inf[0].titulo : 'El primer informe sale en el turno de las 00:23',
+      filas: [['Último', inf[0] ? fechaCorta(inf[0].fecha) : '—'], ['Encargos', encargosDe(x, id).length]] }; }
+    var ok = (x.tareas || []).filter(function (t) { return t.estado === 'ok'; }).length;
+    return { cifra: x.tareas ? ok + ' de ' + x.tareas.length : x.automatismos.length, unidad: x.tareas ? 'tareas funcionando' : 'procesos de la base', nota: tareasCaidas(x) ? 'Hay tareas caídas' : 'Sin tareas caídas',
+      filas: [['Avisos 7 días', x.avisos.enviados_7d || 0], ['Avisos fallidos', x.avisos.errores_7d || 0], ['Procesos', x.automatismos.length]] };
+  }
+  function proximosTurnos(ahora, n) {
+    var h = horaBA(ahora), despues = TURNOS.filter(function (t) { return t.h > h; }), antes = TURNOS.filter(function (t) { return t.h <= h; });
+    return despues.concat(antes).slice(0, n).map(function (t) { return { h: t.h, sala: NOMBRES[t.e], t: t.t }; });
+  }
+  function faltaPara(h, ahora) {
+    var d = aMinutos(h) - aMinutos(horaBA(ahora));
+    if (d <= 0) d += 1440;
+    return d < 60 ? d + ' min' : Math.floor(d / 60) + ' h' + (d % 60 ? ' ' + (d % 60) + ' min' : '');
+  }
+  function info3d(x) {
+    var h = horaBA(x.ahora);
+    return { hora: h, minutos: aMinutos(h), dias: Math.max(0, x.diasLanzamiento), turnos: proximosTurnos(x.ahora, 4) };
   }
 
   /* Lista de lanzamiento: lo que tiene que estar listo el 16/11. */
@@ -152,7 +194,7 @@
       { t: 'Regla de exigir Mercado Pago prendida', ok: x.exigirMp },
       { t: 'Instagram conectado', ok: !!x.ig.conectado },
       { t: 'Facebook conectado', ok: !!x.fb.conectado },
-      { t: 'Dos semanas de contenido en cola', ok: x.colaTotal >= COLA_MINIMA },
+      { t: 'Dos semanas de contenido cargado', ok: x.cubierto >= COLA_MINIMA },
       { t: 'Promo cargada para todas las empresas con mail', ok: !x.ventas || x.ventas.seguimiento_enviados <= x.promoCargadas },
       { t: 'Primer pedido real', ok: x.pedidos.length > 0 },
       { t: 'Primera oferta real', ok: x.ofertas > 0 }
@@ -205,9 +247,9 @@
     var n = NOMBRES[id], ult = novedadesDe(x, id)[0];
     if (id === 'direccion') { var l = pendientes(x); return { n: n, c: Math.max(0, x.diasLanzamiento), de: ' días', t: plural(l.length, 'decisión pendiente', 'decisiones pendientes') }; }
     if (id === 'comercial') return { n: n, c: x.red.length, de: ' proveedores', t: plural(x.pedidos.length, 'pedido real', 'pedidos reales') + ', ' + (x.ventas ? plural(x.ventas.respondieron || 0, 'respuesta', 'respuestas') + ' al lanzamiento' : 'sin lectura de mails') };
-    if (id === 'redes') return { n: n, c: x.colaTotal, de: ' en cola', t: 'Meta ' + (x.ig.conectado && x.fb.conectado ? 'conectado' : 'sin conectar') + ', ' + x.igHoy + ' hoy en Instagram' };
+    if (id === 'redes') return { n: n, c: x.cubierto, de: ' cargadas', t: 'Meta ' + (x.ig.conectado && x.fb.conectado ? 'conectado' : 'sin conectar') + ', ' + x.igHoy + ' hoy en Instagram' };
     if (id === 'marketing') return { n: n, c: x.promoCargadas, de: '', t: 'empresas con la promo, ' + x.conPromo + ' ya sumadas' };
-    if (id === 'diseno') return { n: n, c: x.colaHasta ? fechaCorta(x.colaHasta) : '—', de: '', t: x.colaHasta ? 'contenido cubierto hasta esa fecha' : 'Sin contenido en cola' };
+    if (id === 'diseno') return { n: n, c: x.cubiertoHasta ? fechaCorta(x.cubiertoHasta) : '—', de: '', t: x.cubiertoHasta ? 'contenido cubierto hasta esa fecha' : 'Sin contenido cargado' };
     if (id === 'investigacion') return { n: n, c: novedadesDe(x, id).filter(function (i) { return i.tipo === 'reporte'; }).length, de: ' informes', t: ult ? ult.titulo : 'Primer turno a las 00:23' };
     if (id === 'administracion') return { n: n, c: x.conMp, de: ' de ' + x.red.length, t: 'con Mercado Pago' + (x.mpListo === false ? ', sin activar en la página' : '') };
     var ok = (x.tareas || []).filter(function (t) { return t.estado === 'ok'; }).length;
@@ -366,8 +408,8 @@
     redes: function (x) {
       var r = x.foto.redes || {};
       return { t: 'Redes sociales', s: 'Lo que está por salir y cómo viene el publicador.',
-        h: medidas([[x.igHoy, 'en Instagram hoy'], [x.fb.hoy || 0, 'en Facebook hoy'], [x.ig.conectado ? 'Conectado' : 'Sin conectar', 'Instagram por Meta'], [x.fb.conectado ? (x.fb.pagina || 'Conectado') : 'Sin conectar', 'Facebook'], [r.seguidores_ig == null ? '—' : r.seguidores_ig, 'seguidores en Instagram'], [r.fallidas_7d == null ? '—' : r.fallidas_7d, 'fallidas en 7 días']])
-          + tendencias(x, [['seguidores_ig', 'Seguidores de Instagram'], ['alcance_ig', 'Alcance diario'], ['publicadas_meta', 'Publicadas por Meta']]) + colaMeta(x) + pizarra(x, 'redes') + feed(x, 'redes') + proximas(x) + '<p class="nota">Metricool queda solo para TikTok, 1 por día. Lo programado a mano en Meta Business Suite no se ve desde acá.' + (x.ig.ultimo_error ? ' Último error del publicador: ' + esc(x.ig.ultimo_error) : '') + '</p>' };
+        h: medidas([[x.meta.programados || 0, 'programadas en Business Suite'], [x.igHoy, 'en Instagram hoy'], [x.fb.hoy || 0, 'en Facebook hoy'], [x.ig.conectado ? 'Conectado' : 'Sin conectar', 'Instagram por Meta'], [x.fb.conectado ? (x.fb.pagina || 'Conectado') : 'Sin conectar', 'Facebook'], [r.seguidores_ig == null ? '—' : r.seguidores_ig, 'seguidores en Instagram'], [r.fallidas_7d == null ? '—' : r.fallidas_7d, 'fallidas en 7 días']])
+          + tendencias(x, [['seguidores_ig', 'Seguidores de Instagram'], ['alcance_ig', 'Alcance diario'], ['publicadas_meta', 'Publicadas por Meta']]) + colaMeta(x) + pizarra(x, 'redes') + feed(x, 'redes') + proximas(x) + '<p class="nota">Metricool queda solo para TikTok, 1 por día. Lo que cargues a mano en Business Suite aparece acá cuando se registra en la cola.' + (x.ig.ultimo_error ? ' Último error del publicador: ' + esc(x.ig.ultimo_error) : '') + '</p>' };
     },
     marketing: function (x) {
       var r = x.foto.redes || {};
@@ -379,7 +421,7 @@
     diseno: function (x) {
       var dv = x.foto.diseno || {};
       return { t: 'Diseño y video', s: 'Piezas en producción y publicaciones en cola.',
-        h: medidas([[x.colaTotal, 'piezas en cola de Meta'], [x.colaHasta ? fechaCorta(x.colaHasta) : '—', 'cubierto hasta'], [dv.videos_semana == null ? '—' : dv.videos_semana, 'videos de la última tanda']])
+        h: medidas([[x.meta.programados || 0, 'programadas en Business Suite'], [x.colaTotal, 'en cola del publicador'], [x.cubiertoHasta ? fechaCorta(x.cubiertoHasta) : '—', 'cubierto hasta'], [dv.videos_semana == null ? '—' : dv.videos_semana, 'videos de la última tanda']])
           + pizarra(x, 'diseno') + (feed(x, 'diseno') || '<p class="sin-datos">Todavía no hay novedades de producción.</p>') + colaMeta(x) };
     },
     investigacion: function (x) {
@@ -412,7 +454,8 @@
       : '<p class="sin-datos">No hay publicaciones próximas en Metricool.</p>';
   }
 
-  var ui = { sala: null, q: '', sinMp: false, vista: '3d' }, datos = null, mpListo = null, raiz = null, mundo3d = null, cargando3d = false;
+  var QUE_HACE = { direccion: 'Ordena prioridades y junta lo que hacen las demás salas.', comercial: 'Sigue proveedores, compradores y mails.', redes: 'Controla el calendario de Instagram, Facebook y TikTok.', marketing: 'Analiza contenido, promo y campañas.', diseno: 'Produce los videos y las piezas para publicar.', investigacion: 'Mira mercado, competencia y compradores.', administracion: 'Controla cobros y comisiones.', operaciones: 'Cuida que todo lo automático funcione.' };
+  var ui = { sala: null, foco: null, q: '', sinMp: false, vista: '3d' }, datos = null, mpListo = null, raiz = null, mundo3d = null, cargando3d = false;
 
   function pintarMesa() {
     var cont = d.getElementById('mesa');
@@ -440,6 +483,45 @@
       a.onclick = function (ev) { ev.preventDefault(); elegirSala(a.dataset.ir, true); };
     });
   }
+  function enfocarSala(id) {
+    ui.sala = id; ui.foco = id; pintarMesa(); pintarFicha(); refrescar3d();
+    if (mundo3d) mundo3d.enfocar(id);
+  }
+  function salirDeSala() {
+    ui.foco = null; pintarFicha();
+    if (mundo3d) mundo3d.enfocar(null);
+  }
+  function pintarFicha() {
+    var f = d.getElementById('ficha');
+    if (!f) return;
+    var abierta = !!ui.foco && ui.vista === '3d', caja = raiz.querySelector('.escenario');
+    if (caja) caja.classList.toggle('con-ficha', abierta);
+    if (!abierta) { f.hidden = true; return; }
+    var id = ui.foco, a = actividad(datos)[id], p = a.pantalla, ult = novedadesDe(datos, id)[0], abiertos = encargosDe(datos, id).filter(function (e) { return e.estado !== 'hecho'; }).length;
+    f.hidden = false; f.dataset.estado = a.estado;
+    f.innerHTML = '<button type="button" class="ficha-cerrar" id="ficha-cerrar">Ver toda la oficina</button><h2>' + esc(a.nombre) + '</h2><p class="ficha-hace">' + esc(QUE_HACE[id]) + '</p>'
+      + '<p class="ficha-estado"><i class="marca ' + a.estado + '"></i>' + esc(ESTADOS[a.estado]) + '</p>'
+      + '<p class="ficha-ahora">' + (a.trabajando ? '<b>Trabajando ahora</b>' + esc(a.tarea || '') : a.proximo ? '<b>Próximo turno ' + esc(a.proximo) + ', en ' + esc(faltaPara(a.proximo, datos.ahora)) + '</b>' + esc(a.proximoT || '') : 'Sin turno diario') + '</p>'
+      + '<div class="ficha-cifra"><b class="num">' + esc(p.cifra) + '</b><span>' + esc(p.unidad) + '</span></div>'
+      + '<dl>' + p.filas.map(function (c) { return '<div><dt>' + esc(c[0]) + '</dt><dd class="num">' + esc(c[1]) + '</dd></div>'; }).join('') + '<div><dt>Encargos abiertos</dt><dd class="num">' + abiertos + '</dd></div></dl>'
+      + (ult ? '<p class="ficha-ultimo"><b>Lo último, ' + esc(hace(ult.fecha, datos.ahora)) + '</b>' + esc(ult.titulo) + '</p>' : '')
+      + '<button type="button" class="boton fuerte" id="ficha-detalle">Abrir todo el detalle</button>';
+    d.getElementById('ficha-cerrar').onclick = salirDeSala;
+    d.getElementById('ficha-detalle').onclick = function () { d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
+  }
+  function pintarHud(x) {
+    var r = d.getElementById('hud-reloj'), n = proximoTurno(x.ahora), h = horaBA(x.ahora);
+    if (r) r.innerHTML = '<b class="num">' + esc(h) + '</b><span>Buenos Aires</span><span>Próximo turno: ' + esc(NOMBRES[n.e]) + ' en ' + esc(faltaPara(n.h, x.ahora)) + '</span>';
+  }
+  var noticiaI = 0;
+  function pintarNoticia() {
+    var el = d.getElementById('noticia');
+    if (!el || !datos) return;
+    var l = datos.novedades.slice(0, 6);
+    if (!l.length) { el.textContent = 'Las novedades de cada sala van a aparecer acá.'; return; }
+    var n = l[noticiaI % l.length];
+    el.textContent = NOMBRES[n.espacio] + ', ' + hace(n.fecha, datos.ahora) + ': ' + n.titulo;
+  }
   function elegirSala(id, bajar) {
     ui.sala = id; pintarMesa(); refrescar3d();
     if (bajar || w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' });
@@ -452,17 +534,19 @@
     b.onclick = function () { ui.vista = 'plano'; mostrarVista(); };
   }
   function mostrarVista() {
-    var es = ui.vista === '3d', e = d.getElementById('escena'), p = raiz.querySelector('.plano');
+    var es = ui.vista === '3d', e = d.getElementById('escena'), p = raiz.querySelector('.plano'), hud = raiz.querySelector('.hud-3d');
     if (e) e.hidden = !es;
+    if (hud) hud.hidden = !es;
+    pintarFicha();
     if (p) p.hidden = es;
     d.getElementById('ver-3d').setAttribute('aria-pressed', String(es));
     d.getElementById('ver-plano').setAttribute('aria-pressed', String(!es));
   }
   function hay3d() {
-    if (!w.WebGLRenderingContext || w.NF_OFICINA_PREVIEW) return false;
+    if (!w.WebGLRenderingContext || (w.NF_OFICINA_PREVIEW && !w.NF_OFICINA_PREVIEW.con3d)) return false;
     try { var c = d.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
   }
-  function refrescar3d() { if (mundo3d && datos) mundo3d.actualizar(actividad(datos), ui.sala); }
+  function refrescar3d() { if (mundo3d && datos) mundo3d.actualizar(actividad(datos), ui.sala, info3d(datos)); }
   function arrancar3d() {
     var e = d.getElementById('escena');
     if (ui.vista !== '3d') return;
@@ -470,9 +554,10 @@
     if (mundo3d) { mundo3d.montar(e); refrescar3d(); return; }
     if (cargando3d) return;
     cargando3d = true;
-    var base = (d.currentScript || d.querySelector('script[src*="oficina.js"]')).src.replace(/oficina\.js.*$/, '');
+    var fuente = d.currentScript || d.querySelector('script[src*="oficina.js"]'), base = (w.NF_OFICINA_PREVIEW && w.NF_OFICINA_PREVIEW.base) || fuente.src.replace(/oficina\.js.*$/, '');
     Promise.all([import(base + 'vendor/three/three.module.min.js'), import(base + 'vendor/three/OrbitControls.js'), import(base + 'oficina3d.js')]).then(function (m) {
-      mundo3d = m[2].crear(m[0], m[1].OrbitControls, d.getElementById('escena'), { elegir: function (id) { elegirSala(id, false); } });
+      mundo3d = m[2].crear(m[0], m[1].OrbitControls, d.getElementById('escena'), { elegir: enfocarSala, salir: salirDeSala });
+      w.__nfMundo = mundo3d;
       refrescar3d();
     }).catch(function () { ui.vista = 'plano'; mostrarVista(); var a = d.getElementById('ver-3d'); if (a) a.hidden = true; }).then(function () { cargando3d = false; });
   }
@@ -481,6 +566,7 @@
   function pintarVivo(d0, ahora) {
     w.__nfFoto = d0.foto && d0.foto.actualizada;
     datos = leer(d0, ahora, mpListo);
+    pintarHud(datos); pintarNoticia(); pintarFicha();
     var lista = pendientes(datos), h = raiz.querySelector('.hora'), f = raiz.querySelector('.frase h1'), t = d.getElementById('turnos'), p = raiz.querySelector('.pendientes');
     if (h) h.textContent = 'Actualizada ' + fechaHora(ahora);
     if (f) f.textContent = frase(datos, lista);
@@ -499,20 +585,23 @@
     raiz.innerHTML = '<div class="marco"><header class="tope"><img src="assets/icon-192.png" alt=""><b>Oficina Nexo Fit</b>'
       + '<span class="hora">' + (w.NF_OFICINA_PREVIEW ? 'Vista previa con datos de ' : 'Actualizada ') + esc(fechaHora(ahora)) + '</span>'
       + (w.NF_OFICINA_PREVIEW ? '' : '<button type="button" class="boton" id="actualizar">Actualizar</button><a class="boton" href="admin.html">Ir al panel</a>')
-      + '</header><section class="frase"><h1>' + esc(frase(datos, lista)) + '</h1></section>' + dibujarCota(datos)
-      + '<div class="trabajo"><div class="vista"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button></div>'
+      + '</header><section class="frase"><h1>' + esc(frase(datos, lista)) + '</h1></section>'
+      + '<div class="vista"><div class="escenario"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button></div>'
       + '<div class="escena3d" id="escena"' + (ui.vista === '3d' ? '' : ' hidden') + '></div>'
+      + '<div class="hud-3d"' + (ui.vista === '3d' ? '' : ' hidden') + '><div class="hud-reloj" id="hud-reloj"></div><ul class="hud-leyenda" aria-label="Qué significan las luces"><li><i class="marca orden"></i>En orden</li><li><i class="marca atencion"></i>Atención</li><li><i class="marca frenada"></i>Frenada</li></ul><p class="noticia" id="noticia"></p></div>'
+      + '<aside class="ficha" id="ficha" aria-label="Sala elegida" hidden></aside></div>'
       + '<div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio"' + (ui.vista === '3d' ? ' hidden' : '') + '>'
       + SALAS.map(function (id, i) { return dibujarSala(id, i, datos, ui.sala); }).join('')
       + '<i class="puerta v p1"></i><i class="puerta v p2"></i><i class="puerta h p3"></i><i class="puerta v p4"></i><div class="entrada"><span>Entrada</span></div></div>'
-      + '<p class="aclaracion">Las personas son una representación. Salas, turnos y novedades son reales y se actualizan cada minuto.</p></div>'
-      + dibujarPendientes(lista) + '</div>' + dibujarTurnos(datos) + '<section class="mesa" id="mesa" aria-live="polite"></section>'
+      + '<p class="aclaracion">Las personas son una representación. Pantallas, luces, turnos, hora del día y novedades son reales y se actualizan cada minuto. Tocá una sala para entrar.</p></div>'
+      + '<div class="trabajo"><div class="trabajo-izq">' + dibujarCota(datos) + dibujarTurnos(datos) + '</div>' + dibujarPendientes(lista) + '</div><section class="mesa" id="mesa" aria-live="polite"></section>'
       + '<footer class="pie">Pedidos, proveedores y caja se leen en vivo. Redes, mails, tareas, avances y reportes llegan con cada turno.</footer></div>';
     pintarMesa();
     atarVista();
+    pintarHud(datos); pintarNoticia(); pintarFicha();
     arrancar3d();
     raiz.querySelectorAll('[data-sala]').forEach(function (b) {
-      b.onclick = function () { ui.sala = b.dataset.sala; pintarMesa(); if (w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
+      b.onclick = function () { ui.sala = b.dataset.sala; pintarMesa(); refrescar3d(); if (w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
     });
     atarSaltos();
     var act = d.getElementById('actualizar');
@@ -556,12 +645,13 @@
     raiz.innerHTML = '<div class="ingreso"><form id="reintentar"><h1>La oficina no abrió</h1><p>' + esc(msg) + '</p><button class="boton fuerte" type="submit">Probar de nuevo</button></form></div>';
     d.getElementById('reintentar').onsubmit = function (ev) { ev.preventDefault(); cargar(); };
   }
+  function leerMeta(token) { return pedir('/rest/v1/rpc/fitness_oficina_meta', {}, token).catch(function () { return null; }); }
   function cargar() {
     return sesionVigente().then(function (s) {
       if (!s) return pintarIngreso();
       var estadoMp = w.fetch('/api/pagos/estado').then(function (r) { return r.json(); }).then(function (j) { return !!j.mercadoPago; }).catch(function () { return null; });
-      return Promise.all([pedir('/rest/v1/rpc/fitness_oficina', {}, s.access_token), estadoMp]).then(function (r) {
-        mpListo = r[1];
+      return Promise.all([pedir('/rest/v1/rpc/fitness_oficina', {}, s.access_token), estadoMp, leerMeta(s.access_token)]).then(function (r) {
+        mpListo = r[1]; r[0].meta = r[2];
         pintar(r[0], r[0].ahora || new Date().toISOString());
       }).catch(function (e) {
         if (e.status === 401) { guardar(null); return pintarIngreso('Tu sesión venció. Entrá de nuevo.'); }
@@ -575,11 +665,13 @@
   function iniciar() {
     raiz = d.getElementById('oficina');
     if (!raiz) return;
+    d.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && ui.foco) salirDeSala(); });
+    if (!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches)) w.setInterval(function () { if (!d.hidden) { noticiaI++; pintarNoticia(); } }, 8000);
     if (w.NF_OFICINA_PREVIEW) { mpListo = w.NF_OFICINA_PREVIEW.mpListo; pintar(w.NF_OFICINA_PREVIEW.datos, w.NF_OFICINA_PREVIEW.datos.ahora); return; }
     cargar();
     w.setInterval(function () {
       if (d.hidden || !d.getElementById('actualizar')) return;
-      sesionVigente().then(function (s) { return s ? pedir('/rest/v1/rpc/fitness_oficina', {}, s.access_token) : null; }).then(function (r) { if (r) pintarVivo(r, r.ahora); }).catch(function () { /* el próximo minuto reintenta */ });
+      sesionVigente().then(function (s) { return s ? Promise.all([pedir('/rest/v1/rpc/fitness_oficina', {}, s.access_token), leerMeta(s.access_token)]) : null; }).then(function (r) { if (r) { r[0].meta = r[1]; pintarVivo(r[0], r[0].ahora); } }).catch(function () { /* el próximo minuto reintenta */ });
     }, 60 * 1000);
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', iniciar); else iniciar();

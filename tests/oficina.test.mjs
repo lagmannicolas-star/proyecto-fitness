@@ -38,6 +38,12 @@ const sin=abrir();await new Promise(r=>setTimeout(r,30));assert(sin.window.docum
 // Actividad real: a las 00:30 de Buenos Aires trabaja Investigación; un encargo en curso también enciende la sala.
 const noche=O.leer(base,'2026-11-04T03:30:00Z',null);assert.equal(O.actividad(noche).investigacion.trabajando,true);assert.equal(O.actividad(noche).marketing.trabajando,false);assert.equal(O.actividad(noche).marketing.proximo,'03:23');
 const curso=O.leer({...base,encargos:[{espacio:'marketing',estado:'en_curso',titulo:'x'}]},'2026-11-04T15:00:00Z',null);assert.equal(O.actividad(curso).marketing.trabajando,true);
+// Las pantallas de la oficina 3D muestran datos reales y lo programado en Meta cuenta como contenido cargado.
+const conMeta=O.leer({...base,meta:{programados:30,hasta:'2026-11-14T23:00:00Z',hoy:1,proxima:{fecha:'2026-11-05T23:00:00Z',titulo:'Reel'}}},'2026-11-04T15:00:00Z',false);
+assert.equal(conMeta.cubierto,30);assert.equal(O.estadoSala('diseno',conMeta),'orden');assert(!O.pendientes(conMeta).some(p=>p.t==='Instagram no tiene nada para hoy'),'lo cargado en Meta cuenta para hoy');
+const salasMeta=O.actividad(conMeta);assert.equal(salasMeta.redes.pantalla.cifra,30);assert.equal(salasMeta.comercial.pantalla.cifra,24);assert.equal(salasMeta.administracion.pantalla.cifra,'0 de 24');
+const enTurno=O.actividad(O.leer(base,'2026-11-04T13:30:00Z',null));assert.equal(enTurno.redes.trabajando,true);assert.equal(enTurno.redes.tarea,'Control del calendario');assert.equal(enTurno.redes.texto,'Control del calendario');
+assert.match(fs.readFileSync('supabase/migrations/20261104030000_oficina_meta.sql','utf8'),/if not public\.fitness_es_admin\(\) then raise exception 'No autorizado'/);
 // Sin WebGL queda el plano y no se rompe.
 assert(!doc.querySelector('.plano').hidden,'sin 3D se ve el plano');
 // Lista de lanzamiento y turnos.
