@@ -11,7 +11,8 @@ const base={red:Array.from({length:24},(_,i)=>prov(i)),pedidos:[{code:'A',status
 function abrir(preview){const dom=new JSDOM(html.replace('<script src="assets/sitio.js"></script>','').replace('<script src="assets/oficina.js"></script>','').replace(/<link[^>]+>/g,''),{url:'https://nexofitt.com.ar/oficina.html',runScripts:'dangerously',pretendToBeVisual:true});
  if(preview)dom.window.NF_OFICINA_PREVIEW=preview;else{dom.window.fetch=()=>Promise.reject(Error('sin red'));}
  dom.window.eval(js);return dom;}
-const dom=abrir({datos:{...base,ahora},mpListo:false}),O=dom.window.NFOficina,doc=dom.window.document;
+const espera=()=>new Promise(r=>setTimeout(r,30));
+const dom=abrir({datos:{...base,ahora},mpListo:false}),O=dom.window.NFOficina,doc=dom.window.document;await espera();
 // Hoy en Buenos Aires todavía es el 3/11 aunque en UTC ya sea el 4.
 assert.equal(O.diaBA(ahora),'2026-11-03');
 const x=O.leer(base,ahora,false);assert.equal(x.diasLanzamiento,13);assert.equal(x.pedidos.length,0,'los descartados no cuentan');
@@ -26,7 +27,7 @@ const conIg=O.leer({...base,instagram:{conectado:true,hoy:2},promo_cargadas:66,r
 assert.equal(O.pendientes(conIg).length,0,'sin pendientes cuando todo se resolvió');assert.match(O.frase(conIg,[]),/Está todo en orden/);
 // Datos de texto siempre escapados.
 assert.equal(doc.querySelectorAll('.sala').length,8);
-const malo=abrir({datos:{...base,ahora,red:[{...prov(1),nombre:'<img src=x onerror=alert(1)>'}]},mpListo:null});malo.window.document.querySelector('[data-sala="comercial"]').click();assert.equal(malo.window.document.querySelector('#mesa img'),null);assert.match(malo.window.document.querySelector('#mesa').textContent,/<img src=x/);
+const malo=abrir({datos:{...base,ahora,red:[{...prov(1),nombre:'<img src=x onerror=alert(1)>'}]},mpListo:null});await espera();malo.window.document.querySelector('[data-sala="comercial"]').click();assert.equal(malo.window.document.querySelector('#mesa img'),null);assert.match(malo.window.document.querySelector('#mesa').textContent,/<img src=x/);
 // Elegir sala cambia la mesa; el filtro no rompe.
 doc.querySelector('[data-sala="redes"]').click();assert.match(doc.getElementById('mesa').textContent,/Business Suite/);
 doc.querySelector('[data-sala="comercial"]').click();doc.getElementById('sin-mp').click();assert.match(doc.getElementById('mesa').textContent,/Prov 23/);
