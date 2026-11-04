@@ -143,7 +143,7 @@
       var turnoAhora = turnos.filter(function (t) { var d = ahora - aMinutos(t.h); return d >= 0 && d < VENTANA_TURNO; })[0];
       var encargoAhora = x.encargos.filter(function (e) { return e.espacio === id && e.estado === 'en_curso'; })[0];
       var tarea = turnoAhora ? turnoAhora.t : encargoAhora ? encargoAhora.titulo : null;
-      o[id] = { nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null, proximoT: prox ? prox.t : null,
+      o[id] = { publica: pantallaPublica(id, x), nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null, proximoT: prox ? prox.t : null,
         ultima: u || null, tarea: tarea, pantalla: pantallaSala(id, x), texto: trabajando ? (tarea || 'Trabajando ahora') : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
     });
     return o;
@@ -171,6 +171,35 @@
     return { cifra: x.tareas ? ok + ' de ' + x.tareas.length : x.automatismos.length, unidad: x.tareas ? 'tareas funcionando' : 'procesos de la base', nota: tareasCaidas(x) ? 'Hay tareas caídas' : 'Sin tareas caídas',
       filas: [['Avisos 7 días', x.avisos.enviados_7d || 0], ['Avisos fallidos', x.avisos.errores_7d || 0], ['Procesos', x.automatismos.length]] };
   }
+  /* Lo que se puede ver en un video: nunca cobros, mails ni nada frenado. */
+  function pantallaPublica(id, x) {
+    if (id === 'comercial') return { cifra: x.red.length, unidad: 'proveedores en la red', filas: [] };
+    if (id === 'redes') return { cifra: reelsProgramados(x), unidad: 'Reels programados', filas: [] };
+    if (id === 'direccion') return { cifra: Math.max(0, x.diasLanzamiento), unidad: 'días para lanzar', filas: [] };
+    if (id === 'operaciones') return { cifra: '24 h', unidad: 'funcionando', filas: [] };
+    return { cifra: TURNOS.filter(function (t) { return t.e === id; }).length || 1, unidad: 'turnos por día', filas: [] };
+  }
+  function reelsProgramados(x) { return Math.ceil((x.meta.programados || 0) / 2); }
+  /* Guiones del modo video: hablan solo de lo que se puede mostrar. */
+  var TOMAS = {
+    jefe: { p: [35.6, 0.9, 9.4], alto: 2.9, az: 0.26, el: 0.66 }, comercial: { p: [12.6, 0.8, 3.7], alto: 4, az: -0.22, el: 0.74 }, redes: { p: [4.6, 0.9, 11.3], alto: 3.9, az: 0.24, el: 0.74 },
+    diseno: { p: [22, 0.9, 11], alto: 3.9, az: -0.2, el: 0.74 }, investigacion: { p: [28.6, 0.9, 11.7], alto: 3.9, az: 0.22, el: 0.74 }, operaciones: { p: [23.9, 0.9, 18.6], alto: 3.9, az: -0.2, el: 0.74 },
+    cocina: { p: [15.5, 0.7, 19.2], alto: 3.8, az: 0.2, el: 0.74 }, terraza: { p: [35.4, 0.8, 16.6], alto: 3.7, az: 0.32, el: 0.7 }, todo: { p: [20.5, 0, 11], alto: 19, az: 0.1, el: 0.98 }
+  };
+  function toma(k, dur, t, extra) { return Object.assign({}, TOMAS[k], { dur: dur, t: t }, extra || {}); }
+  var GUIONES = {
+    mate: { n: 'Mientras tomo mate', d: 'Vos con el mate y la oficina trabajando.' },
+    cuenta: { n: 'Cuenta regresiva', d: 'Los días que faltan para lanzar, sala por sala.' },
+    recorrida: { n: 'Recorrida por la oficina', d: 'Entrá y mirá qué hace cada sala.' }
+  };
+  function guion(id, x) {
+    var dias = Math.max(0, x.diasLanzamiento), turnos = TURNOS.length, fin = dias > 0 ? 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') + ' para lanzar' : 'Ya estamos en vivo';
+    var cierre = toma('todo', 2.8, fin, { fin: true });
+    if (id === 'cuenta') return [toma('jefe', 3.2, dias > 0 ? 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') : 'Llegó el día', { s: 'y la oficina no para', globo: 'Todos a sus puestos' }),
+      toma('comercial', 2.6, 'proveedores en la red', { cifra: x.red.length }), toma('diseno', 2.6, 'Videos en producción'), toma('redes', 2.6, 'Reels programados', { cifra: reelsProgramados(x) }), toma('operaciones', 2.6, 'turnos por día', { cifra: turnos }), cierre];
+    if (id === 'recorrida') return [toma('todo', 2.8, 'Esta es la oficina de Nexo Fit', { s: 'y funciona las 24 horas' }), toma('comercial', 2.5, 'Comercial', { s: 'sigue a los proveedores' }), toma('redes', 2.5, 'Redes', { s: 'publica todos los días' }), toma('diseno', 2.5, 'Diseño', { s: 'arma los videos' }), toma('investigacion', 2.5, 'Investigación', { s: 'mira el mercado' }), toma('cocina', 2.2, 'La cocina', { s: 'nunca falta' }), toma('terraza', 2.4, 'Y la parrilla', { s: 'para los viernes' }), toma('jefe', 3, 'Acá estoy yo', { s: 'con el mate', globo: '¿Cómo venimos?' }), cierre];
+    return [toma('jefe', 3.8, 'Mientras tomo mate', { s: 'mi oficina trabaja', globo: '¿Cómo vienen los proveedores?' }), toma('comercial', 2.6, 'proveedores en la red', { cifra: x.red.length }), toma('redes', 2.6, 'Reels programados', { cifra: reelsProgramados(x) }), toma('diseno', 2.4, 'Diseño arma los videos'), toma('operaciones', 2.6, 'turnos por día', { cifra: turnos, s: 'las 24 horas' }), toma('terraza', 2.2, 'Y yo sigo con el mate'), cierre];
+  }
   function proximosTurnos(ahora, n) {
     var h = horaBA(ahora), despues = TURNOS.filter(function (t) { return t.h > h; }), antes = TURNOS.filter(function (t) { return t.h <= h; });
     return despues.concat(antes).slice(0, n).map(function (t) { return { h: t.h, sala: NOMBRES[t.e], t: t.t }; });
@@ -182,7 +211,12 @@
   }
   function info3d(x) {
     var h = horaBA(x.ahora);
-    return { hora: h, minutos: aMinutos(h), dias: Math.max(0, x.diasLanzamiento), turnos: proximosTurnos(x.ahora, 4) };
+    var abiertos = x.encargos.filter(function (e) { return e.estado === 'pendiente' || e.estado === 'en_curso'; }).map(function (e) { return NOMBRES[e.espacio] + ': ' + e.titulo; });
+    var aviso = pendientes(x).slice(0, 4).map(function (p) { return p.t; }), reportes = {};
+    SALAS.forEach(function (id) { var u = novedadesDe(x, id)[0]; reportes[id] = NOMBRES[id] + ': ' + (u ? u.titulo : 'sin novedades'); });
+    var fecha = new Date(new Date(x.ahora).getTime() - 3 * 3600000);
+    return { hora: h, minutos: aMinutos(h), dias: Math.max(0, x.diasLanzamiento), turnos: proximosTurnos(x.ahora, 4), frases: abiertos.concat(aviso), reportes: reportes,
+      asado: fecha.getUTCDay() === 5 && fecha.getUTCHours() >= 12 && fecha.getUTCHours() < 15 };
   }
 
   /* Lista de lanzamiento: lo que tiene que estar listo el 16/11. */
@@ -484,7 +518,8 @@
     });
   }
   function enfocarSala(id) {
-    ui.sala = id; ui.foco = id; pintarMesa(); pintarFicha(); refrescar3d();
+    if (id !== 'jefe') { ui.sala = id; pintarMesa(); }
+    ui.foco = id; pintarFicha(); refrescar3d();
     if (mundo3d) mundo3d.enfocar(id);
   }
   function salirDeSala() {
@@ -497,6 +532,7 @@
     var abierta = !!ui.foco && ui.vista === '3d', caja = raiz.querySelector('.escenario');
     if (caja) caja.classList.toggle('con-ficha', abierta);
     if (!abierta) { f.hidden = true; return; }
+    if (ui.foco === 'jefe') { fichaJefe(f); return; }
     var id = ui.foco, a = actividad(datos)[id], p = a.pantalla, ult = novedadesDe(datos, id)[0], abiertos = encargosDe(datos, id).filter(function (e) { return e.estado !== 'hecho'; }).length;
     f.hidden = false; f.dataset.estado = a.estado;
     f.innerHTML = '<button type="button" class="ficha-cerrar" id="ficha-cerrar">Ver toda la oficina</button><h2>' + esc(a.nombre) + '</h2><p class="ficha-hace">' + esc(QUE_HACE[id]) + '</p>'
@@ -508,6 +544,58 @@
       + '<button type="button" class="boton fuerte" id="ficha-detalle">Abrir todo el detalle</button>';
     d.getElementById('ficha-cerrar').onclick = salirDeSala;
     d.getElementById('ficha-detalle').onclick = function () { d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
+  }
+  function fichaJefe(f) {
+    var x = datos, lista = pendientes(x).slice(0, 3), abiertos = x.encargos.filter(function (e) { return e.estado === 'pendiente' || e.estado === 'en_curso'; }).slice(0, 4);
+    f.hidden = false; f.dataset.estado = 'orden';
+    f.innerHTML = '<button type="button" class="ficha-cerrar" id="ficha-cerrar">Ver toda la oficina</button><h2>Sala del jefe</h2><p class="ficha-hace">Desde acá le das indicaciones a cada sala. El próximo turno las toma.</p>'
+      + '<form class="indicacion" id="indicacion"><label for="ind-sala">Para</label><select id="ind-sala">' + SALAS.map(function (s) { return '<option value="' + s + '"' + (s === ui.indicar ? ' selected' : '') + '>' + esc(NOMBRES[s]) + '</option>'; }).join('') + '</select>'
+      + '<label for="ind-texto">Indicación</label><input id="ind-texto" maxlength="200" required placeholder="¿Qué necesitás?"><button class="boton fuerte" type="submit">Dar la indicación</button><p class="ficha-error" id="ind-error" hidden></p></form>'
+      + '<div class="ficha-lista"><h3>Lo que te toca</h3>' + (lista.length ? '<ul>' + lista.map(function (p) { return '<li>' + esc(p.t) + '</li>'; }).join('') + '</ul>' : '<p>Nada por ahora.</p>') + '</div>'
+      + '<div class="ficha-lista"><h3>Indicaciones abiertas</h3>' + (abiertos.length ? '<ul>' + abiertos.map(function (e) { return '<li>' + esc(NOMBRES[e.espacio]) + ': ' + esc(e.titulo) + '</li>'; }).join('') + '</ul>' : '<p>No hay indicaciones abiertas.</p>') + '</div>';
+    d.getElementById('ficha-cerrar').onclick = salirDeSala;
+    var form = d.getElementById('indicacion'), sala = d.getElementById('ind-sala'), txt = d.getElementById('ind-texto'), err = d.getElementById('ind-error');
+    sala.onchange = function () { ui.indicar = sala.value; };
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var boton = form.querySelector('button'), texto = txt.value.trim(), destino = sala.value;
+      if (!texto) return;
+      boton.disabled = true; boton.textContent = 'Enviando…'; err.hidden = true;
+      var hecho = function () { if (mundo3d) mundo3d.ordenar(destino, NOMBRES[destino] + ': ' + texto); txt.value = ''; boton.disabled = false; boton.textContent = 'Dar la indicación'; };
+      if (w.NF_OFICINA_PREVIEW) { hecho(); return; }
+      sesionVigente().then(function (s) { return pedir('/rest/v1/rpc/fitness_oficina_encargar', { p_espacio: destino, p_titulo: texto }, s && s.access_token); })
+        .then(function () { hecho(); return cargar(); })
+        .catch(function () { boton.disabled = false; boton.textContent = 'Dar la indicación'; err.textContent = 'No se guardó la indicación. Probá de nuevo.'; err.hidden = false; });
+    };
+  }
+  /* Estudio: elige el guion, graba la oficina en vertical y deja el video listo para bajar. */
+  function abrirEstudio() {
+    var c = d.getElementById('estudio');
+    if (!c) return;
+    c.hidden = false;
+    c.innerHTML = '<h2>Crear contenido</h2><p>Grabá la oficina en vertical para Reels y TikTok. Solo muestra datos públicos: nada de cobros, mails ni alertas.</p>'
+      + '<div class="guiones" role="radiogroup" aria-label="Guion">' + Object.keys(GUIONES).map(function (k, i) { return '<label><input type="radio" name="guion" value="' + k + '"' + (i ? '' : ' checked') + '><span><b>' + esc(GUIONES[k].n) + '</b>' + esc(GUIONES[k].d) + '</span></label>'; }).join('') + '</div>'
+      + '<div class="estudio-botones"><button type="button" class="boton fuerte" id="est-video">Grabar video</button><button type="button" class="boton" id="est-foto">Sacar foto</button><button type="button" class="boton" id="est-cerrar">Cerrar</button></div>';
+    var elegido = function () { return c.querySelector('[name=guion]:checked').value; };
+    d.getElementById('est-cerrar').onclick = function () { c.hidden = true; };
+    d.getElementById('est-foto').onclick = function () { mundo3d.foto({ tomas: guion(elegido(), datos), fin: function (b) { bajar(b, 'nexo-fit-oficina.png'); } }); };
+    d.getElementById('est-video').onclick = function () {
+      if (!w.MediaRecorder) { c.querySelector('p').textContent = 'Este navegador no puede grabar video. Probá en Chrome de escritorio.'; return; }
+      var id = elegido();
+      c.innerHTML = '<h2>Grabando</h2><p>Dejá esta pestaña abierta hasta que termine.</p><div class="estudio-previa" id="est-previa"></div><div class="barra"><i id="est-barra"></i></div>';
+      var lienzo = mundo3d.grabar({ tomas: guion(id, datos),
+        avance: function (k) { var b = d.getElementById('est-barra'); if (b) b.style.width = (k * 100).toFixed(1) + '%'; },
+        fin: function (blob, tipo) {
+          var ext = /mp4/.test(tipo) ? 'mp4' : 'webm', url = URL.createObjectURL(blob);
+          c.innerHTML = '<h2>Video listo</h2>' + (ext === 'webm' ? '<p>Este navegador grabó en WebM. Instagram pide MP4: actualizá Chrome para grabar en MP4.</p>' : '<p>Le falta la música: sumala al subirlo a Instagram o TikTok.</p>')
+            + '<video class="estudio-previa" controls playsinline src="' + url + '"></video><div class="estudio-botones"><a class="boton fuerte" href="' + url + '" download="nexo-fit-' + id + '.' + ext + '">Descargar video</a><button type="button" class="boton" id="est-otra">Grabar otro</button></div>';
+          d.getElementById('est-otra').onclick = abrirEstudio;
+        } });
+      d.getElementById('est-previa').appendChild(lienzo);
+    };
+  }
+  function bajar(blob, nombre) {
+    var a = d.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; d.body.appendChild(a); a.click(); a.remove();
   }
   function pintarHud(x) {
     var r = d.getElementById('hud-reloj'), n = proximoTurno(x.ahora), h = horaBA(x.ahora);
@@ -546,7 +634,12 @@
     if (!w.WebGLRenderingContext || (w.NF_OFICINA_PREVIEW && !w.NF_OFICINA_PREVIEW.con3d)) return false;
     try { var c = d.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
   }
-  function refrescar3d() { if (mundo3d && datos) mundo3d.actualizar(actividad(datos), ui.sala, info3d(datos)); }
+  function refrescar3d() {
+    if (!mundo3d || !datos) return;
+    var e = actividad(datos);
+    e.jefe = { nombre: 'Sala del jefe', estado: 'orden', trabajando: true, texto: 'Nicolás' };
+    mundo3d.actualizar(e, ui.sala, info3d(datos));
+  }
   function arrancar3d() {
     var e = d.getElementById('escena');
     if (ui.vista !== '3d') return;
@@ -558,6 +651,7 @@
     Promise.all([import(base + 'vendor/three/three.module.min.js'), import(base + 'vendor/three/OrbitControls.js'), import(base + 'oficina3d.js')]).then(function (m) {
       mundo3d = m[2].crear(m[0], m[1].OrbitControls, d.getElementById('escena'), { elegir: enfocarSala, salir: salirDeSala });
       w.__nfMundo = mundo3d;
+      w.__nfGuion = function (id) { return guion(id, datos); };
       refrescar3d();
     }).catch(function () { ui.vista = 'plano'; mostrarVista(); var a = d.getElementById('ver-3d'); if (a) a.hidden = true; }).then(function () { cargando3d = false; });
   }
@@ -565,8 +659,13 @@
   /* Cada minuto actualiza lo vivo sin tocar lo que se está leyendo o escribiendo en la mesa. */
   function pintarVivo(d0, ahora) {
     w.__nfFoto = d0.foto && d0.foto.actualizada;
+    var antes = datos;
     datos = leer(d0, ahora, mpListo);
-    pintarHud(datos); pintarNoticia(); pintarFicha();
+    if (mundo3d && antes) {
+      if (datos.red.length > antes.red.length || datos.pedidos.length > antes.pedidos.length) mundo3d.festejar('comercial');
+      if (datos.pagados.length > antes.pagados.length) mundo3d.festejar('administracion');
+    }
+    pintarHud(datos); pintarNoticia(); if (!d.activeElement || d.activeElement.id !== 'ind-texto') pintarFicha();
     var lista = pendientes(datos), h = raiz.querySelector('.hora'), f = raiz.querySelector('.frase h1'), t = d.getElementById('turnos'), p = raiz.querySelector('.pendientes');
     if (h) h.textContent = 'Actualizada ' + fechaHora(ahora);
     if (f) f.textContent = frase(datos, lista);
@@ -586,10 +685,10 @@
       + '<span class="hora">' + (w.NF_OFICINA_PREVIEW ? 'Vista previa con datos de ' : 'Actualizada ') + esc(fechaHora(ahora)) + '</span>'
       + (w.NF_OFICINA_PREVIEW ? '' : '<button type="button" class="boton" id="actualizar">Actualizar</button><a class="boton" href="admin.html">Ir al panel</a>')
       + '</header><section class="frase"><h1>' + esc(frase(datos, lista)) + '</h1></section>'
-      + '<div class="vista"><div class="escenario"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button></div>'
+      + '<div class="vista"><div class="escenario"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button><button type="button" class="chip-o" id="ver-estudio">Crear contenido</button></div>'
       + '<div class="escena3d" id="escena"' + (ui.vista === '3d' ? '' : ' hidden') + '></div>'
       + '<div class="hud-3d"' + (ui.vista === '3d' ? '' : ' hidden') + '><div class="hud-reloj" id="hud-reloj"></div><ul class="hud-leyenda" aria-label="Qué significan las luces"><li><i class="marca orden"></i>En orden</li><li><i class="marca atencion"></i>Atención</li><li><i class="marca frenada"></i>Frenada</li></ul><p class="noticia" id="noticia"></p></div>'
-      + '<aside class="ficha" id="ficha" aria-label="Sala elegida" hidden></aside></div>'
+      + '<aside class="ficha" id="ficha" aria-label="Sala elegida" hidden></aside><div class="estudio" id="estudio" hidden></div></div>'
       + '<div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio"' + (ui.vista === '3d' ? ' hidden' : '') + '>'
       + SALAS.map(function (id, i) { return dibujarSala(id, i, datos, ui.sala); }).join('')
       + '<i class="puerta v p1"></i><i class="puerta v p2"></i><i class="puerta h p3"></i><i class="puerta v p4"></i><div class="entrada"><span>Entrada</span></div></div>'
@@ -661,7 +760,7 @@
     });
   }
 
-  w.NFOficina = { actividad: actividad, listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
+  w.NFOficina = { actividad: actividad, listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, guion: guion, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
   function iniciar() {
     raiz = d.getElementById('oficina');
     if (!raiz) return;

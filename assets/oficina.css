@@ -157,6 +157,41 @@ td.n,th.n{text-align:right;padding-right:18px}
 
 @media (min-width:981px){.con-ficha .hud-reloj,.con-ficha .noticia{visibility:hidden}}
 
+/* Globos de la sala del jefe */
+.globo{position:absolute;left:0;top:0;max-width:260px;padding:7px 11px;border:1.5px solid var(--lima);border-radius:9px;background:rgba(9,15,13,.94);font-size:.84rem;line-height:1.25;color:#EAF1E4;pointer-events:none;will-change:transform}
+.globo[hidden]{display:none}
+.globo::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;width:12px;height:12px;background:rgba(9,15,13,.94);border-right:1.5px solid var(--lima);border-bottom:1.5px solid var(--lima);transform:rotate(45deg)}
+.globo-mensajero{border-color:#C5D0C8}
+.globo-mensajero::after{border-color:#C5D0C8}
+
+/* Crear contenido */
+.estudio{position:absolute;z-index:6;left:12px;top:64px;bottom:12px;width:min(372px,calc(100% - 24px));display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:6px;background:rgba(11,19,16,.97);overflow-y:auto}
+.estudio[hidden]{display:none}
+.estudio h2{font-family:var(--cond);font-size:1.9rem;font-weight:600;line-height:1}
+.estudio p{font-size:.92rem;line-height:1.35;color:#C5D0C8}
+.guiones{display:grid;gap:6px}
+.guiones label{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--linea);border-radius:6px;cursor:pointer}
+.guiones label:has(input:checked){border-color:var(--lima)}
+.guiones input{margin-top:3px;accent-color:var(--lima)}
+.guiones span{font-size:.86rem;line-height:1.3;color:#C5D0C8}
+.guiones b{display:block;color:var(--muro);font-size:.96rem}
+.estudio-botones{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.estudio-previa{display:block;align-self:center;height:min(42vh,400px);aspect-ratio:9/16;background:#000;border-radius:6px;overflow:hidden}
+.estudio-previa canvas{display:block;width:100%;height:100%}
+.barra{height:6px;border-radius:3px;background:var(--linea);overflow:hidden}
+.barra i{display:block;height:100%;width:0;background:var(--lima)}
+
+/* Indicaciones del jefe */
+.indicacion{display:grid;gap:5px;padding-top:6px;border-top:1px solid var(--linea)}
+.indicacion label{font-size:.84rem;color:#C5D0C8}
+.indicacion select,.indicacion input{min-height:44px;padding:0 10px;border:1px solid var(--linea);border-radius:6px;background:#0E1814;color:var(--muro);font:inherit;font-size:16px}
+.indicacion .boton{margin-top:5px}
+.ficha-error{font-size:.86rem;color:var(--rojo)}
+.ficha-lista h3{font-size:.94rem;font-weight:600;margin-bottom:2px}
+.ficha-lista ul{display:grid;gap:3px}
+.ficha-lista li,.ficha-lista p{font-size:.88rem;line-height:1.3;color:#C5D0C8}
+.ficha-lista li::before{content:"–";margin-right:6px;color:var(--lima)}
+
 /* Ficha de la sala elegida */
 .ficha{--luz:var(--gris);position:absolute;z-index:5;right:12px;top:12px;bottom:12px;width:348px;display:flex;flex-direction:column;gap:8px;padding:14px 18px 16px;border-radius:6px;border-top:4px solid var(--luz);background:rgba(11,19,16,.95);overflow-y:auto}
 .ficha[data-estado=orden]{--luz:var(--lima)}.ficha[data-estado=atencion]{--luz:var(--ambar)}.ficha[data-estado=frenada]{--luz:var(--rojo)}

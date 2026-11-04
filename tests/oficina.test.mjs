@@ -44,6 +44,9 @@ assert.equal(conMeta.cubierto,30);assert.equal(O.estadoSala('diseno',conMeta),'o
 const salasMeta=O.actividad(conMeta);assert.equal(salasMeta.redes.pantalla.cifra,30);assert.equal(salasMeta.comercial.pantalla.cifra,24);assert.equal(salasMeta.administracion.pantalla.cifra,'0 de 24');
 const enTurno=O.actividad(O.leer(base,'2026-11-04T13:30:00Z',null));assert.equal(enTurno.redes.trabajando,true);assert.equal(enTurno.redes.tarea,'Control del calendario');assert.equal(enTurno.redes.texto,'Control del calendario');
 assert.match(fs.readFileSync('supabase/migrations/20261104030000_oficina_meta.sql','utf8'),/if not public\.fitness_es_admin\(\) then raise exception 'No autorizado'/);
+// Lo que sale en un video público nunca muestra cobros, alertas ni mails.
+const publicas=JSON.stringify(Object.values(O.actividad(conMeta)).map(e=>e.publica));assert(!/Mercado Pago|Frenad|Contactadas|Comisión/.test(publicas));assert.equal(salasMeta.redes.publica.cifra,15);
+const textos=JSON.stringify(['mate','cuenta','recorrida'].flatMap(g=>O.guion(g,conMeta)));assert(!/Mercado Pago|comisi|frenad|mejor/i.test(textos));assert(O.guion('mate',conMeta).at(-1).fin);
 // Sin WebGL queda el plano y no se rompe.
 assert(!doc.querySelector('.plano').hidden,'sin 3D se ve el plano');
 // Lista de lanzamiento y turnos.
