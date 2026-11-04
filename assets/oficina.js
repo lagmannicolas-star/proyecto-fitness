@@ -126,6 +126,23 @@
     return n || TURNOS[0];
   }
 
+  /* Qué está pasando en cada sala. Trabaja si está dentro de su turno o tiene un encargo en curso. */
+  var VENTANA_TURNO = 20;
+  function aMinutos(h) { var p = h.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+  function actividad(x) {
+    var ahora = aMinutos(horaBA(x.ahora)), o = {};
+    SALAS.forEach(function (id) {
+      var turnos = turnosDe(id), enTurno = turnos.some(function (t) { var d = ahora - aMinutos(t.h); return d >= 0 && d < VENTANA_TURNO; });
+      var enCurso = x.encargos.some(function (e) { return e.espacio === id && e.estado === 'en_curso'; });
+      var prox = turnos.filter(function (t) { return aMinutos(t.h) > ahora; })[0] || turnos[0];
+      var u = x.novedades.filter(function (n) { return n.espacio === id; })[0];
+      var trabajando = enTurno || enCurso;
+      o[id] = { nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null,
+        ultima: u || null, texto: trabajando ? 'Trabajando ahora' : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
+    });
+    return o;
+  }
+
   /* Lista de lanzamiento: lo que tiene que estar listo el 16/11. */
   function listaLanzamiento(x) {
     var mitad = x.red.length ? x.conMp >= Math.ceil(x.red.length / 2) : false;
@@ -221,8 +238,9 @@
 
   function dibujarTurnos(x) {
     var aMin = function (h) { var p = h.split(':'); return Number(p[0]) * 60 + Number(p[1]); };
-    var ahora = aMin(horaBA(x.ahora)), n = proximoTurno(x.ahora);
-    return '<section class="turnos" aria-label="Turnos de la oficina"><div class="turnos-tope"><h2>La oficina en 24 horas</h2><p>Próximo turno: ' + esc(n.h) + ', ' + esc(NOMBRES[n.e]) + '. ' + esc(n.t) + '.</p></div>'
+    var ahora = aMin(horaBA(x.ahora)), n = proximoTurno(x.ahora), act = actividad(x);
+    var ahoraTrabajan = SALAS.filter(function (id) { return act[id].trabajando; }).map(function (id) { return NOMBRES[id]; });
+    return '<section class="turnos" id="turnos" aria-label="Turnos de la oficina"><div class="turnos-tope"><h2>La oficina en 24 horas</h2><p>' + (ahoraTrabajan.length ? 'Trabajando ahora: ' + esc(ahoraTrabajan.join(', ')) + '. ' : 'Entre turnos. ') + 'Próximo: ' + esc(n.h) + ', ' + esc(NOMBRES[n.e]) + '.</p></div>'
       + '<div class="reloj" role="img" aria-label="' + TURNOS.length + ' turnos repartidos en el día"><i class="ahora" style="left:' + (ahora / 14.4).toFixed(2) + '%"></i>'
       + TURNOS.map(function (t) { return '<button type="button" class="pip" data-ir="' + t.e + '" style="left:' + (aMin(t.h) / 14.4).toFixed(2) + '%" title="' + esc(t.h + ', ' + NOMBRES[t.e] + ': ' + t.t) + '" aria-label="' + esc(t.h + ', ' + NOMBRES[t.e]) + '"></button>'; }).join('')
       + '</div><div class="horas"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></section>';
@@ -394,7 +412,7 @@
       : '<p class="sin-datos">No hay publicaciones próximas en Metricool.</p>';
   }
 
-  var ui = { sala: null, q: '', sinMp: false }, datos = null, mpListo = null, raiz = null;
+  var ui = { sala: null, q: '', sinMp: false, vista: '3d' }, datos = null, mpListo = null, raiz = null, mundo3d = null, cargando3d = false;
 
   function pintarMesa() {
     var cont = d.getElementById('mesa');
@@ -417,6 +435,62 @@
     raiz.querySelectorAll('.sala').forEach(function (s) { s.setAttribute('aria-pressed', String(s.dataset.sala === ui.sala)); });
   }
 
+  function atarSaltos() {
+    raiz.querySelectorAll('[data-ir]').forEach(function (a) {
+      a.onclick = function (ev) { ev.preventDefault(); elegirSala(a.dataset.ir, true); };
+    });
+  }
+  function elegirSala(id, bajar) {
+    ui.sala = id; pintarMesa(); refrescar3d();
+    if (bajar || w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' });
+  }
+  function atarVista() {
+    var a = d.getElementById('ver-3d'), b = d.getElementById('ver-plano');
+    if (!a) return;
+    if (!hay3d()) { a.hidden = true; b.hidden = true; }
+    a.onclick = function () { ui.vista = '3d'; mostrarVista(); arrancar3d(); };
+    b.onclick = function () { ui.vista = 'plano'; mostrarVista(); };
+  }
+  function mostrarVista() {
+    var es = ui.vista === '3d', e = d.getElementById('escena'), p = raiz.querySelector('.plano');
+    if (e) e.hidden = !es;
+    if (p) p.hidden = es;
+    d.getElementById('ver-3d').setAttribute('aria-pressed', String(es));
+    d.getElementById('ver-plano').setAttribute('aria-pressed', String(!es));
+  }
+  function hay3d() {
+    if (!w.WebGLRenderingContext || w.NF_OFICINA_PREVIEW) return false;
+    try { var c = d.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
+  }
+  function refrescar3d() { if (mundo3d && datos) mundo3d.actualizar(actividad(datos), ui.sala); }
+  function arrancar3d() {
+    var e = d.getElementById('escena');
+    if (ui.vista !== '3d') return;
+    if (!hay3d()) { ui.vista = 'plano'; mostrarVista(); return; }
+    if (mundo3d) { mundo3d.montar(e); refrescar3d(); return; }
+    if (cargando3d) return;
+    cargando3d = true;
+    var base = (d.currentScript || d.querySelector('script[src*="oficina.js"]')).src.replace(/oficina\.js.*$/, '');
+    Promise.all([import(base + 'vendor/three/three.module.min.js'), import(base + 'vendor/three/OrbitControls.js'), import(base + 'oficina3d.js')]).then(function (m) {
+      mundo3d = m[2].crear(m[0], m[1].OrbitControls, d.getElementById('escena'), { elegir: function (id) { elegirSala(id, false); } });
+      refrescar3d();
+    }).catch(function () { ui.vista = 'plano'; mostrarVista(); var a = d.getElementById('ver-3d'); if (a) a.hidden = true; }).then(function () { cargando3d = false; });
+  }
+
+  /* Cada minuto actualiza lo vivo sin tocar lo que se está leyendo o escribiendo en la mesa. */
+  function pintarVivo(d0, ahora) {
+    w.__nfFoto = d0.foto && d0.foto.actualizada;
+    datos = leer(d0, ahora, mpListo);
+    var lista = pendientes(datos), h = raiz.querySelector('.hora'), f = raiz.querySelector('.frase h1'), t = d.getElementById('turnos'), p = raiz.querySelector('.pendientes');
+    if (h) h.textContent = 'Actualizada ' + fechaHora(ahora);
+    if (f) f.textContent = frase(datos, lista);
+    if (t) t.outerHTML = dibujarTurnos(datos);
+    if (p) p.outerHTML = dibujarPendientes(lista);
+    raiz.querySelectorAll('.sala').forEach(function (b) { b.dataset.estado = estadoSala(b.dataset.sala, datos); });
+    atarSaltos();
+    refrescar3d();
+  }
+
   function pintar(d0, ahora) {
     w.__nfFoto = d0.foto && d0.foto.actualizada;
     datos = leer(d0, ahora, mpListo);
@@ -426,18 +500,21 @@
       + '<span class="hora">' + (w.NF_OFICINA_PREVIEW ? 'Vista previa con datos de ' : 'Actualizada ') + esc(fechaHora(ahora)) + '</span>'
       + (w.NF_OFICINA_PREVIEW ? '' : '<button type="button" class="boton" id="actualizar">Actualizar</button><a class="boton" href="admin.html">Ir al panel</a>')
       + '</header><section class="frase"><h1>' + esc(frase(datos, lista)) + '</h1></section>' + dibujarCota(datos)
-      + '<div class="trabajo"><div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio">'
+      + '<div class="trabajo"><div class="vista"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button></div>'
+      + '<div class="escena3d" id="escena"' + (ui.vista === '3d' ? '' : ' hidden') + '></div>'
+      + '<div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio"' + (ui.vista === '3d' ? ' hidden' : '') + '>'
       + SALAS.map(function (id, i) { return dibujarSala(id, i, datos, ui.sala); }).join('')
       + '<i class="puerta v p1"></i><i class="puerta v p2"></i><i class="puerta h p3"></i><i class="puerta v p4"></i><div class="entrada"><span>Entrada</span></div></div>'
+      + '<p class="aclaracion">Las personas son una representación. Salas, turnos y novedades son reales y se actualizan cada minuto.</p></div>'
       + dibujarPendientes(lista) + '</div>' + dibujarTurnos(datos) + '<section class="mesa" id="mesa" aria-live="polite"></section>'
       + '<footer class="pie">Pedidos, proveedores y caja se leen en vivo. Redes, mails, tareas, avances y reportes llegan con cada turno.</footer></div>';
     pintarMesa();
+    atarVista();
+    arrancar3d();
     raiz.querySelectorAll('[data-sala]').forEach(function (b) {
       b.onclick = function () { ui.sala = b.dataset.sala; pintarMesa(); if (w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
     });
-    raiz.querySelectorAll('[data-ir]').forEach(function (a) {
-      a.onclick = function (ev) { ev.preventDefault(); ui.sala = a.dataset.ir; pintarMesa(); d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
-    });
+    atarSaltos();
     var act = d.getElementById('actualizar');
     if (act) act.onclick = function () { act.disabled = true; act.textContent = 'Actualizando…'; cargar(); };
   }
@@ -494,13 +571,16 @@
     });
   }
 
-  w.NFOficina = { listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
+  w.NFOficina = { actividad: actividad, listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
   function iniciar() {
     raiz = d.getElementById('oficina');
     if (!raiz) return;
     if (w.NF_OFICINA_PREVIEW) { mpListo = w.NF_OFICINA_PREVIEW.mpListo; pintar(w.NF_OFICINA_PREVIEW.datos, w.NF_OFICINA_PREVIEW.datos.ahora); return; }
     cargar();
-    w.setInterval(function () { if (!d.hidden && d.getElementById('actualizar')) cargar(); }, 5 * 60 * 1000);
+    w.setInterval(function () {
+      if (d.hidden || !d.getElementById('actualizar')) return;
+      sesionVigente().then(function (s) { return s ? pedir('/rest/v1/rpc/fitness_oficina', {}, s.access_token) : null; }).then(function (r) { if (r) pintarVivo(r, r.ahora); }).catch(function () { /* el próximo minuto reintenta */ });
+    }, 60 * 1000);
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 })(window, document);

@@ -136,6 +136,25 @@ td.n,th.n{text-align:right;padding-right:18px}
 .sin-datos{margin-top:12px;padding:14px 16px;background:var(--papel-2);border-radius:6px;font-size:.95rem}
 .pie{padding-block:22px 34px;color:var(--gris);font-size:.875rem}
 
+/* Oficina 3D */
+.vista{min-width:0;display:flex;flex-direction:column;gap:8px}
+.vista-tope{display:flex;gap:8px}
+.chip-o{min-height:44px;padding:0 14px;border-radius:8px;border:1px solid var(--linea);background:transparent;font-weight:600;font-size:.92rem;cursor:pointer}
+.chip-o[aria-pressed=true]{background:var(--muro);color:var(--tinta);border-color:var(--muro)}
+.escena3d{position:relative;height:clamp(420px,58vw,640px);overflow:hidden;border:5px solid var(--muro);border-radius:2px;background:var(--tinta)}
+.escena3d canvas{display:block;cursor:grab}
+.etiquetas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.etiqueta{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:44px;padding:5px 9px 5px 18px;border:0;border-radius:6px;background:rgba(16,23,31,.86);color:var(--muro);cursor:pointer;pointer-events:auto;text-align:left;white-space:nowrap;font-size:.74rem;line-height:1.2;will-change:transform}
+.etiqueta::before{content:"";position:absolute;left:7px;top:10px;width:7px;height:7px;border-radius:50%;background:var(--gris)}
+.etiqueta[data-estado=orden]::before{background:var(--lima)}
+.etiqueta[data-estado=atencion]::before{background:var(--ambar);border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.etiqueta[data-estado=frenada]::before{background:var(--rojo);border-radius:0}
+.etiqueta b{font-family:var(--cond);font-size:1rem;font-weight:600}
+.etiqueta span{color:#D7DEE5}
+.etiqueta.trabajando span{color:var(--lima);font-weight:600}
+.etiqueta[aria-pressed=true]{outline:2px solid var(--muro)}
+.aclaracion{font-size:.84rem;color:var(--gris)}
+
 /* Tira de 24 horas */
 .turnos{margin-top:clamp(22px,3vw,30px)}
 .turnos-tope{display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap}
@@ -195,6 +214,12 @@ td.n,th.n{text-align:right;padding-right:18px}
  .sala:nth-child(even){border-right:0!important}
  .s-direccion{grid-column:1/-1!important;border-right:0!important}
  .puerta,.mueble{display:none}
+ .escena3d{height:400px}
+ .etiqueta{min-height:30px;justify-content:center;padding:2px 6px 2px 14px}
+ .etiqueta::before{left:5px;top:50%;margin-top:-3px;width:6px;height:6px}
+ .etiqueta b{font-size:.8rem}
+ .etiqueta span{display:none}
+ .etiqueta.trabajando{outline:1px solid var(--lima)}
  .entrada{left:20px}
  .feed li{grid-template-columns:minmax(0,1fr)}
  .feed p,.feed a,.feed details{grid-column:1}
