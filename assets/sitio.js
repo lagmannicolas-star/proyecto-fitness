@@ -7,7 +7,7 @@
   var META_PIXEL_ID = '1550555437106220';   // Píxel de Meta (Facebook / Instagram), solo números
 
   // El panel de administración y las páginas privadas de ofertas no se miden.
-  if (/\/(admin|oferta)(\.html)?$/.test(w.location.pathname)) { GA4_ID = ''; META_PIXEL_ID = ''; }
+  if (/\/(admin|oferta|oficina)(\.html)?$/.test(w.location.pathname)) { GA4_ID = ''; META_PIXEL_ID = ''; }
 
   // Una sola dirección para Google, los anuncios y los compradores.
   var host = w.location.hostname;

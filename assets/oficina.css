@@ -1,0 +1,166 @@
+/* Oficina Nexo Fit: el negocio dibujado como el plano de un local. Cada sala se ilumina según su estado. */
+:root{
+ color-scheme:dark;
+ --tinta:#10171F;--piso:#17212C;--piso-2:#1E2A37;--muro:#FDFAF5;--papel:#FDFAF5;--papel-2:#F3EEE4;
+ --lima:#A5CC21;--ambar:#F4B73F;--rojo:#FF6A5C;--gris:#AEB8C2;--linea:rgba(253,250,245,.2);
+ --tinta-2:rgba(16,23,31,.72);--linea-papel:rgba(16,23,31,.16);
+ --cond:'Barlow Condensed','Arial Narrow',sans-serif;--texto:'Barlow',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--tinta);color:var(--muro);font-family:var(--texto);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ol,ul{margin:0;padding:0}
+ol,ul{list-style:none}
+button,input{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lima);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.marco{max-width:1280px;margin-inline:auto;padding-inline:clamp(16px,3vw,32px)}
+.cargando{padding:40vh 20px;text-align:center;color:var(--gris)}
+
+/* Encabezado */
+.tope{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:14px}
+.tope img{width:34px;height:34px;border-radius:7px}
+.tope b{font-family:var(--cond);font-size:1.3rem;font-weight:600;letter-spacing:.01em}
+.tope .hora{margin-left:auto;color:var(--gris);font-size:.875rem}
+.boton{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--linea);background:transparent;font-weight:600;font-size:.94rem;cursor:pointer;text-decoration:none;white-space:nowrap}
+.boton:hover{border-color:var(--muro)}
+.boton.fuerte{background:var(--lima);border-color:var(--lima);color:var(--tinta)}
+.boton.fuerte:hover{filter:brightness(1.08)}
+.boton[disabled]{opacity:.55;cursor:wait}
+
+/* El estado de la oficina, en una frase */
+.frase{padding-block:clamp(18px,3vw,34px) 8px}
+.frase h1{font-family:var(--cond);font-weight:600;font-size:clamp(2.3rem,5.4vw,4.3rem);line-height:1.02;max-width:30ch;text-wrap:balance}
+
+/* Cota: el tiempo que queda, dibujado como una medida de plano */
+.cota{position:relative;height:74px;margin:30px 0 22px}
+.cota-hoy{position:absolute;top:-12px;transform:translateX(-50%);font-size:.84rem;font-weight:600;color:var(--lima)}
+.cota-linea{position:absolute;left:0;right:0;top:12px;height:1px;background:var(--gris)}
+.cota-linea::before,.cota-linea::after{content:"";position:absolute;top:-6px;width:1px;height:13px;background:var(--gris)}
+.cota-linea::before{left:0}.cota-linea::after{right:0}
+.cota-hecho{position:absolute;left:0;top:11px;height:3px;background:var(--lima)}
+.hito{position:absolute;top:5px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;width:124px;text-align:center}
+.hito::before{content:"";width:2px;height:15px;background:var(--muro)}
+.hito span{display:block;margin-top:5px;font-size:.84rem;line-height:1.2;color:var(--gris)}
+.hito b{display:block;color:var(--muro);font-weight:600}
+.hito.inicio{align-items:flex-start;text-align:left;transform:none}
+.hito.fin{align-items:flex-end;text-align:right;transform:translateX(-100%)}
+
+/* Plano y pendientes */
+.trabajo{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(290px,1fr);gap:clamp(18px,2.4vw,30px);align-items:start}
+.plano{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(3,minmax(206px,auto));border:5px solid var(--muro);background:var(--piso);border-radius:2px}
+.sala{--luz:var(--gris);position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:1px;min-width:0;padding:14px 16px;border:0;border-right:2px solid var(--muro);border-bottom:2px solid var(--muro);background:transparent;cursor:pointer;overflow:hidden;isolation:isolate}
+.sala::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(90% 90% at 30% 22%,color-mix(in srgb,var(--luz) 30%,transparent),transparent 72%);animation:prender .5s steps(3,end) both;animation-delay:calc(var(--i)*130ms)}
+.sala[data-estado=orden]{--luz:var(--lima)}
+.sala[data-estado=atencion]{--luz:var(--ambar)}
+.sala[data-estado=frenada]{--luz:var(--rojo)}
+.sala:hover{background:rgba(253,250,245,.04)}
+.sala[aria-pressed=true]{box-shadow:inset 0 0 0 3px var(--luz)}
+.sala:focus-visible{outline-offset:-5px}
+.s-direccion{grid-column:1/5;grid-row:1}
+.s-comercial{grid-column:5/13;grid-row:1;border-right:0}
+.s-redes{grid-column:1/4;grid-row:2}
+.s-marketing{grid-column:4/7;grid-row:2}
+.s-diseno{grid-column:7/10;grid-row:2}
+.s-investigacion{grid-column:10/13;grid-row:2;border-right:0}
+.s-administracion{grid-column:1/7;grid-row:3;border-bottom:0}
+.s-operaciones{grid-column:7/13;grid-row:3;border-right:0;border-bottom:0}
+.sala h2{font-family:var(--cond);font-size:1.28rem;font-weight:600;line-height:1.1}
+.cifra{font-family:var(--cond);font-weight:600;font-size:clamp(2.5rem,4.4vw,3.6rem);line-height:1;margin-top:6px}
+.cifra small{font-size:.48em;font-weight:500;color:var(--gris)}
+.sala .dato{font-size:.9rem;line-height:1.3;color:#D7DEE5;max-width:30ch}
+.estado{display:inline-flex;align-items:center;gap:6px;margin-top:auto;padding-top:8px;font-size:.84rem;font-weight:600;color:var(--luz)}
+.marca{flex:none;width:10px;height:10px;background:currentColor}
+.marca.orden{border-radius:50%}
+.marca.atencion{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.mueble{position:absolute;right:10px;bottom:10px;z-index:-1;stroke:var(--muro);stroke-opacity:.26;fill:none;stroke-width:1.5;pointer-events:none}
+/* Puertas: hueco en el muro con su arco de apertura */
+.puerta{position:absolute;z-index:2;background:var(--piso);pointer-events:none}
+.puerta::after{content:"";position:absolute;width:30px;height:30px;border-top:1px solid rgba(253,250,245,.45)}
+.puerta.v{width:3px;height:30px;margin-left:-2px}
+.puerta.v::after{right:3px;top:0;border-right:1px solid rgba(253,250,245,.45);border-radius:0 100% 0 0}
+.puerta.h{width:30px;height:3px;margin-top:-2px}
+.puerta.h::after{left:0;bottom:3px;border-top:0;border-left:1px solid rgba(253,250,245,.45);border-bottom:1px solid rgba(253,250,245,.45);border-radius:0 0 0 100%}
+.p1{left:calc(4/12*100%);top:20%}
+.p2{left:calc(6/12*100%);top:76%}
+.p3{left:14%;top:calc(100%/3)}
+.p4{left:calc(9/12*100%);top:42%}
+.entrada{position:absolute;left:12%;bottom:-5px;width:70px;height:5px;background:var(--tinta);z-index:3}
+.entrada span{position:absolute;left:78px;top:-9px;white-space:nowrap;font-size:.76rem;color:var(--gris);background:var(--tinta);padding-inline:6px}
+
+.pendientes h2,.mesa h2{font-family:var(--cond);font-weight:600;font-size:1.75rem;line-height:1.1}
+.pendientes>p{color:var(--gris);font-size:.9rem;margin-top:2px}
+.pendientes ol{margin-top:12px;counter-reset:p}
+.pendientes li{counter-increment:p;position:relative;padding:14px 0 15px 34px;border-top:1px solid var(--linea)}
+.pendientes li::before{content:counter(p);position:absolute;left:0;top:10px;font-family:var(--cond);font-weight:600;font-size:1.65rem;line-height:1.2;color:var(--n)}
+.pendientes li[data-n=frenada]{--n:var(--rojo)}.pendientes li[data-n=atencion]{--n:var(--ambar)}.pendientes li[data-n=orden]{--n:var(--lima)}
+.pendientes h3{font-size:1.02rem;font-weight:600;line-height:1.3}
+.pendientes li p{font-size:.92rem;color:#D7DEE5;margin-top:3px;line-height:1.4}
+.pendientes li a{display:inline-block;margin-top:6px;font-weight:600;font-size:.92rem;color:var(--lima);min-height:28px}
+.vacio{padding:18px 0;border-top:1px solid var(--linea);color:#D7DEE5}
+
+/* La mesa de trabajo: el detalle de la sala elegida, sobre papel */
+.mesa{margin-top:clamp(22px,3vw,34px);background:var(--papel);color:var(--tinta);border-radius:3px;padding:clamp(18px,3vw,32px);scroll-margin-top:12px}
+.mesa-tope{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap}
+.mesa-tope p{color:var(--tinta-2);font-size:.95rem}
+.medidas{display:flex;flex-wrap:wrap;gap:12px 40px;margin-top:16px}
+.medidas div{min-width:96px}
+.medidas b{display:block;font-family:var(--cond);font-weight:600;font-size:2.2rem;line-height:1}
+.medidas span{font-size:.875rem;color:var(--tinta-2)}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.filtros input{min-height:44px;flex:1 1 200px;max-width:320px;padding:0 12px;border:1px solid rgba(16,23,31,.4);border-radius:8px;background:#fff}
+.chip{min-height:44px;padding:0 14px;border-radius:8px;border:1px solid rgba(16,23,31,.4);background:transparent;font-weight:600;font-size:.92rem;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+.tabla{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.94rem}
+th{text-align:left;font-weight:600;font-size:.84rem;color:var(--tinta-2);padding:8px 12px 8px 0;border-bottom:2px solid var(--tinta);white-space:nowrap}
+td{padding:9px 12px 9px 0;border-bottom:1px solid var(--linea-papel);vertical-align:top}
+td.n,th.n{text-align:right;padding-right:18px}
+.si,.no{font-weight:600;white-space:nowrap}
+.no{color:#B3261E}
+.si{color:#4B6500}
+.neutro{font-weight:600;white-space:nowrap;color:var(--tinta-2)}
+.feed{display:flex;flex-direction:column;margin-top:10px}
+.feed li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--linea-papel)}
+.feed time{font-size:.875rem;color:var(--tinta-2);padding-top:1px}
+.feed b{font-weight:600}
+.feed p{grid-column:2;font-size:.94rem;color:var(--tinta-2);max-width:72ch}
+.feed a{grid-column:2;font-size:.92rem;font-weight:600;color:#4B6500}
+.etiqueta{display:inline-block;margin-right:8px;font-size:.84rem;font-weight:600;color:var(--tinta-2)}
+.feed li[data-t=alerta] .etiqueta{color:#B3261E}
+.feed li[data-t=reporte] .etiqueta{color:#4B6500}
+.nota{margin-top:12px;font-size:.9rem;color:var(--tinta-2);max-width:72ch}
+.mesa h3{font-size:1.05rem;font-weight:600;margin-top:24px}
+.sin-datos{margin-top:12px;padding:14px 16px;background:var(--papel-2);border-radius:6px;font-size:.95rem}
+.pie{padding-block:22px 34px;color:var(--gris);font-size:.875rem}
+
+/* Ingreso */
+.ingreso{min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+.ingreso form{width:100%;max-width:380px;border:5px solid var(--muro);padding:26px 24px;background:var(--piso)}
+.ingreso h1{font-family:var(--cond);font-weight:600;font-size:2.3rem;line-height:1}
+.ingreso p{margin-top:6px;color:#D7DEE5;font-size:.95rem}
+.ingreso label{display:block;margin-top:16px;font-weight:600;font-size:.92rem}
+.ingreso input{display:block;width:100%;min-height:46px;margin-top:4px;padding:0 12px;border:1px solid var(--gris);border-radius:8px;background:var(--tinta)}
+.ingreso .boton{width:100%;margin-top:20px}
+.error{margin-top:12px;color:var(--rojo);font-weight:600;font-size:.94rem}
+
+@keyframes prender{0%{opacity:0}40%{opacity:.7}60%{opacity:.25}100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sala::before{animation:none}}
+@media (max-width:980px){.trabajo{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+ .tope .hora{order:9;width:100%;margin:0}
+ .plano{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(136px,auto)}
+ .sala{grid-column:auto!important;grid-row:auto!important;padding:12px;border-right:2px solid var(--muro)!important;border-bottom:2px solid var(--muro)!important}
+ .sala:nth-child(even){border-right:0!important}
+ .s-direccion{grid-column:1/-1!important;border-right:0!important}
+ .puerta,.mueble{display:none}
+ .entrada{left:20px}
+ .feed li{grid-template-columns:minmax(0,1fr)}
+ .feed p,.feed a{grid-column:1}
+ .cota{height:94px}
+ .hito{width:112px}.hito span{font-size:.8rem}
+ .hito.medio{align-items:flex-end;text-align:right;transform:translateX(-100%);margin-left:1px}
+ .hito.fin span{margin-top:38px}
+}

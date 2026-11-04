@@ -2276,6 +2276,7 @@ function sidebar(counts){
       var c=counts[t.id];
       return '<button type="button" data-act="tab" data-tab="'+t.id+'"'+(ui.tab===t.id?' aria-current="page"':'')+'>'+ico(t.id)+'<span>'+t.label+'</span>'+(c?'<span class="count" aria-label="'+c+' pendientes">'+c+'</span>':'')+'</button>';
     }).join('')+'</nav>'
+    +'<a class="btn btn-accent btn-sm" href="oficina.html" style="margin:10px 12px 0">Abrir la oficina</a>'
     +'<div class="side-foot"><div class="side-who"><span class="avatar" aria-hidden="true">'+esc((me()||{name:'?'}).name.charAt(0))+'</span><span><b>'+esc((me()||{name:''}).name)+'</b><span class="small">Usuario '+esc((me()||{user:''}).user)+'</span></span></div>'
     +'<button class="btn btn-outline btn-sm" data-act="logout">'+ico('logout',18)+'Salir</button>'+demoLinks('admin')+'</div></aside>';
 }
