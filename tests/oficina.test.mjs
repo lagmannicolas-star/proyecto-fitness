@@ -23,7 +23,7 @@ assert.deepEqual([...O.SALAS],['direccion','comercial','redes','marketing','dise
 // Instagram: el Reel de mañana no cuenta como publicación de hoy.
 assert.equal(x.igHoy,0);assert(titulos.includes('Instagram no tiene nada para hoy'));
 const conIg=O.leer({...base,instagram:{conectado:true,hoy:2},promo_cargadas:66,red:base.red.map(r=>({...r,mp:true})),pedidos:[{code:'B',status:'con_ofertas',ofertas:3,consultados:9,alta:ahora}]},ahora,true);
-assert.deepEqual(O.pendientes(conIg),[],'sin pendientes cuando todo se resolvió');assert.match(O.frase(conIg,[]),/Está todo en orden/);
+assert.equal(O.pendientes(conIg).length,0,'sin pendientes cuando todo se resolvió');assert.match(O.frase(conIg,[]),/Está todo en orden/);
 // Datos de texto siempre escapados.
 assert.equal(doc.querySelectorAll('.sala').length,8);
 const malo=abrir({datos:{...base,ahora,red:[{...prov(1),nombre:'<img src=x onerror=alert(1)>'}]},mpListo:null});malo.window.document.querySelector('[data-sala="comercial"]').click();assert.equal(malo.window.document.querySelector('#mesa img'),null);assert.match(malo.window.document.querySelector('#mesa').textContent,/<img src=x/);
