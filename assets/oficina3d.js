@@ -798,7 +798,7 @@ export function crear(THREE, Orbit, cont, opciones) {
   }
 
   /* ---------- Nicolás, el mensajero, el perro y la aspiradora ---------- */
-  var mPelo = 0x2A1D14, mPiel = 0xE3B58F, mRemera = 0x16191B, mJean = 0x2C3F5C;
+  var mPelo = 0x0F0B09, mPiel = 0xC4916A, mRemera = 0x121416, mJean = 0x17191C; /* Morocho, ropa negra, sin barba ni anteojos */
   function armarJefe() {
     var g = new THREE.Group();
     g.add(fundir(conLote(function () {
@@ -817,7 +817,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     c.position.y = 1.12;
     var pi = pierna(0, -0.1), pd = pierna(0, 0.1);
     pi.material = pd.material = mCuerpos;
-    var pj = fundir(conLote(function () { poner(BASE.cil, matriz(0, -0.19, 0, 0.15, 0.4, 0.15), mJean); caja(0.15, 0.05, 0.24, 0, -0.42, -0.04, C.lima); }), mCuerpos).geometry;
+    var pj = fundir(conLote(function () { poner(BASE.cil, matriz(0, -0.19, 0, 0.15, 0.4, 0.15), mJean); caja(0.15, 0.05, 0.24, 0, -0.42, -0.04, C.negro); }), mCuerpos).geometry;
     pi.geometry = pj; pd.geometry = pj;
     var so = new THREE.Mesh(gSombra, mSombra); so.rotation.x = -Math.PI / 2; so.position.y = 0.02;
     g.add(bd); g.add(bi); g.add(c); g.add(pi); g.add(pd); g.add(so);
