@@ -22,7 +22,7 @@ var ROPA = [0xA5CC21, 0xE8ECE4, 0xF4B73F, 0x5E93B5, 0xC47BA6, 0x7D9A6C, 0x38474F
 var PIEL = [0xE8BE9B, 0xC68F66, 0x8D5A3C, 0xF0D2B6];
 var PELO = [0x2A1D14, 0x4A3222, 0x15120F, 0x7A5A3A, 0x8E8E8E];
 var COCINA = [16.4, 18.6];
-var CORTO = { redes: 'Redes', diseno: 'Diseño', administracion: 'Admin', investigacion: 'Investig.' };
+var CORTO = { redes: 'Redes', diseno: 'Diseño', administracion: 'Admin', investigacion: 'Investig.', jefe: 'Jefe' };
 
 function suave(a, b, x) { var t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 /* 0 de noche, 1 de día, según los minutos del día en Buenos Aires. */
