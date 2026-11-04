@@ -14,5 +14,5 @@ const w=read('worker/index.js'),cfg=read('wrangler.jsonc');assert(!/graph\.insta
 const sql=read('supabase/migrations/20261016150000_instagram_desde_la_base.sql');
 assert.match(sql,/vault\.create_secret/,'la llave se guarda cifrada');assert.match(sql,/cron\.schedule\('nexofit-instagram','\*\/5 \* \* \* \*'/);
 assert.match(sql,/interval '3 hours'/);assert.match(sql,/attempts\+1>=3/);assert.match(sql,/media_type','STORIES'/);assert.match(sql,/is_carousel_item/);
-const admin=read('admin.html');assert.match(admin,/fitness_social_set_token/);assert.match(admin,/type="password" aria-label="Llave de Instagram"/);
+const admin=read('admin.html');assert.match(admin,/fitness_social_set_token/);assert.match(admin,/type="password" aria-label="Llave de Meta"/);
 console.log('OK: Instagram programado: semana 1 completa (21 posts y 35 historias en JPG), publicación desde la base cada 5 minutos con la llave cifrada, y el Worker no publica.');

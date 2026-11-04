@@ -10,6 +10,21 @@
   var SALAS = ['direccion', 'comercial', 'redes', 'marketing', 'diseno', 'investigacion', 'administracion', 'operaciones'];
   var NOMBRES = { direccion: 'Dirección', comercial: 'Comercial', redes: 'Redes sociales', marketing: 'Marketing', diseno: 'Diseño y video', investigacion: 'Investigación', administracion: 'Administración', operaciones: 'Operaciones' };
   var PROMO_DESDE = '2026-11-03';
+  var COLA_MINIMA = 14;
+  /* Turnos diarios (hora de Buenos Aires). Cada uno es una tarea programada: si se cambia una, se cambia acá. */
+  var TURNOS = [
+    { h: '00:23', e: 'investigacion', t: 'Radar de mercado y compradores' },
+    { h: '03:23', e: 'marketing', t: 'Análisis de contenido y campañas' },
+    { h: '05:23', e: 'diseno', t: 'Producción de piezas para Meta' },
+    { h: '07:23', e: 'direccion', t: 'Prioridades del día' },
+    { h: '08:12', e: 'operaciones', t: 'Lectura general de la oficina' },
+    { h: '10:23', e: 'redes', t: 'Control del calendario' },
+    { h: '15:12', e: 'operaciones', t: 'Lectura general de la oficina' },
+    { h: '15:43', e: 'comercial', t: 'Seguimiento comercial' },
+    { h: '17:23', e: 'administracion', t: 'Cobros y comisiones' },
+    { h: '19:12', e: 'operaciones', t: 'Lectura general y reportes' },
+    { h: '21:23', e: 'operaciones', t: 'Control técnico' }
+  ];
 
   /* ---------- Fechas y formato ---------- */
   function diaBA(fecha) {
@@ -65,7 +80,9 @@
       conOfertas: pedidos.filter(function (p) { return p.ofertas > 0; }).length,
       vendido: pagados.reduce(function (s, p) { return s + Number(p.pago_monto || 0); }, 0),
       comision: pagados.reduce(function (s, p) { return s + Number(p.pago_comision || 0); }, 0),
-      ig: d0.instagram || {}, igHoy: igHoy, proximas: proximas,
+      ig: d0.instagram || {}, igHoy: igHoy, proximas: proximas, fb: d0.facebook || {},
+      cola: d0.cola || [], colaTotal: d0.cola_total || 0, colaHasta: d0.cola_hasta || null,
+      encargos: d0.encargos || [], metricas: d0.metricas || {}, ofertas: d0.ofertas_total || 0,
       promoCargadas: d0.promo_cargadas || 0, novedades: d0.novedades || [], avisos: d0.avisos || {}, automatismos: d0.automatismos || [], exigirMp: !!d0.exigir_mp,
       ventas: foto.ventas || null, tareas: foto.tareas || null
     };
@@ -88,13 +105,41 @@
     }
     if (id === 'redes') {
       if (!x.ig.conectado && !x.igHoy) return 'frenada';
-      return (!x.ig.conectado || !x.igHoy) ? 'atencion' : 'orden';
+      return (!x.ig.conectado || !x.fb.conectado || !x.igHoy) ? 'atencion' : 'orden';
     }
     if (id === 'operaciones') {
       if (tareasCaidas(x)) return 'frenada';
       return (x.fotoVieja || x.avisos.errores_7d) ? 'atencion' : 'orden';
     }
-    return novedadesDe(x, id).length ? 'orden' : 'nada';
+    if (id === 'diseno') return x.colaTotal >= COLA_MINIMA ? 'orden' : 'atencion';
+    return (novedadesDe(x, id).length || encargosDe(x, id).length) ? 'orden' : 'nada';
+  }
+
+  function encargosDe(x, id) { return x.encargos.filter(function (e) { return e.espacio === id && e.estado !== 'descartado'; }); }
+  function turnosDe(id) { return TURNOS.filter(function (t) { return t.e === id; }); }
+  function horaBA(ahora) {
+    var p = partes(ahora);
+    return (p.hour === '24' ? '00' : p.hour) + ':' + p.minute;
+  }
+  function proximoTurno(ahora) {
+    var h = horaBA(ahora), n = TURNOS.filter(function (t) { return t.h > h; })[0];
+    return n || TURNOS[0];
+  }
+
+  /* Lista de lanzamiento: lo que tiene que estar listo el 16/11. */
+  function listaLanzamiento(x) {
+    var mitad = x.red.length ? x.conMp >= Math.ceil(x.red.length / 2) : false;
+    return [
+      { t: 'Mercado Pago activo en la página', ok: x.mpListo === true, dudoso: x.mpListo === null },
+      { t: 'Al menos la mitad de los proveedores con Mercado Pago', ok: mitad },
+      { t: 'Regla de exigir Mercado Pago prendida', ok: x.exigirMp },
+      { t: 'Instagram conectado', ok: !!x.ig.conectado },
+      { t: 'Facebook conectado', ok: !!x.fb.conectado },
+      { t: 'Dos semanas de contenido en cola', ok: x.colaTotal >= COLA_MINIMA },
+      { t: 'Promo cargada para todas las empresas con mail', ok: !x.ventas || x.ventas.seguimiento_enviados <= x.promoCargadas },
+      { t: 'Primer pedido real', ok: x.pedidos.length > 0 },
+      { t: 'Primera oferta real', ok: x.ofertas > 0 }
+    ];
   }
 
   function novedadesDe(x, id) {
@@ -111,10 +156,12 @@
       d: 'Decidiste que sin Mercado Pago no se arranca, y hoy son 0 de ' + x.red.length + '. ' + falta });
     if (x.ventas && x.ventas.seguimiento_enviados > x.promoCargadas) p.push({ n: 'frenada', sala: 'comercial', t: 'La promo del 5 % no está cargada para todos',
       d: 'Se les ofreció a ' + x.ventas.seguimiento_enviados + ' empresas y figuran ' + x.promoCargadas + ' en la lista que aplica el descuento. La próxima lectura de la oficina debería completarla.' });
-    if (!x.ig.conectado) p.push({ n: x.igHoy ? 'atencion' : 'frenada', sala: 'redes', t: 'Conectar la llave de Instagram',
-      d: 'Sin la llave, el publicador de la página no puede publicar. Son unos 15 minutos desde la compu.', a: 'admin.html', at: 'Abrir el panel' });
+    if (!x.ig.conectado || !x.fb.conectado) p.push({ n: x.ig.conectado ? 'atencion' : 'frenada', sala: 'redes', t: x.ig.conectado ? 'Conectar Facebook' : 'Conectar Instagram y Facebook con Meta',
+      d: 'Con una sola llave de Meta se publica todo lo que está en cola. Son unos 20 minutos desde la compu.', a: 'admin.html', at: 'Abrir el panel' });
     if (!x.igHoy) p.push({ n: 'atencion', sala: 'redes', t: 'Instagram no tiene nada para hoy',
-      d: 'No hay publicaciones programadas para hoy en el publicador ni en Metricool. Revisá también Business Suite: desde acá no se ve.' });
+      d: 'No hay publicaciones programadas para hoy en el publicador ni en Metricool. Lo que cargues a mano en Business Suite no se ve desde acá.' });
+    var abiertos = x.encargos.filter(function (e) { return e.origen === 'oficina' && e.espacio === 'direccion' && e.estado === 'pendiente'; });
+    abiertos.slice(0, 3).forEach(function (e) { p.push({ n: 'atencion', sala: 'direccion', t: e.titulo, d: e.detalle || 'La oficina necesita tu decisión.' }); });
     if (!x.pedidos.length) p.push({ n: 'atencion', sala: 'comercial', t: 'Conseguir el primer pedido real',
       d: 'Hablá con un gimnasio que esté por equipar y cargá el pedido con él. Las pruebas y los pedidos descartados no cuentan.' });
     if (x.ventas && x.ventas.respondieron) p.push({ n: 'atencion', sala: 'comercial', t: plural(x.ventas.respondieron, 'respuesta', 'respuestas') + ' de proveedores para mirar',
@@ -141,10 +188,10 @@
     var n = NOMBRES[id], ult = novedadesDe(x, id)[0];
     if (id === 'direccion') { var l = pendientes(x); return { n: n, c: Math.max(0, x.diasLanzamiento), de: ' días', t: plural(l.length, 'decisión pendiente', 'decisiones pendientes') }; }
     if (id === 'comercial') return { n: n, c: x.red.length, de: ' proveedores', t: plural(x.pedidos.length, 'pedido real', 'pedidos reales') + ', ' + (x.ventas ? plural(x.ventas.respondieron || 0, 'respuesta', 'respuestas') + ' al lanzamiento' : 'sin lectura de mails') };
-    if (id === 'redes') return { n: n, c: x.igHoy, de: ' hoy', t: 'en Instagram' + (x.ig.conectado ? '' : ', publicador sin conectar') };
+    if (id === 'redes') return { n: n, c: x.colaTotal, de: ' en cola', t: 'Meta ' + (x.ig.conectado && x.fb.conectado ? 'conectado' : 'sin conectar') + ', ' + x.igHoy + ' hoy en Instagram' };
     if (id === 'marketing') return { n: n, c: x.promoCargadas, de: '', t: 'empresas con la promo, ' + x.conPromo + ' ya sumadas' };
-    if (id === 'diseno') return { n: n, c: x.proximas.length, de: ' en cola', t: ult ? ult.titulo : 'Piezas por publicar' };
-    if (id === 'investigacion') return { n: n, c: novedadesDe(x, id).filter(function (i) { return i.tipo === 'reporte'; }).length, de: ' informes', t: ult ? ult.titulo : 'Esperando su primer encargo' };
+    if (id === 'diseno') return { n: n, c: x.colaHasta ? fechaCorta(x.colaHasta) : '—', de: '', t: x.colaHasta ? 'contenido cubierto hasta esa fecha' : 'Sin contenido en cola' };
+    if (id === 'investigacion') return { n: n, c: novedadesDe(x, id).filter(function (i) { return i.tipo === 'reporte'; }).length, de: ' informes', t: ult ? ult.titulo : 'Primer turno a las 00:23' };
     if (id === 'administracion') return { n: n, c: x.conMp, de: ' de ' + x.red.length, t: 'con Mercado Pago' + (x.mpListo === false ? ', sin activar en la página' : '') };
     var ok = (x.tareas || []).filter(function (t) { return t.estado === 'ok'; }).length;
     return { n: n, c: x.tareas ? ok : x.automatismos.length, de: x.tareas ? ' de ' + x.tareas.length : '', t: x.tareas ? 'tareas funcionando' : 'procesos de la base' };
@@ -170,6 +217,15 @@
       + '<div class="hito inicio" style="left:0"><span><b>Promo</b>desde 2/11</span></div>'
       + '<div class="hito medio" style="left:' + pos(CIERRE) + '%"><span><b>Cierre de promo</b>vie 13/11</span></div>'
       + '<div class="hito fin" style="left:100%"><span><b>Lanzamiento</b>lun 16/11</span></div></div>';
+  }
+
+  function dibujarTurnos(x) {
+    var aMin = function (h) { var p = h.split(':'); return Number(p[0]) * 60 + Number(p[1]); };
+    var ahora = aMin(horaBA(x.ahora)), n = proximoTurno(x.ahora);
+    return '<section class="turnos" aria-label="Turnos de la oficina"><div class="turnos-tope"><h2>La oficina en 24 horas</h2><p>Próximo turno: ' + esc(n.h) + ', ' + esc(NOMBRES[n.e]) + '. ' + esc(n.t) + '.</p></div>'
+      + '<div class="reloj" role="img" aria-label="' + TURNOS.length + ' turnos repartidos en el día"><i class="ahora" style="left:' + (ahora / 14.4).toFixed(2) + '%"></i>'
+      + TURNOS.map(function (t) { return '<button type="button" class="pip" data-ir="' + t.e + '" style="left:' + (aMin(t.h) / 14.4).toFixed(2) + '%" title="' + esc(t.h + ', ' + NOMBRES[t.e] + ': ' + t.t) + '" aria-label="' + esc(t.h + ', ' + NOMBRES[t.e]) + '"></button>'; }).join('')
+      + '</div><div class="horas"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></section>';
   }
 
   function dibujarSala(id, i, x, elegida) {
@@ -206,10 +262,59 @@
     return '<h3>Lo último</h3><ol class="feed">' + l.slice(0, id === 'direccion' ? 14 : 8).map(function (n) {
       var seguro = /^https:\/\//.test(n.enlace || '');
       return '<li data-t="' + esc(n.tipo) + '"><time>' + esc(fechaHora(n.fecha)) + '</time><span><span class="etiqueta">' + esc(id === 'direccion' ? NOMBRES[n.espacio] : TIPOS[n.tipo]) + '</span><b>' + esc(n.titulo) + '</b></span>'
-        + (n.detalle ? '<p>' + esc(n.detalle) + '</p>' : '') + (seguro ? '<a href="' + esc(n.enlace) + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</li>';
+        + (n.detalle ? (n.detalle.length > 240 ? '<details><summary>Leer completo</summary><p>' + esc(n.detalle) + '</p></details>' : '<p>' + esc(n.detalle) + '</p>') : '') + (seguro ? '<a href="' + esc(n.enlace) + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</li>';
     }).join('') + '</ol>';
   }
   var TIPOS = { avance: 'Avance', reporte: 'Reporte', alerta: 'Alerta' };
+
+  function linea(serie) {
+    var W = 150, H = 44, P = 5, v = serie.map(function (p) { return Number(p[1]); });
+    var min = Math.min.apply(null, v), max = Math.max.apply(null, v), rango = max - min || 1;
+    var px = function (i) { return v.length > 1 ? P + i * (W - 2 * P) / (v.length - 1) : W / 2; };
+    var py = function (y) { return max === min ? H / 2 : H - P - (y - min) / rango * (H - 2 * P); };
+    var d = v.map(function (y, i) { return (i ? 'L' : 'M') + px(i).toFixed(1) + ' ' + py(y).toFixed(1); }).join('');
+    var u = v.length - 1;
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Evolución en ' + v.length + ' días">'
+      + '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="' + px(u).toFixed(1) + '" cy="' + py(v[u]).toFixed(1) + '" r="4"/>'
+      + serie.map(function (p, i) { return '<rect x="' + (px(i) - 8).toFixed(1) + '" y="0" width="16" height="' + H + '" fill="transparent"><title>' + esc(p[0]) + ': ' + esc(p[1]) + '</title></rect>'; }).join('') + '</svg>';
+  }
+  function tendencias(x, lista) {
+    var h = lista.filter(function (l) { return (x.metricas[l[0]] || []).length; }).map(function (l) {
+      var s = x.metricas[l[0]], u = s[s.length - 1][1], p = s.length > 1 ? s[0][1] : null, dif = p == null ? null : Number(u) - Number(p);
+      return '<div class="tend"><span>' + esc(l[1]) + '</span><b class="num">' + esc(Number(u).toLocaleString('es-AR')) + '</b>' + linea(s) + '<small>' + (dif == null ? 'Primer dato de hoy' : (dif > 0 ? '+' : '') + dif + ' desde ' + fechaCorta(s[0][0] + 'T15:00:00Z')) + '</small></div>';
+    }).join('');
+    return h ? '<h3>Cómo viene</h3><div class="tendencias">' + h + '</div>' : '';
+  }
+  function embudo(x) {
+    var v = x.ventas || {}, pasos = [['Empresas contactadas', v.prospectos || 0], ['Respondieron', v.respondieron_total || 0], ['En la red', x.red.length], ['Con Mercado Pago', x.conMp]];
+    var cmp = [['Pedidos reales', x.pedidos.length], ['Con ofertas', x.conOfertas], ['Pagados', x.pagados.length]];
+    var fila = function (l, tope) { return l.map(function (p) { return '<li><span>' + esc(p[0]) + '</span><i style="width:' + (tope ? Math.max(p[1] ? 1.5 : 0, p[1] / tope * 100) : 0).toFixed(1) + '%"></i><b class="num">' + p[1] + '</b></li>'; }).join(''); };
+    return '<div class="embudos"><div><h3>Camino del proveedor</h3><ul class="embudo">' + fila(pasos, Math.max(pasos[0][1], 1)) + '</ul></div><div><h3>Camino del comprador</h3><ul class="embudo">' + fila(cmp, Math.max(x.pedidos.length, 1)) + '</ul></div></div>';
+  }
+  function checklist(x) {
+    var l = listaLanzamiento(x), ok = l.filter(function (i) { return i.ok; }).length;
+    return '<h3>Lista de lanzamiento: ' + ok + ' de ' + l.length + '</h3><ul class="lista">' + l.map(function (i) {
+      return '<li data-ok="' + (i.ok ? 'si' : i.dudoso ? 'dudoso' : 'no') + '"><i></i>' + esc(i.t) + (i.dudoso ? ' (se comprueba en tu página)' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  function colaMeta(x) {
+    var tipos = { post: 'Post', carrusel: 'Carrusel', historia: 'Historia', reel: 'Reel' };
+    return x.cola.length ? '<h3>Cola de Meta: ' + x.colaTotal + ' piezas</h3>' + tabla([{ t: 'Cuándo' }, { t: 'Red' }, { t: 'Formato' }, { t: 'Qué' }],
+      x.cola.slice(0, 16).map(function (q) { return [fechaHora(q.fecha), q.red === 'facebook' ? 'Facebook' : 'Instagram', esc(tipos[q.tipo] || q.tipo), esc(q.titulo)]; }))
+      : '<p class="sin-datos">La cola de Meta está vacía.</p>';
+  }
+  function turnosMesa(id) {
+    var l = turnosDe(id);
+    return l.length ? '<p class="turno">Turno diario: ' + l.map(function (t) { return esc(t.h) + ', ' + esc(t.t.toLowerCase()); }).join('. ') + '.</p>' : '';
+  }
+  function pizarra(x, id) {
+    var l = encargosDe(x, id), ETQ = { pendiente: 'Pendiente', en_curso: 'En curso', hecho: 'Hecho' };
+    return '<h3>Encargos de este espacio</h3>'
+      + (w.NF_OFICINA_PREVIEW ? '' : '<form class="encargo" data-espacio="' + id + '"><input aria-label="Qué le pedís a ' + esc(NOMBRES[id]) + '" placeholder="¿Qué le pedís a ' + esc(NOMBRES[id]) + '?" maxlength="200" required><button class="chip" type="submit">Encargar</button></form>')
+      + (l.length ? '<ol class="feed">' + l.slice(0, 8).map(function (e) {
+        return '<li><time>' + esc(ETQ[e.estado] || e.estado) + '</time><span><b>' + esc(e.titulo) + '</b></span>' + (e.resultado ? (e.resultado.length > 240 ? '<details><summary>Ver resultado</summary><p>' + esc(e.resultado) + '</p></details>' : '<p>' + esc(e.resultado) + '</p>') : e.detalle ? '<p>' + esc(e.detalle) + '</p>' : '') + '</li>';
+      }).join('') + '</ol>' : '<p class="nota">Todavía no hay encargos. Lo que pidas acá lo toma el próximo turno.</p>');
+  }
 
   function tablaProveedores(x, ui) {
     var q = (ui.q || '').toLowerCase();
@@ -230,43 +335,44 @@
     direccion: function (x) {
       return { t: 'Dirección', s: 'El estado general y lo último de todos los espacios.',
         h: medidas([[Math.max(0, x.diasLanzamiento), 'días para lanzar'], [Math.max(0, x.diasCierre), 'días para cerrar la promo'], [x.red.length, 'proveedores'], [x.pedidos.length, 'pedidos reales']])
-          + (feed(x, 'direccion') || '<p class="sin-datos">Los avances y reportes de cada espacio van a aparecer acá.</p>') };
+          + checklist(x) + tendencias(x, [['proveedores', 'Proveedores'], ['con_mp', 'Con Mercado Pago'], ['pedidos', 'Pedidos reales'], ['seguidores_ig', 'Seguidores de Instagram']])
+          + (feed(x, 'direccion') || '<p class="sin-datos">Los avances y reportes de cada espacio van a aparecer acá.</p>') + pizarra(x, 'direccion') };
     },
     comercial: function (x, ui) {
       var v = x.ventas || {};
       return { t: 'Comercial', s: 'Proveedores, compradores y mails.',
         h: medidas([[x.red.length, 'proveedores activos'], [x.nuevos7, 'nuevos en 7 días'], [x.pedidos.length, 'pedidos reales'], [(v.seguimiento_enviados || 0) + ' de ' + (v.seguimiento_total || 0), 'mails de lanzamiento'], [v.respondieron || 0, 'respondieron al lanzamiento'], [v.prospectos || 0, 'empresas contactadas'], [v.bajas || 0, 'bajas'], [v.rebotes || 0, 'rebotes']])
-          + feed(x, 'comercial') + ((v.respuestas || []).length ? '<h3>Respuestas para seguir</h3>' + tabla([{ t: 'Empresa' }, { t: 'Qué dijo' }], v.respuestas.map(function (r) { return [esc(r.empresa), esc(r.linea)]; })) : '')
+          + embudo(x) + tendencias(x, [['proveedores', 'Proveedores'], ['con_mp', 'Con Mercado Pago']]) + pizarra(x, 'comercial') + feed(x, 'comercial') + ((v.respuestas || []).length ? '<h3>Respuestas para seguir</h3>' + tabla([{ t: 'Empresa' }, { t: 'Qué dijo' }], v.respuestas.map(function (r) { return [esc(r.empresa), esc(r.linea)]; })) : '')
           + tablaPedidos(x) + tablaProveedores(x, ui) };
     },
     redes: function (x) {
       var r = x.foto.redes || {};
       return { t: 'Redes sociales', s: 'Lo que está por salir y cómo viene el publicador.',
-        h: medidas([[x.igHoy, 'en Instagram hoy'], [x.ig.conectado ? 'Conectado' : 'Sin conectar', 'publicador de la página'], [r.seguidores_ig == null ? '—' : r.seguidores_ig, 'seguidores en Instagram'], [r.fallidas_7d == null ? '—' : r.fallidas_7d, 'fallidas en 7 días']])
-          + feed(x, 'redes') + proximas(x) + '<p class="nota">Lo programado a mano en Meta Business Suite no se ve desde acá.' + (x.ig.ultimo_error ? ' Último error del publicador: ' + esc(x.ig.ultimo_error) : '') + '</p>' };
+        h: medidas([[x.igHoy, 'en Instagram hoy'], [x.fb.hoy || 0, 'en Facebook hoy'], [x.ig.conectado ? 'Conectado' : 'Sin conectar', 'Instagram por Meta'], [x.fb.conectado ? (x.fb.pagina || 'Conectado') : 'Sin conectar', 'Facebook'], [r.seguidores_ig == null ? '—' : r.seguidores_ig, 'seguidores en Instagram'], [r.fallidas_7d == null ? '—' : r.fallidas_7d, 'fallidas en 7 días']])
+          + tendencias(x, [['seguidores_ig', 'Seguidores de Instagram'], ['alcance_ig', 'Alcance diario'], ['publicadas_meta', 'Publicadas por Meta']]) + colaMeta(x) + pizarra(x, 'redes') + feed(x, 'redes') + proximas(x) + '<p class="nota">Metricool queda solo para TikTok, 1 por día. Lo programado a mano en Meta Business Suite no se ve desde acá.' + (x.ig.ultimo_error ? ' Último error del publicador: ' + esc(x.ig.ultimo_error) : '') + '</p>' };
     },
     marketing: function (x) {
       var r = x.foto.redes || {};
       return { t: 'Marketing', s: 'Promoción de lanzamiento, alcance y campañas.',
         h: medidas([[x.promoCargadas, 'empresas con la promo'], [x.conPromo, 'nuevas sumadas con 5 %'], [r.alcance_ig_7d == null ? '—' : r.alcance_ig_7d, 'alcance diario promedio de Instagram']])
           + '<p class="nota">El 5 % es solo para empresas nuevas que recibieron la promo y se suman antes del 13/11. Las que ya estaban en la red no cambian.</p>'
-          + (feed(x, 'marketing') || '<p class="sin-datos">Todavía no hay reportes de campañas.</p>') };
+          + tendencias(x, [['promo', 'Empresas con promo'], ['alcance_ig', 'Alcance diario']]) + pizarra(x, 'marketing') + (feed(x, 'marketing') || '<p class="sin-datos">Todavía no hay reportes de campañas.</p>') };
     },
     diseno: function (x) {
       var dv = x.foto.diseno || {};
       return { t: 'Diseño y video', s: 'Piezas en producción y publicaciones en cola.',
-        h: medidas([[x.proximas.length, 'publicaciones en cola'], [dv.videos_semana == null ? '—' : dv.videos_semana, 'videos de la última tanda']])
-          + (feed(x, 'diseno') || '<p class="sin-datos">Todavía no hay novedades de producción.</p>') + proximas(x) };
+        h: medidas([[x.colaTotal, 'piezas en cola de Meta'], [x.colaHasta ? fechaCorta(x.colaHasta) : '—', 'cubierto hasta'], [dv.videos_semana == null ? '—' : dv.videos_semana, 'videos de la última tanda']])
+          + pizarra(x, 'diseno') + (feed(x, 'diseno') || '<p class="sin-datos">Todavía no hay novedades de producción.</p>') + colaMeta(x) };
     },
     investigacion: function (x) {
       return { t: 'Investigación', s: 'Informes de mercado, competencia y compradores.',
-        h: feed(x, 'investigacion') || '<p class="sin-datos">Este espacio todavía no tiene encargos. Cuando pidas un estudio, el informe va a quedar acá.</p>' };
+        h: pizarra(x, 'investigacion') + (feed(x, 'investigacion') || '<p class="sin-datos">El primer radar de mercado y compradores sale en el turno de las 00:23.</p>') };
     },
     administracion: function (x) {
       var mp = x.mpListo === true ? 'Activo' : x.mpListo === false ? 'Sin activar' : 'Sin dato';
       return { t: 'Administración', s: 'Cobros con Mercado Pago y comisiones.',
         h: medidas([[mp, 'Mercado Pago en la página'], [x.conMp + ' de ' + x.red.length, 'proveedores conectados'], [plata(x.vendido), 'vendido'], [plata(x.comision), 'comisión cobrada']])
-          + '<p class="nota">Exigir Mercado Pago para ofertar: ' + (x.exigirMp ? 'prendido' : 'apagado') + '.</p>' + feed(x, 'administracion') };
+          + '<p class="nota">Exigir Mercado Pago para ofertar: ' + (x.exigirMp ? 'prendido' : 'apagado') + '.</p>' + tendencias(x, [['con_mp', 'Con Mercado Pago']]) + pizarra(x, 'administracion') + feed(x, 'administracion') };
     },
     operaciones: function (x) {
       var filas = (x.tareas || []).map(function (t) {
@@ -278,7 +384,7 @@
       }));
       return { t: 'Operaciones', s: 'Lo que corre solo todos los días.',
         h: medidas([[x.avisos.enviados_7d || 0, 'avisos enviados en 7 días'], [x.avisos.errores_7d || 0, 'avisos fallidos en 7 días']])
-          + feed(x, 'operaciones') + '<h3>Tareas y procesos</h3>' + tabla([{ t: 'Proceso' }, { t: 'Cada cuánto' }, { t: 'Última vez' }, { t: 'Estado' }], filas)
+          + pizarra(x, 'operaciones') + feed(x, 'operaciones') + '<h3>Tareas y procesos</h3>' + tabla([{ t: 'Proceso' }, { t: 'Cada cuánto' }, { t: 'Última vez' }, { t: 'Estado' }], filas)
           + '<p class="nota">' + (x.tareas ? 'Tareas leídas ' + hace(w.__nfFoto || x.ahora, x.ahora) + '.' : 'Las tareas programadas aparecen con la primera lectura.') + '</p>' };
     }
   };
@@ -294,7 +400,16 @@
     var cont = d.getElementById('mesa');
     if (!cont) return;
     var m = mesas[ui.sala](datos, ui);
-    cont.innerHTML = '<div class="mesa-tope"><h2>' + esc(m.t) + '</h2><p>' + esc(m.s) + '</p></div>' + m.h;
+    cont.innerHTML = '<div class="mesa-tope"><h2>' + esc(m.t) + '</h2><p>' + esc(m.s) + '</p></div>' + turnosMesa(ui.sala) + m.h;
+    var fe = cont.querySelector('.encargo');
+    if (fe) fe.onsubmit = function (ev) {
+      ev.preventDefault();
+      var inp = fe.querySelector('input'), bot = fe.querySelector('button');
+      bot.disabled = true; bot.textContent = 'Encargando…';
+      sesionVigente().then(function (s) { return pedir('/rest/v1/rpc/fitness_oficina_encargar', { p_espacio: fe.dataset.espacio, p_titulo: inp.value }, s && s.access_token); })
+        .then(function () { return cargar(); })
+        .catch(function () { bot.disabled = false; bot.textContent = 'Encargar'; inp.setCustomValidity('No se pudo guardar. Probá de nuevo.'); inp.reportValidity(); });
+    };
     var b = d.getElementById('buscar');
     if (b) b.oninput = function () { ui.q = b.value; pintarMesa(); var n = d.getElementById('buscar'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     var c = d.getElementById('sin-mp');
@@ -314,8 +429,8 @@
       + '<div class="trabajo"><div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio">'
       + SALAS.map(function (id, i) { return dibujarSala(id, i, datos, ui.sala); }).join('')
       + '<i class="puerta v p1"></i><i class="puerta v p2"></i><i class="puerta h p3"></i><i class="puerta v p4"></i><div class="entrada"><span>Entrada</span></div></div>'
-      + dibujarPendientes(lista) + '</div><section class="mesa" id="mesa" aria-live="polite"></section>'
-      + '<footer class="pie">Pedidos, proveedores y caja se leen en vivo. Redes, mails, tareas, avances y reportes llegan con cada lectura programada.</footer></div>';
+      + dibujarPendientes(lista) + '</div>' + dibujarTurnos(datos) + '<section class="mesa" id="mesa" aria-live="polite"></section>'
+      + '<footer class="pie">Pedidos, proveedores y caja se leen en vivo. Redes, mails, tareas, avances y reportes llegan con cada turno.</footer></div>';
     pintarMesa();
     raiz.querySelectorAll('[data-sala]').forEach(function (b) {
       b.onclick = function () { ui.sala = b.dataset.sala; pintarMesa(); if (w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
@@ -379,7 +494,7 @@
     });
   }
 
-  w.NFOficina = { leer: leer, pendientes: pendientes, estadoSala: estadoSala, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
+  w.NFOficina = { listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
   function iniciar() {
     raiz = d.getElementById('oficina');
     if (!raiz) return;

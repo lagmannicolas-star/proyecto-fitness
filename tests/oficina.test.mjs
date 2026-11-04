@@ -17,13 +17,13 @@ const dom=abrir({datos:{...base,ahora},mpListo:false}),O=dom.window.NFOficina,do
 assert.equal(O.diaBA(ahora),'2026-11-03');
 const x=O.leer(base,ahora,false);assert.equal(x.diasLanzamiento,13);assert.equal(x.pedidos.length,0,'los descartados no cuentan');
 const lista=O.pendientes(x),titulos=lista.map(p=>p.t);
-assert(titulos.includes('Activar Mercado Pago en la página'));assert(titulos.includes('La promo del 5 % no está cargada para todos'));assert(titulos.includes('Conectar la llave de Instagram'));assert(titulos.includes('Conseguir el primer pedido real'));
+assert(titulos.includes('Activar Mercado Pago en la página'));assert(titulos.includes('La promo del 5 % no está cargada para todos'));assert(titulos.includes('Conectar Instagram y Facebook con Meta'));assert(titulos.includes('Conseguir el primer pedido real'));
 assert.equal(lista[0].n,'frenada','lo que frena va primero');
 assert.equal(O.estadoSala('administracion',x),'frenada');assert.equal(O.estadoSala('direccion',x),'frenada');assert.equal(O.estadoSala('investigacion',x),'nada');
 assert.deepEqual([...O.SALAS],['direccion','comercial','redes','marketing','diseno','investigacion','administracion','operaciones']);
 // Instagram: el Reel de mañana no cuenta como publicación de hoy.
 assert.equal(x.igHoy,0);assert(titulos.includes('Instagram no tiene nada para hoy'));
-const conIg=O.leer({...base,instagram:{conectado:true,hoy:2},promo_cargadas:66,red:base.red.map(r=>({...r,mp:true})),pedidos:[{code:'B',status:'con_ofertas',ofertas:3,consultados:9,alta:ahora}]},ahora,true);
+const conIg=O.leer({...base,instagram:{conectado:true,hoy:2},facebook:{conectado:true,hoy:1},cola_total:20,promo_cargadas:66,red:base.red.map(r=>({...r,mp:true})),pedidos:[{code:'B',status:'con_ofertas',ofertas:3,consultados:9,alta:ahora}]},ahora,true);
 assert.equal(O.pendientes(conIg).length,0,'sin pendientes cuando todo se resolvió');assert.match(O.frase(conIg,[]),/Está todo en orden/);
 // Datos de texto siempre escapados.
 assert.equal(doc.querySelectorAll('.sala').length,8);
@@ -35,5 +35,9 @@ doc.querySelector('[data-sala="comercial"]').click();doc.getElementById('sin-mp'
 const nov=O.leer({...base,novedades:[{id:1,espacio:'redes',tipo:'avance',titulo:'<b>x</b>',enlace:'javascript:alert(1)',fecha:ahora}]},ahora,null);const html2=O.mesas.redes(nov,{}).h;assert(!html2.includes('javascript:'));assert(!html2.includes('<b>x</b>'));assert(O.mesas.direccion(nov,{}).h.includes('Redes sociales'),'dirección ve todo');
 // Sin sesión pide ingresar.
 const sin=abrir();await new Promise(r=>setTimeout(r,30));assert(sin.window.document.getElementById('entrar'),'pide ingreso');
+// Lista de lanzamiento y turnos.
+assert.equal(O.listaLanzamiento(x).filter(i=>i.ok).length,0);assert.equal(O.proximoTurno('2026-11-04T01:10:00Z').h,'00:23','22:10 en Buenos Aires: el próximo es el de medianoche');assert.equal(O.proximoTurno('2026-11-04T12:00:00Z').h,'10:23');
+for(const t of O.TURNOS)assert(O.SALAS.includes(t.e)&&/^\d\d:\d\d$/.test(t.h));
+assert.match(fs.readFileSync('supabase/migrations/20261104020000_oficina_turnos.sql','utf8'),/if not public\.fitness_es_admin\(\) then raise exception 'No autorizado'; end if;\n insert into public\.fitness_oficina_encargos/,'solo el administrador encarga');
 console.log('OK: oficina (permisos, pendientes, estados y dibujo)');
 for(const v of [dom,malo,sin])v.window.close();

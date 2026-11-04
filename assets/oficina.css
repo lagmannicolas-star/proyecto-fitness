@@ -123,7 +123,7 @@ td.n,th.n{text-align:right;padding-right:18px}
 .si{color:#4B6500}
 .neutro{font-weight:600;white-space:nowrap;color:var(--tinta-2)}
 .feed{display:flex;flex-direction:column;margin-top:10px}
-.feed li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--linea-papel)}
+.feed li{display:grid;grid-template-columns:128px minmax(0,1fr);gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--linea-papel)}
 .feed time{font-size:.875rem;color:var(--tinta-2);padding-top:1px}
 .feed b{font-weight:600}
 .feed p{grid-column:2;font-size:.94rem;color:var(--tinta-2);max-width:72ch}
@@ -135,6 +135,45 @@ td.n,th.n{text-align:right;padding-right:18px}
 .mesa h3{font-size:1.05rem;font-weight:600;margin-top:24px}
 .sin-datos{margin-top:12px;padding:14px 16px;background:var(--papel-2);border-radius:6px;font-size:.95rem}
 .pie{padding-block:22px 34px;color:var(--gris);font-size:.875rem}
+
+/* Tira de 24 horas */
+.turnos{margin-top:clamp(22px,3vw,30px)}
+.turnos-tope{display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap}
+.turnos h2{font-family:var(--cond);font-weight:600;font-size:1.75rem;line-height:1.1}
+.turnos p{color:#D7DEE5;font-size:.95rem}
+.reloj{position:relative;height:44px;margin-top:10px;border-bottom:1px solid var(--gris)}
+.pip{position:absolute;bottom:0;width:24px;height:44px;margin-left:-12px;padding:0;border:0;background:transparent;cursor:pointer}
+.pip::after{content:"";position:absolute;left:10px;bottom:0;width:4px;height:22px;border-radius:4px 4px 0 0;background:var(--lima)}
+.pip:hover::after{height:30px}
+.ahora{position:absolute;bottom:0;top:0;width:2px;background:var(--muro)}
+.horas{display:flex;justify-content:space-between;margin-top:4px;font-size:.84rem;color:var(--gris)}
+.turno{margin-top:8px;font-size:.92rem;color:var(--tinta-2)}
+
+/* Detalle avanzado */
+.tendencias{display:flex;flex-wrap:wrap;gap:14px 34px;margin-top:10px}
+.tend{display:grid;grid-template-columns:auto auto;align-items:center;gap:0 12px;color:var(--tinta);min-width:0}
+.tend span{grid-column:1/-1;font-size:.875rem;color:var(--tinta-2)}
+.tend b{font-family:var(--cond);font-weight:600;font-size:1.9rem;line-height:1}
+.tend svg{max-width:100%}
+.tend svg circle{fill:currentColor;stroke:var(--papel);stroke-width:2}
+.tend small{grid-column:1/-1;font-size:.84rem;color:var(--tinta-2)}
+.embudos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:0 34px}
+.embudo{margin-top:8px}
+.embudo li{display:grid;grid-template-columns:150px minmax(0,1fr) 48px;align-items:center;gap:10px;padding:5px 0;font-size:.94rem}
+.embudo i{display:block;height:12px;border-radius:0 4px 4px 0;background:var(--tinta)}
+.embudo b{text-align:right;font-weight:600}
+.lista{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:4px 30px;margin-top:8px}
+.lista li{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.95rem}
+.lista i{flex:none;width:18px;height:18px;border:2px solid var(--tinta);border-radius:50%;position:relative}
+.lista li[data-ok=si] i{background:#4B6500;border-color:#4B6500}
+.lista li[data-ok=si] i::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid var(--papel);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.lista li[data-ok=no]{color:#B3261E}
+.lista li[data-ok=no] i{border-color:#B3261E}
+.encargo{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;max-width:640px}
+.encargo input{flex:1 1 240px;min-height:44px;padding:0 12px;border:1px solid rgba(16,23,31,.4);border-radius:8px;background:#fff;color:var(--tinta)}
+.feed details{grid-column:2;margin-top:2px}
+.feed summary{cursor:pointer;font-size:.92rem;font-weight:600;color:#4B6500;min-height:28px}
+.feed details p{white-space:pre-line;margin-top:4px}
 
 /* Ingreso */
 .ingreso{min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
@@ -158,7 +197,8 @@ td.n,th.n{text-align:right;padding-right:18px}
  .puerta,.mueble{display:none}
  .entrada{left:20px}
  .feed li{grid-template-columns:minmax(0,1fr)}
- .feed p,.feed a{grid-column:1}
+ .feed p,.feed a,.feed details{grid-column:1}
+ .embudo li{grid-template-columns:120px minmax(0,1fr) 40px}
  .cota{height:94px}
  .hito{width:112px}.hito span{font-size:.8rem}
  .hito.medio{align-items:flex-end;text-align:right;transform:translateX(-100%);margin-left:1px}
