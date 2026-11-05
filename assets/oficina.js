@@ -192,17 +192,40 @@
   var TOMAS = {
     jefe: { p: [35.6, 0.9, 9.4], alto: 2.9, az: 0.26, el: 0.66 }, comercial: { p: [12.6, 0.8, 3.7], alto: 4, az: -0.22, el: 0.74 }, redes: { p: [4.6, 0.9, 11.3], alto: 3.9, az: 0.24, el: 0.74 },
     diseno: { p: [22, 0.9, 11], alto: 3.9, az: -0.2, el: 0.74 }, investigacion: { p: [28.6, 0.9, 11.7], alto: 3.9, az: 0.22, el: 0.74 }, operaciones: { p: [23.9, 0.9, 18.6], alto: 3.9, az: -0.2, el: 0.74 },
-    cocina: { p: [15.5, 0.7, 19.2], alto: 3.8, az: 0.2, el: 0.74 }, terraza: { p: [35.4, 0.8, 16.6], alto: 3.7, az: 0.32, el: 0.7 }, todo: { p: [20.5, 0, 11], alto: 19, az: 0.1, el: 0.98 }
+    cocina: { p: [15.5, 0.7, 19.2], alto: 3.8, az: 0.2, el: 0.74 }, terraza: { p: [35.4, 0.8, 16.6], alto: 3.7, az: 0.32, el: 0.7 }, todo: { p: [20.5, 0, 11], alto: 19, az: 0.1, el: 0.98 },
+    marketing: { p: [11.2, 0.9, 11.3], alto: 3.9, az: 0.2, el: 0.74 }, perroCerca: { p: [35, 0.3, 9], alto: 1.7, az: 0.3, el: 0.62 }
   };
   function toma(k, dur, t, extra) { return Object.assign({}, TOMAS[k], { dur: dur, t: t }, extra || {}); }
   var GUIONES = {
-    mate: { n: 'Mientras tomo mate', d: 'Vos con el mate y la oficina trabajando.' },
-    cuenta: { n: 'Cuenta regresiva', d: 'Los días que faltan para lanzar, sala por sala.' },
-    recorrida: { n: 'Recorrida por la oficina', d: 'Entrá y mirá qué hace cada sala.' }
+    madrugada: { n: 'Cámaras de las 3 am', d: 'La oficina sigue trabajando mientras dormís.', estilo: 'tenso' },
+    perro: { n: 'El verdadero jefe', d: 'Un día en la vida del perro de la oficina.', estilo: 'perro' },
+    dia: { n: 'Un día en 15 segundos', d: 'Del amanecer a la noche, turno por turno.', estilo: 'dia' },
+    mate: { n: 'Mientras tomo mate', d: 'Vos con el mate y la oficina trabajando.', estilo: 'base' },
+    cuenta: { n: 'Cuenta regresiva', d: 'Los días que faltan para lanzar, sala por sala.', estilo: 'base' },
+    recorrida: { n: 'Recorrida por la oficina', d: 'Entrá y mirá qué hace cada sala.', estilo: 'base' }
   };
   function guion(id, x) {
     var dias = Math.max(0, x.diasLanzamiento), turnos = TURNOS.length, fin = dias > 0 ? 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') + ' para lanzar' : 'Ya estamos en vivo';
-    var cierre = toma('todo', 2.8, fin, { fin: true });
+    var cierre = toma('todo', 2.8, fin, { fin: true, clave: 'EQUIPAR' });
+    var noche = function (k, hh, cam, t, extra) { return toma(k, 2.5, t, Object.assign({ corte: true, camara: cam, hh: hh, hora: [aMinutos(hh), aMinutos(hh) + 2] }, extra || {})); };
+    if (id === 'madrugada') return [noche('todo', '03:23', 'CAM 01 · OFICINA', '¿Qué hace tu empresa a las 3 am?', { dur: 2.8, alto: 15, sinJefe: true }),
+      noche('marketing', '03:23', 'CAM 02 · MARKETING', 'La mía analiza qué funcionó ayer', { sinJefe: true, salaSola: 'marketing' }),
+      noche('diseno', '05:23', 'CAM 03 · DISEÑO', 'A las 5 ya arma el contenido de hoy', { sinJefe: true, salaSola: 'diseno' }),
+      noche('perroCerca', '05:23', 'CAM 04 · SALA DEL JEFE', 'El jefe no está', { sinJefe: true, sigue: true, dur: 2, salaSola: 'nada', alto: 2.4, perro: [34.6, 9.6, 34.6, 9.6], dormido: true }),
+      noche('perroCerca', '07:23', 'CAM 04 · SALA DEL JEFE', 'El perro quedó a cargo', { sinJefe: true, sigue: true, s: 'Son ' + turnos + ' turnos por día', dur: 2.6, salaSola: 'nada', alto: 1.6, globo: 'Zzz', perro: [34.6, 9.6, 34.6, 9.6], dormido: true }), cierre];
+    if (id === 'perro') {
+      var seguir = function (dur, t, ruta, extra) { return Object.assign(toma('perroCerca', dur, t, Object.assign({ sigue: true, corte: true, perro: ruta, dormido: false }, extra || {})), {}); };
+      return [seguir(2.8, 'El verdadero jefe de esta empresa', [34.2, 9.6, 35.4, 9.1], { alto: 2.1, globo: 'Guau', ladrido: [0.5] }),
+        seguir(2.5, 'Control de calidad en la cocina', [14.5, 19.2, 16.6, 19.3], { az: -0.3 }),
+        seguir(2.5, 'Revisa que Comercial trabaje', [11, 5.6, 13.4, 5.6], { az: 0.2, el: 1.02, globo: '¿Y esos mails?', ladrido: [0.8] }),
+        seguir(2.5, 'Pasa por la terraza', [34.4, 16.4, 36.4, 16.6], { az: 0.2, s: 'por si hay asado' }),
+        seguir(2.5, 'Cobra en caricias', [34.4, 9.6, 35.2, 9.2], { alto: 1.8, s: 'no acepta Mercado Pago', sinJefe: false }), cierre];
+    }
+    if (id === 'dia') {
+      var tramo = function (a, b, t, s, extra) { return toma('todo', 2.1, t, Object.assign({ s: s, hora: [a, b], reloj: true, az: 0.1 + a / 1440 * 0.9, el: 0.9, alto: 16, sinJefe: true }, extra || {})); };
+      return [tramo(300, 450, 'Un día en esta oficina', 'en 15 segundos', { dur: 2.4 }), tramo(450, 620, 'Dirección define las prioridades'), tramo(620, 880, 'Redes y Comercial a full'), tramo(880, 1090, 'Diseño produce contenido'),
+        tramo(1090, 1250, 'Se va el sol', 'la oficina sigue'), tramo(1250, 1440, 'Y entra un proveedor nuevo', 'se festeja', { festejo: 'comercial' }), cierre];
+    }
     if (id === 'cuenta') return [toma('jefe', 3.2, dias > 0 ? 'Faltan ' + dias + (dias === 1 ? ' día' : ' días') : 'Llegó el día', { s: 'y la oficina no para', globo: 'Todos a sus puestos' }),
       toma('comercial', 2.6, 'proveedores en la red', { cifra: x.red.length }), toma('diseno', 2.6, 'Videos en producción'), toma('redes', 2.6, 'Reels programados', { cifra: reelsProgramados(x) }), toma('operaciones', 2.6, 'turnos por día', { cifra: turnos }), cierre];
     if (id === 'recorrida') return [toma('todo', 2.8, 'Esta es la oficina de Nexo Fit', { s: 'y funciona las 24 horas' }), toma('comercial', 2.5, 'Comercial', { s: 'sigue a los proveedores' }), toma('redes', 2.5, 'Redes', { s: 'publica todos los días' }), toma('diseno', 2.5, 'Diseño', { s: 'arma los videos' }), toma('investigacion', 2.5, 'Investigación', { s: 'mira el mercado' }), toma('cocina', 2.2, 'La cocina', { s: 'nunca falta' }), toma('terraza', 2.4, 'Y la parrilla', { s: 'para los viernes' }), toma('jefe', 3, 'Acá estoy yo', { s: 'con el mate', globo: '¿Cómo venimos?' }), cierre];
@@ -596,12 +619,12 @@
       if (!w.MediaRecorder) { aviso(SIN_GRABADOR); return; }
       var id = elegido(), tomas = guion(id, datos);
       c.innerHTML = '<h2>Grabando</h2><p>Dejá esta pestaña abierta hasta que termine.</p><div class="estudio-previa" id="est-previa"></div><div class="barra"><i id="est-barra"></i></div>';
-      var lienzo = mundo3d.grabar({ tomas: tomas,
+      var lienzo = mundo3d.grabar({ tomas: tomas, estilo: GUIONES[id].estilo,
         avance: function (k) { var b = d.getElementById('est-barra'); if (b) b.style.width = (k * 100).toFixed(1) + '%'; },
         fin: function (blob, tipo) {
           if (!blob || !blob.size) { abrirEstudio(); aviso('No se pudo grabar el video. Probá de nuevo con esta pestaña a la vista.'); return; }
           var ext = /mp4/.test(tipo) ? 'mp4' : 'webm', url = URL.createObjectURL(blob);
-          c.innerHTML = '<h2>Video listo</h2>' + (ext === 'webm' ? '<p>Este navegador grabó en WebM. Instagram pide MP4: actualizá Chrome para grabar en MP4.</p>' : '<p>Le falta la música: sumala al subirlo a Instagram o TikTok.</p>')
+          c.innerHTML = '<h2>Video listo</h2>' + (ext === 'webm' ? '<p>Este navegador grabó en WebM. Instagram pide MP4: actualizá Chrome para grabar en MP4.</p>' : '<p>Ya tiene sonido original, sin problemas de derechos.</p>')
             + '<video class="estudio-previa" controls playsinline src="' + url + '"></video><div class="estudio-botones"><a class="boton fuerte" href="' + url + '" download="nexo-fit-' + id + '.' + ext + '">Descargar video</a><button type="button" class="boton" id="est-otra">Grabar otro</button></div>';
           d.getElementById('est-otra').onclick = abrirEstudio;
         } });
