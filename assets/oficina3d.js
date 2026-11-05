@@ -555,6 +555,23 @@ export function crear(THREE, Orbit, cont, opciones) {
     m.t.needsUpdate = true;
   }
 
+  /* Tablero del pasillo: en un video no muestra el avance real de las salas. */
+  function pintarObjetivo(m, info) {
+    var g = m.g, W = m.c.width, H = m.c.height, o = info.objetivos;
+    g.fillStyle = '#0B1311'; g.fillRect(0, 0, W, H);
+    g.textAlign = 'left'; g.fillStyle = '#E8ECE4'; g.font = '600 50px ' + FUENTE; g.fillText('Objetivo del día', 28, 58);
+    if (publico || !o) { g.fillStyle = hexa(C.lima); g.font = '500 30px ' + TEXTO; g.fillText('Un objetivo por sala, todos los días', 28, 128); m.t.needsUpdate = true; return; }
+    g.textAlign = 'right'; g.fillStyle = hexa(C.lima); g.font = '700 54px ' + FUENTE; g.fillText(o.hechas + ' de ' + o.total, W - 28, 60);
+    g.fillStyle = '#26332D'; g.fillRect(28, 76, W - 56, 12);
+    g.fillStyle = hexa(C.lima); g.fillRect(28, 76, (W - 56) * o.hechas / o.total, 12);
+    o.lista.forEach(function (i, k) {
+      var x = 28 + (k % 2) * ((W - 40) / 2), y = 124 + Math.floor(k / 2) * 38;
+      g.textAlign = 'left'; g.fillStyle = i.hecho ? hexa(C.lima) : '#5A6A62'; g.font = '600 28px ' + TEXTO; g.fillText(i.hecho ? '✓' : '○', x, y);
+      g.fillStyle = i.hecho ? '#E8ECE4' : '#9FB0A8'; g.font = '500 26px ' + TEXTO; g.fillText(recorte(g, i.nombre, 330), x + 36, y);
+    });
+    m.t.needsUpdate = true;
+  }
+
   /* ---------- Salas ---------- */
   var salas = {}, tiempo = 0, ultimo = 0, elegida = null, foco = null, sobre = null;
   function pantallita(color) {
@@ -770,6 +787,7 @@ export function crear(THREE, Orbit, cont, opciones) {
   piso('alfombra', 11, 16.5, 10, 5.5);
   var cartel = mural(3.5, 0.72, 16.6, 5.4, 1.24, 900, 207);
   var tablero = mural(17.7, 0.68, 16.6, 3.5, 1.3, 760, 282);
+  var objetivoMural = mural(9.1, 0.98, 16.6, 3.5, 1.15, 760, 250);
   (function () {
     caja(3.4, 1, 0.74, 3.6, 0, 18.6, C.maderaOsc); caja(3.56, 0.06, 0.9, 3.6, 1, 18.6, C.maderaCl); caja(3.2, 0.12, 0.02, 3.6, 0.5, 19, C.lima);
     caja(0.5, 0.3, 0.04, 3, 1.06, 18.5, C.negro); pilaPapeles(4.4, 1.06, 18.6);
@@ -1062,6 +1080,37 @@ export function crear(THREE, Orbit, cont, opciones) {
     capa.appendChild(b); etiquetas[id] = b;
   });
 
+  /* Gafetes: al entrar a una sala aparece el nombre de cada uno. Tocándolo se ve qué hace. */
+  var gafetes = [], equipos = {}, abierto = null;
+  function gafete(i) {
+    if (gafetes[i]) return gafetes[i];
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'gafete'; b.hidden = true;
+    b.appendChild(document.createElement('b')); b.appendChild(document.createElement('span'));
+    b.onclick = function () { abierto = abierto === b.dataset.n ? null : b.dataset.n; };
+    capa.appendChild(b); gafetes[i] = b;
+    return b;
+  }
+  function moverGafetes() {
+    var s = foco && !grab ? salas[foco] : null, gente1 = [], l = (s && equipos[foco]) || [];
+    if (s) { gente1 = s.personas.map(function (p) { return p.g; }); var c = gente.filter(function (q) { return q.s === s; })[0]; if (c) gente1.push(c.g); }
+    var w = cont.clientWidth, h = cont.clientHeight;
+    gafetes.forEach(function (b) { b.hidden = true; });
+    gente1.forEach(function (g, i) {
+      var p = l[i]; if (!p) return;
+      var d = DEF[foco], lp = g.position;
+      if (g === gente1[s.personas.length]) { if (lp.x < d.x || lp.x > d.x + d.w || lp.z < d.z || lp.z > d.z + d.d) return; }
+      v.setFromMatrixPosition(g.matrixWorld).setY(i < s.personas.length ? 1.45 : 1.75).project(camara);
+      var x = (v.x + 1) / 2 * w, y = (1 - v.y) / 2 * h, b = gafete(i);
+      if (x < 10 || x > w - 10 || y < 10 || y > h) return;
+      if (b.dataset.n !== p[0]) { b.dataset.n = p[0]; b.firstChild.textContent = p[0]; b.lastChild.textContent = p[1] + '. ' + p[2]; }
+      b.classList.toggle('abierto', abierto === p[0]);
+      b.hidden = false;
+      var mitad = b.offsetWidth / 2 + 4; x = Math.max(mitad, Math.min(w - mitad, x));
+      b.style.transform = 'translate(-50%,-100%) translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px)';
+    });
+  }
+
   var globoJ = document.createElement('div'), globoM = document.createElement('div');
   globoJ.className = 'globo globo-jefe'; globoM.className = 'globo globo-mensajero'; globoJ.hidden = globoM.hidden = true;
   capa.appendChild(globoJ); capa.appendChild(globoM);
@@ -1080,7 +1129,8 @@ export function crear(THREE, Orbit, cont, opciones) {
     if (tiempo > fraseCambio) { fraseCambio = tiempo + 7; fraseI++; if (fraseFija && tiempo > fraseFija.hasta) fraseFija = null; }
     var q = PASEO[nico.paso], t = fraseFija ? fraseFija.t : (nico.espera > 0 && q.apunta && frases.length ? frases[fraseI % frases.length] : null);
     ponerGlobo(globoJ, nico.g, 1.6, t);
-    ponerGlobo(globoM, mensajero.g, 1.55, mensajero.reporta ? reportes[mensajero.reporta] : null);
+    ponerGlobo(globoM, mensajero.g, 1.55, mensajero.reporta ? 'Tito: ' + reportes[mensajero.reporta] : null);
+    moverGafetes();
   }
 
   var dest = { t: new THREE.Vector3(), z: 1, activo: false }, casa = new THREE.Vector3(), ancla = new THREE.Vector3();
@@ -1423,7 +1473,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     var e = ultimoDato.estados, info = ultimoDato.info || {};
     Object.keys(e).forEach(function (id) { if (id === 'jefe') return; if (salas[id]) pintarMural(salas[id], e[id]); });
     pintarMando(salas.jefe.mural, e);
-    pintarCartel(cartel, info); pintarTablero(tablero, info);
+    pintarCartel(cartel, info); pintarTablero(tablero, info); pintarObjetivo(objetivoMural, info);
   }
   if (document.fonts && document.fonts.load) {
     Promise.all(['600 46px "Barlow Condensed"', '700 118px "Barlow Condensed"', '500 26px Barlow', '600 28px Barlow'].map(function (f) { return document.fonts.load(f, 'Nexo Fit 0123'); }))
@@ -1437,7 +1487,8 @@ export function crear(THREE, Orbit, cont, opciones) {
       cont.appendChild(capa);
       medir();
     },
-    enfocar: function (id) { foco = id || null; irA(foco); },
+    enfocar: function (id) { foco = id || null; abierto = null; irA(foco); },
+    anunciar: function (texto) { fraseFija = { t: texto, hasta: tiempo + 12 }; fraseCambio = tiempo + 12; alPuesto(); nico.espera = 12; },
     /* Nicolás dice la indicación y el mensajero la lleva a la sala. */
     ordenar: function (id, texto) { fraseFija = { t: texto, hasta: tiempo + 9 }; fraseCambio = tiempo + 9; alPuesto(); nico.espera = 9; mensajero.g.position.set(INICIO_M[0], 0.02, INICIO_M[1]); mandar(id, texto); },
     festejar: festejar,
@@ -1463,11 +1514,11 @@ export function crear(THREE, Orbit, cont, opciones) {
         b.setAttribute('aria-label', e.nombre + ': ' + e.texto);
         b.textContent = '';
         var n = document.createElement('b'), t = document.createElement('span');
-        n.textContent = (chico && CORTO[id]) || e.nombre; t.textContent = e.texto;
+        n.textContent = ((chico && CORTO[id]) || e.nombre) + (e.objetivo && e.objetivo.hecho ? ' ✓' : ''); t.textContent = e.texto;
         b.appendChild(n); b.appendChild(t);
       });
       if (info && info.minutos != null) aplicarLuz(info.minutos);
-      if (info) { frases = info.frases || []; reportes = info.reportes || {}; asado = !!info.asado; }
+      if (info) { equipos = info.equipos || {}; frases = info.frases || []; reportes = info.reportes || {}; asado = !!info.asado; }
       repintar();
     }
   };

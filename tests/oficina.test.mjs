@@ -54,6 +54,21 @@ assert.equal(O.listaLanzamiento(x).filter(i=>i.ok).length,0);assert.equal(O.prox
 for(const t of O.TURNOS)assert(O.SALAS.includes(t.e)&&/^\d\d:\d\d$/.test(t.h));
 assert.match(fs.readFileSync('supabase/migrations/20261104020000_oficina_turnos.sql','utf8'),/if not public\.fitness_es_admin\(\) then raise exception 'No autorizado'; end if;\n insert into public\.fitness_oficina_encargos/,'solo el administrador encarga');
 console.log('OK: oficina (permisos, pendientes, estados y dibujo)');
+// Objetivos del día: salen de datos de hoy, un alta de ayer o un avance de la mejora nocturna no cuentan.
+const hoyO='2026-11-05T15:00:00Z',novO=(espacio,tipo,titulo='x',fecha=hoyO)=>({id:1,espacio,tipo,titulo,fecha});
+const objs=novedades=>O.objetivosDia(O.leer({...base,red:[prov(1)],novedades},hoyO,null));
+assert.equal(objs([]).total,8);assert.equal(objs([]).lista.find(o=>o.id==='comercial').hecho,false,'alta vieja no cuenta');
+const oCom=O.objetivosDia(O.leer({...base,red:[{...prov(1),alta:hoyO}]},hoyO,null)).lista.find(o=>o.id==='comercial');assert.equal(oCom.hecho,true);
+assert.equal(objs([novO('diseno','avance','Mejora de la oficina: x')]).lista.find(o=>o.id==='diseno').hecho,false);
+assert.equal(objs([novO('diseno','avance','9 piezas')]).lista.find(o=>o.id==='diseno').hecho,true);
+assert.equal(objs([novO('direccion','reporte')]).lista.find(o=>o.id==='direccion').n,1);assert.equal(objs([novO('direccion','reporte'),novO('direccion','reporte')]).lista.find(o=>o.id==='direccion').hecho,true);
+assert.equal(objs([novO('investigacion','reporte','x','2026-11-04T15:00:00Z')]).lista.find(o=>o.id==='investigacion').hecho,false,'informe de ayer no cuenta');
+assert.equal(objs([novO('operaciones','alerta')]).lista.find(o=>o.id==='operaciones').hecho,false);
+// El equipo: una persona por figura de cada sala, sin nombres repetidos.
+const figuras={direccion:2,comercial:5,administracion:4,redes:4,marketing:3,diseno:3,investigacion:3,operaciones:4};
+for(const k of O.SALAS)assert.equal(O.EQUIPOS[k].length,figuras[k],k);
+const nombres=Object.values(O.EQUIPOS).flat().map(p=>p[0]);assert.equal(new Set(nombres).size,nombres.length,'nombre repetido');
+assert(!JSON.stringify(O.actividad(x).comercial.publica).includes('objetivo'),'el objetivo no va a los videos');
 for(const v of [dom,malo,sin])v.window.close();
 // El botón Crear contenido abre el estudio y la grabación avisa si no se puede.
 assert.match(js,/c\.onclick = abrirEstudio/,'Crear contenido sin conectar');

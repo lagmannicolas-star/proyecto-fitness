@@ -33,6 +33,20 @@
   for (var hLectura = 1; hLectura < 24; hLectura += 2) TURNOS.push({ h: (hLectura < 10 ? '0' : '') + hLectura + ':12', e: 'operaciones', t: hLectura === 19 ? 'Lectura general y reportes' : 'Lectura general de la oficina' });
   TURNOS.sort(function (a, b) { return a.h < b.h ? -1 : a.h > b.h ? 1 : 0; });
 
+  /* El equipo de la oficina 3D: personajes inventados, uno por cada figura. Los turnos los hacen las tareas programadas.
+     Van en orden de escritorio y el último de cada sala es el que camina hasta la cocina. */
+  var EQUIPOS = {
+    direccion: [['Marta', 'Coordinadora', 'A las 7:23 ya tiene tres listas.'], ['Hernán', 'Mano derecha', 'Le lleva el café a Marta y se lo toma él.']],
+    comercial: [['Julieta', 'Proveedores', 'Se acuerda de cada mail que no le contestaron.'], ['Facu', 'Seguimiento', 'Dice "te escribo mañana" y escribe.'], ['Romina', 'Compradores', 'Tiene un mapa de gimnasios con alfileres.'], ['Tomás', 'Propuestas', 'Hace cuentas en servilletas.'], ['Graciela', 'Agenda', 'Nadie se le escapa de una llamada.']],
+    administracion: [['Susana', 'Cobros', 'Cuadra todo al centavo.'], ['Darío', 'Comisiones', 'Duerme con la calculadora.'], ['Pili', 'Facturas', 'Abrocha hasta los post-it.'], ['Óscar', 'Archivo', 'Sabe en qué cajón está todo.']],
+    redes: [['Cami', 'Calendario', 'Mira la hora de publicar antes que la de comer.'], ['Nacho', 'Instagram', 'Sabe qué Reel rindió antes de que salga el dato.'], ['Flor', 'TikTok', 'Baila cuando nadie mira.'], ['Mati', 'Comunidad', 'Lee todos los comentarios, incluso los del primo.']],
+    marketing: [['Vale', 'Análisis', 'Cree en los números, no en las corazonadas.'], ['Gonza', 'Campañas', 'Tiene un gráfico para cada discusión.'], ['Ceci', 'Promo', 'Cuenta los días que le quedan a la promo.']],
+    diseno: [['Lola', 'Piezas', 'Si el verde no es ese verde, lo cambia.'], ['Bruno', 'Video', 'Corta en el golpe, siempre.'], ['Agus', 'Fotos', 'Lleva el aro de luz a todos lados.']],
+    investigacion: [['Renata', 'Radar', 'Encuentra gimnasios antes de que abran.'], ['Lucho', 'Fuentes', 'Pide la fuente hasta en el almuerzo.'], ['Inés', 'Compradores', 'Vive con tres pestañas de mapas abiertas.']],
+    operaciones: [['Ramiro', 'Sistemas', 'Mira el tablero hasta cuando duerme.'], ['Mica', 'Control', 'Revisa dos veces lo que anda bien.'], ['Pato', 'Guardia', 'La guardia de las 3 am es suya.'], ['Gabi', 'Mantenimiento', 'Arregla la impresora con una mirada.']]
+  };
+  var HABITUES = [['Nicolás', 'El jefe', 'Da las indicaciones desde su sala.'], ['Tito', 'Mensajero', 'Lleva y trae todo, con zapatillas.'], ['Fierro', 'Perro de la casa', 'Jefe de seguridad de la parrilla.'], ['Turbo', 'Robot aspiradora', 'Nunca pidió vacaciones.']];
+
   /* ---------- Fechas y formato ---------- */
   function diaBA(fecha) {
     return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(fecha));
@@ -139,6 +153,36 @@
   /* Qué está pasando en cada sala. Trabaja si está dentro de su turno o tiene un encargo en curso. */
   var VENTANA_TURNO = 20;
   function aMinutos(h) { var p = h.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+  /* Objetivo del día de cada sala: se marca con datos reales de hoy, nunca a mano. */
+  var OBJETIVOS = {
+    direccion: 'Fijar prioridades y cerrar el día', comercial: 'Sumar 1 proveedor a la red', redes: 'Contenido cargado y sin alertas',
+    marketing: 'Dejar la lectura del día', diseno: 'Dejar piezas nuevas', investigacion: 'Dejar un informe de radar',
+    administracion: 'Controlar cobros y comisiones', operaciones: 'Cerrar sin tareas caídas ni alertas'
+  };
+  function delDia(x, id, tipo) {
+    return x.novedades.filter(function (n) { return n.espacio === id && diaBA(n.fecha) === x.hoy && (!tipo || n.tipo === tipo); });
+  }
+  function objetivoSala(id, x) {
+    var n = 0, de = 1;
+    if (id === 'direccion') { n = delDia(x, id, 'reporte').length; de = 2; }
+    else if (id === 'comercial') n = x.red.filter(function (r) { return diaBA(r.alta) === x.hoy; }).length;
+    else if (id === 'redes') { n = (x.igHoy > 0 ? 1 : 0) + (delDia(x, id, 'alerta').length ? 0 : 1); de = 2; }
+    else if (id === 'diseno') n = delDia(x, id, 'avance').filter(function (i) { return !/^Mejora de la oficina/.test(i.titulo || ''); }).length;
+    else if (id === 'operaciones') n = !tareasCaidas(x) && !delDia(x, id, 'alerta').length ? 1 : 0;
+    else n = delDia(x, id, 'reporte').length;
+    return { t: OBJETIVOS[id], n: Math.min(n, de), de: de, hecho: n >= de };
+  }
+  function objetivosDia(x) {
+    var lista = SALAS.map(function (id) { return Object.assign({ id: id, nombre: NOMBRES[id] }, objetivoSala(id, x)); });
+    return { lista: lista, hechas: lista.filter(function (o) { return o.hecho; }).length, total: lista.length };
+  }
+  function dibujarObjetivos(x) {
+    var o = objetivosDia(x);
+    return '<h3>Objetivos de hoy: ' + o.hechas + ' de ' + o.total + ' salas</h3><ul class="objetivos">' + o.lista.map(function (i) {
+      return '<li class="' + (i.hecho ? 'hecho' : '') + '"><b>' + esc(i.nombre) + '</b><span>' + esc(i.t) + '</span><em class="num">' + i.n + ' de ' + i.de + '</em></li>';
+    }).join('') + '</ul>';
+  }
+
   function actividad(x) {
     var ahora = aMinutos(horaBA(x.ahora)), o = {};
     SALAS.forEach(function (id) {
@@ -151,7 +195,7 @@
       var encargoAhora = x.encargos.filter(function (e) { return e.espacio === id && e.estado === 'en_curso'; })[0];
       var tarea = turnoAhora ? turnoAhora.t : encargoAhora ? encargoAhora.titulo : null;
       o[id] = { publica: pantallaPublica(id, x), nombre: NOMBRES[id], estado: estadoSala(id, x), trabajando: trabajando, proximo: prox ? prox.h : null, proximoT: prox ? prox.t : null,
-        ultima: u || null, tarea: tarea, pantalla: pantallaSala(id, x), texto: trabajando ? (tarea || 'Trabajando ahora') : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
+        ultima: u || null, objetivo: objetivoSala(id, x), tarea: tarea, pantalla: pantallaSala(id, x), texto: trabajando ? (tarea || 'Trabajando ahora') : prox ? 'Próximo turno ' + prox.h : 'Sin turno' };
     });
     return o;
   }
@@ -259,7 +303,7 @@
     var aviso = pendientes(x).slice(0, 4).map(function (p) { return p.t; }), reportes = {};
     SALAS.forEach(function (id) { var u = novedadesDe(x, id)[0]; reportes[id] = NOMBRES[id] + ': ' + (u ? u.titulo : 'sin novedades'); });
     var fecha = new Date(new Date(x.ahora).getTime() - 3 * 3600000);
-    return { hora: h, minutos: aMinutos(h), dias: Math.max(0, x.diasLanzamiento), turnos: proximosTurnos(x.ahora, 4), frases: abiertos.concat(aviso), reportes: reportes,
+    return { equipos: EQUIPOS, objetivos: objetivosDia(x), hora: h, minutos: aMinutos(h), dias: Math.max(0, x.diasLanzamiento), turnos: proximosTurnos(x.ahora, 4), frases: abiertos.concat(aviso), reportes: reportes,
       asado: fecha.getUTCDay() === 5 && fecha.getUTCHours() >= 12 && fecha.getUTCHours() < 15 };
   }
 
@@ -473,7 +517,7 @@
     direccion: function (x) {
       return { t: 'Dirección', s: 'El estado general y lo último de todos los espacios.',
         h: medidas([[Math.max(0, x.diasLanzamiento), 'días para lanzar'], [Math.max(0, x.diasCierre), 'días para cerrar la promo'], [x.red.length, 'proveedores'], [x.pedidos.length, 'pedidos reales']])
-          + checklist(x) + tendencias(x, [['proveedores', 'Proveedores'], ['con_mp', 'Con Mercado Pago'], ['pedidos', 'Pedidos reales'], ['seguidores_ig', 'Seguidores de Instagram']])
+          + dibujarObjetivos(x) + checklist(x) + tendencias(x, [['proveedores', 'Proveedores'], ['con_mp', 'Con Mercado Pago'], ['pedidos', 'Pedidos reales'], ['seguidores_ig', 'Seguidores de Instagram']])
           + (feed(x, 'direccion') || '<p class="sin-datos">Los avances y reportes de cada espacio van a aparecer acá.</p>') + pizarra(x, 'direccion') };
     },
     comercial: function (x, ui) {
@@ -582,12 +626,20 @@
     f.innerHTML = '<button type="button" class="ficha-cerrar" id="ficha-cerrar">Ver toda la oficina</button><h2>' + esc(a.nombre) + '</h2><p class="ficha-hace">' + esc(QUE_HACE[id]) + '</p>'
       + '<p class="ficha-estado"><i class="marca ' + a.estado + '"></i>' + esc(ESTADOS[a.estado]) + '</p>'
       + '<p class="ficha-ahora">' + (a.trabajando ? '<b>Trabajando ahora</b>' + esc(a.tarea || '') : a.proximo ? '<b>Próximo turno ' + esc(a.proximo) + ', en ' + esc(faltaPara(a.proximo, datos.ahora)) + '</b>' + esc(a.proximoT || '') : 'Sin turno diario') + '</p>'
+      + fichaObjetivo(a.objetivo)
       + '<div class="ficha-cifra"><b class="num">' + esc(p.cifra) + '</b><span>' + esc(p.unidad) + '</span></div>'
       + '<dl>' + p.filas.map(function (c) { return '<div><dt>' + esc(c[0]) + '</dt><dd class="num">' + esc(c[1]) + '</dd></div>'; }).join('') + '<div><dt>Encargos abiertos</dt><dd class="num">' + abiertos + '</dd></div></dl>'
       + (ult ? '<p class="ficha-ultimo"><b>Lo último, ' + esc(hace(ult.fecha, datos.ahora)) + '</b>' + esc(ult.titulo) + '</p>' : '')
+      + fichaEquipo(EQUIPOS[id], 'Quién está en la sala')
       + '<button type="button" class="boton fuerte" id="ficha-detalle">Abrir todo el detalle</button>';
     d.getElementById('ficha-cerrar').onclick = salirDeSala;
     d.getElementById('ficha-detalle').onclick = function () { d.getElementById('mesa').scrollIntoView({ block: 'start' }); };
+  }
+  function fichaObjetivo(o) {
+    return '<div class="ficha-objetivo' + (o.hecho ? ' hecho' : '') + '"><p><b>Objetivo de hoy</b>' + esc(o.t) + '</p><span class="num">' + o.n + ' de ' + o.de + '</span><i style="--p:' + Math.round(o.n / o.de * 100) + '%"></i></div>';
+  }
+  function fichaEquipo(l, titulo) {
+    return '<div class="ficha-equipo"><h3>' + esc(titulo) + '</h3><ul>' + l.map(function (p) { return '<li><b>' + esc(p[0]) + '</b> · ' + esc(p[1]) + '<span>' + esc(p[2]) + '</span></li>'; }).join('') + '</ul><p>Son personajes de la oficina. El trabajo lo hacen las tareas programadas.</p></div>';
   }
   function fichaJefe(f) {
     var x = datos, lista = pendientes(x).slice(0, 3), abiertos = x.encargos.filter(function (e) { return e.estado === 'pendiente' || e.estado === 'en_curso'; }).slice(0, 4);
@@ -596,7 +648,7 @@
       + '<form class="indicacion" id="indicacion"><label for="ind-sala">Para</label><select id="ind-sala">' + SALAS.map(function (s) { return '<option value="' + s + '"' + (s === ui.indicar ? ' selected' : '') + '>' + esc(NOMBRES[s]) + '</option>'; }).join('') + '</select>'
       + '<label for="ind-texto">Indicación</label><input id="ind-texto" maxlength="200" required placeholder="¿Qué necesitás?"><button class="boton fuerte" type="submit">Dar la indicación</button><p class="ficha-error" id="ind-error" hidden></p></form>'
       + '<div class="ficha-lista"><h3>Lo que te toca</h3>' + (lista.length ? '<ul>' + lista.map(function (p) { return '<li>' + esc(p.t) + '</li>'; }).join('') + '</ul>' : '<p>Nada por ahora.</p>') + '</div>'
-      + '<div class="ficha-lista"><h3>Indicaciones abiertas</h3>' + (abiertos.length ? '<ul>' + abiertos.map(function (e) { return '<li>' + esc(NOMBRES[e.espacio]) + ': ' + esc(e.titulo) + '</li>'; }).join('') + '</ul>' : '<p>No hay indicaciones abiertas.</p>') + '</div>';
+      + '<div class="ficha-lista"><h3>Indicaciones abiertas</h3>' + (abiertos.length ? '<ul>' + abiertos.map(function (e) { return '<li>' + esc(NOMBRES[e.espacio]) + ': ' + esc(e.titulo) + '</li>'; }).join('') + '</ul>' : '<p>No hay indicaciones abiertas.</p>') + '</div>' + fichaEquipo(HABITUES, 'Habitués de la oficina');
     d.getElementById('ficha-cerrar').onclick = salirDeSala;
     var form = d.getElementById('indicacion'), sala = d.getElementById('ind-sala'), txt = d.getElementById('ind-texto'), err = d.getElementById('ind-error');
     sala.onchange = function () { ui.indicar = sala.value; };
@@ -651,6 +703,8 @@
   function pintarHud(x) {
     var r = d.getElementById('hud-reloj'), n = proximoTurno(x.ahora), h = horaBA(x.ahora);
     if (r) r.innerHTML = '<b class="num">' + esc(h) + '</b><span>Buenos Aires</span><span>Próximo turno: ' + esc(NOMBRES[n.e]) + ' en ' + esc(faltaPara(n.h, x.ahora)) + '</span>';
+    var o = objetivosDia(x), c = d.getElementById('hud-objetivo');
+    if (c) { c.innerHTML = '<span>Objetivo del día</span><b class="num">' + o.hechas + ' de ' + o.total + '</b><i style="--p:' + Math.round(o.hechas / o.total * 100) + '%"></i>'; c.classList.toggle('hecho', o.hechas === o.total); }
   }
   var noticiaI = 0;
   function pintarNoticia() {
@@ -716,6 +770,9 @@
     if (mundo3d && antes) {
       if (datos.red.length > antes.red.length || datos.pedidos.length > antes.pedidos.length) mundo3d.festejar('comercial');
       if (datos.pagados.length > antes.pagados.length) mundo3d.festejar('administracion');
+      var oA = objetivosDia(antes), oH = objetivosDia(datos);
+      if (oH.hechas === oH.total && oA.hechas < oH.total) { oH.lista.forEach(function (o) { mundo3d.festejar(o.id); }); mundo3d.anunciar('¡Objetivo del día cumplido en todas las salas!'); }
+      else oH.lista.forEach(function (o, i) { if (o.hecho && !oA.lista[i].hecho) mundo3d.festejar(o.id); });
     }
     pintarHud(datos); pintarNoticia(); if (!d.activeElement || d.activeElement.id !== 'ind-texto') pintarFicha();
     var lista = pendientes(datos), h = raiz.querySelector('.hora'), f = raiz.querySelector('.frase h1'), t = d.getElementById('turnos'), p = raiz.querySelector('.pendientes');
@@ -739,7 +796,7 @@
       + '</header><section class="frase"><h1>' + esc(frase(datos, lista)) + '</h1></section>'
       + '<div class="vista"><div class="escenario"><div class="vista-tope"><button type="button" class="chip-o" id="ver-3d" aria-pressed="' + (ui.vista === '3d') + '">Oficina 3D</button><button type="button" class="chip-o" id="ver-plano" aria-pressed="' + (ui.vista !== '3d') + '">Plano</button><button type="button" class="chip-o" id="ver-estudio">Crear contenido</button></div>'
       + '<div class="escena3d" id="escena"' + (ui.vista === '3d' ? '' : ' hidden') + '></div>'
-      + '<div class="hud-3d"' + (ui.vista === '3d' ? '' : ' hidden') + '><div class="hud-reloj" id="hud-reloj"></div><ul class="hud-leyenda" aria-label="Qué significan las luces"><li><i class="marca orden"></i>En orden</li><li><i class="marca atencion"></i>Atención</li><li><i class="marca frenada"></i>Frenada</li></ul><p class="noticia" id="noticia"></p></div>'
+      + '<div class="hud-3d"' + (ui.vista === '3d' ? '' : ' hidden') + '><div class="hud-reloj" id="hud-reloj"></div><div class="hud-objetivo" id="hud-objetivo"></div><ul class="hud-leyenda" aria-label="Qué significan las luces"><li><i class="marca orden"></i>En orden</li><li><i class="marca atencion"></i>Atención</li><li><i class="marca frenada"></i>Frenada</li></ul><p class="noticia" id="noticia"></p></div>'
       + '<aside class="ficha" id="ficha" aria-label="Sala elegida" hidden></aside><div class="estudio" id="estudio" hidden></div></div>'
       + '<div class="plano" role="group" aria-label="Plano de la oficina: elegí un espacio"' + (ui.vista === '3d' ? ' hidden' : '') + '>'
       + SALAS.map(function (id, i) { return dibujarSala(id, i, datos, ui.sala); }).join('')
@@ -812,7 +869,7 @@
     });
   }
 
-  w.NFOficina = { actividad: actividad, listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, guion: guion, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
+  w.NFOficina = { objetivosDia: objetivosDia, EQUIPOS: EQUIPOS, actividad: actividad, listaLanzamiento: listaLanzamiento, proximoTurno: proximoTurno, TURNOS: TURNOS, leer: leer, pendientes: pendientes, estadoSala: estadoSala, guion: guion, frase: frase, diaBA: diaBA, mesas: mesas, SALAS: SALAS };
   function iniciar() {
     raiz = d.getElementById('oficina');
     if (!raiz) return;

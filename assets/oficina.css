@@ -160,6 +160,32 @@ td.n,th.n{text-align:right;padding-right:18px}
 /* Globos de la sala del jefe */
 .globo{position:absolute;left:0;top:0;max-width:260px;padding:7px 11px;border:1.5px solid var(--lima);border-radius:9px;background:rgba(9,15,13,.94);font-size:.84rem;line-height:1.25;color:#EAF1E4;pointer-events:none;will-change:transform}
 .globo[hidden]{display:none}
+.gafete{position:absolute;left:0;top:0;z-index:2;display:grid;max-width:210px;padding:3px 9px;border:1px solid var(--lima);border-radius:6px;background:rgba(9,15,13,.94);color:var(--muro);font-family:var(--texto);font-size:.82rem;line-height:1.2;text-align:left;cursor:pointer;pointer-events:auto}
+.gafete[hidden]{display:none}
+.gafete b{font-weight:600}
+.gafete span{display:none;margin-top:2px;font-size:.76rem;color:#C5D0C8}
+.gafete.abierto{z-index:3;width:200px}
+.gafete.abierto span{display:block}
+.hud-objetivo{position:absolute;left:12px;bottom:54px;display:grid;grid-template-columns:auto auto;gap:0 12px;align-items:baseline;min-width:172px;padding:6px 12px 9px;border-radius:6px;background:rgba(9,15,13,.82);font-size:.8rem;color:#C5D0C8}
+.hud-objetivo b{justify-self:end;font-family:var(--cond);font-size:1.3rem;font-weight:600;color:var(--muro)}
+.hud-objetivo i,.ficha-objetivo i{grid-column:1/-1;display:block;height:4px;margin-top:3px;border-radius:2px;background:linear-gradient(90deg,var(--lima) var(--p),rgba(253,250,245,.16) var(--p))}
+.hud-objetivo.hecho b{color:var(--lima)}
+.ficha-objetivo{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:start;padding:9px 11px;border:1px solid var(--linea);border-radius:6px}
+.ficha-objetivo.hecho{border-color:var(--lima)}
+.ficha-objetivo p{font-size:.9rem;line-height:1.28;color:#E8ECE4}
+.ficha-objetivo p b{display:block;font-size:.76rem;font-weight:600;color:var(--lima)}
+.ficha-objetivo .num{font-size:.9rem;font-weight:600;white-space:nowrap}
+.ficha-equipo h3{font-size:.94rem;font-weight:600;margin-bottom:4px}
+.ficha-equipo ul{display:grid;gap:5px}
+.ficha-equipo li{font-size:.88rem;line-height:1.28;color:#C5D0C8}
+.ficha-equipo li b{font-weight:600;color:var(--muro)}
+.ficha-equipo li span{display:block;font-size:.8rem;color:var(--gris)}
+.ficha-equipo p{margin-top:6px;font-size:.76rem;color:var(--gris)}
+.objetivos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:18px}
+.objetivos li{display:grid;grid-template-columns:1fr auto;gap:0 10px;padding:9px 11px;border:1px solid var(--linea-papel);border-radius:6px}
+.objetivos li.hecho{border-color:var(--bien);border-width:2px}
+.objetivos b{font-weight:600}.objetivos span{grid-column:1;font-size:.88rem;color:var(--tinta-2)}
+.objetivos em{grid-column:2;grid-row:1;font-style:normal;font-size:.88rem}
 .globo::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;width:12px;height:12px;background:rgba(9,15,13,.94);border-right:1.5px solid var(--lima);border-bottom:1.5px solid var(--lima);transform:rotate(45deg)}
 .globo-mensajero{border-color:#C5D0C8}
 .globo-mensajero::after{border-color:#C5D0C8}
@@ -297,6 +323,7 @@ td.n,th.n{text-align:right;padding-right:18px}
  .hud-reloj{padding:4px 9px 5px;font-size:.72rem}
  .hud-reloj b{font-size:1.5rem}
  .hud-reloj{display:none}
+ .hud-objetivo{left:8px;bottom:40px;min-width:150px;font-size:.72rem;padding:4px 9px 7px}
  .chip-o{padding:0 10px}
  .hud-leyenda{gap:9px;font-size:.72rem;padding:4px 8px;bottom:8px;left:8px}
  .noticia{left:8px;right:8px;bottom:42px;font-size:.78rem;padding:5px 9px}
