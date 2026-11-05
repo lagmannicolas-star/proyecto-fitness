@@ -36,7 +36,7 @@
   /* El equipo de la oficina 3D: personajes inventados, uno por cada figura. Los turnos los hacen las tareas programadas.
      Van en orden de escritorio y el último de cada sala es el que camina hasta la cocina. */
   var EQUIPOS = {
-    direccion: [['Marta', 'Coordinadora', 'A las 7:23 ya tiene tres listas.'], ['Hernán', 'Mano derecha', 'Le lleva el café a Marta y se lo toma él.']],
+    direccion: [['Daiana', 'Coordinadora', 'A las 7:23 ya tiene tres listas.'], ['Hernán', 'Mano derecha', 'Le lleva el café a Daiana y se lo toma él.']],
     comercial: [['Julieta', 'Proveedores', 'Se acuerda de cada mail que no le contestaron.'], ['Facu', 'Seguimiento', 'Dice "te escribo mañana" y escribe.'], ['Romina', 'Compradores', 'Tiene un mapa de gimnasios con alfileres.'], ['Tomás', 'Propuestas', 'Hace cuentas en servilletas.'], ['Graciela', 'Agenda', 'Nadie se le escapa de una llamada.']],
     administracion: [['Susana', 'Cobros', 'Cuadra todo al centavo.'], ['Darío', 'Comisiones', 'Duerme con la calculadora.'], ['Pili', 'Facturas', 'Abrocha hasta los post-it.'], ['Óscar', 'Archivo', 'Sabe en qué cajón está todo.']],
     redes: [['Cami', 'Calendario', 'Mira la hora de publicar antes que la de comer.'], ['Nacho', 'Instagram', 'Sabe qué Reel rindió antes de que salga el dato.'], ['Flor', 'TikTok', 'Baila cuando nadie mira.'], ['Mati', 'Comunidad', 'Lee todos los comentarios, incluso los del primo.']],
