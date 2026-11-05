@@ -1135,10 +1135,11 @@ export function crear(THREE, Orbit, cont, opciones) {
     if (parado) return;
     requestAnimationFrame(vuelta);
     if (document.hidden || !cont.offsetParent) return;
-    var dt = Math.min(0.05, (ahora - ultimo) / 1000 || 0.016); ultimo = ahora;
+    var real = (ahora - ultimo) / 1000 || 0.016, dt = Math.min(0.05, real); ultimo = ahora;
     if (grab && grab.manual) return;
     paso(dt);
-    if (grab) { cuadroVideo(grab.t); grab.t += dt; if (grab.t >= grab.dur) terminarVideo(); return; }
+    /* El video avanza con el reloj real: en una máquina lenta tiene menos cuadros, pero dura lo que tiene que durar. */
+    if (grab) { cuadroVideo(grab.t); grab.t += Math.min(1, real); if (grab.t >= grab.dur) terminarVideo(); return; }
     if (dest.activo) acercar(quieto ? 1 : 1 - Math.pow(0.0025, dt));
     controles.update();
     ubicar();
@@ -1254,9 +1255,12 @@ export function crear(THREE, Orbit, cont, opciones) {
   }
   function grabarVideo(op) {
     if (grab) return;
-    var g = prepararVideo(op), tipo = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].filter(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported(t); })[0];
+    var tipo = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].filter(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported(t); })[0];
+    if (!tipo) return null;
+    var g = prepararVideo(op), trozos = [], rec;
     cuadroVideo(0);
-    var trozos = [], rec = new MediaRecorder(g.c.captureStream(30), { mimeType: tipo, videoBitsPerSecond: 9000000 });
+    try { rec = new MediaRecorder(g.c.captureStream(30), { mimeType: tipo, videoBitsPerSecond: 9000000 }); }
+    catch (e) { g.fin = null; terminarVideo(); return null; }
     rec.ondataavailable = function (e) { if (e.data && e.data.size) trozos.push(e.data); };
     rec.onstop = function () { if (op.fin) op.fin(new Blob(trozos, { type: tipo }), tipo); };
     g.rec = rec; rec.start(500);
@@ -1302,6 +1306,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     actualizar: function (estados, sala, info) {
       elegida = sala;
       ultimoDato = { estados: estados, info: info };
+      if (grab) return; /* un video en curso solo muestra datos públicos */
       Object.keys(estados).forEach(function (id) {
         var e = estados[id], s = salas[id], b = etiquetas[id];
         if (!s) return;
