@@ -17,14 +17,21 @@
     { h: '03:23', e: 'marketing', t: 'Análisis de contenido y campañas' },
     { h: '05:23', e: 'diseno', t: 'Producción de piezas para Meta' },
     { h: '07:23', e: 'direccion', t: 'Prioridades del día' },
-    { h: '08:12', e: 'operaciones', t: 'Lectura general de la oficina' },
+    { h: '09:23', e: 'operaciones', t: 'Control técnico de la mañana' },
     { h: '10:23', e: 'redes', t: 'Control del calendario' },
-    { h: '15:12', e: 'operaciones', t: 'Lectura general de la oficina' },
+    { h: '10:53', e: 'comercial', t: 'Respuestas de la mañana' },
+    { h: '14:23', e: 'investigacion', t: 'Segundo radar y oportunidades' },
     { h: '15:43', e: 'comercial', t: 'Seguimiento comercial' },
+    { h: '16:23', e: 'diseno', t: 'Segunda producción de piezas' },
     { h: '17:23', e: 'administracion', t: 'Cobros y comisiones' },
-    { h: '19:12', e: 'operaciones', t: 'Lectura general y reportes' },
+    { h: '18:23', e: 'marketing', t: 'Lectura de la tarde' },
+    { h: '18:53', e: 'redes', t: 'Control de la tarde' },
+    { h: '20:23', e: 'direccion', t: 'Cierre del día' },
     { h: '21:23', e: 'operaciones', t: 'Control técnico' }
   ];
+  /* Lectura general de datos: cada dos horas, a y 12 de las horas impares. */
+  for (var hLectura = 1; hLectura < 24; hLectura += 2) TURNOS.push({ h: (hLectura < 10 ? '0' : '') + hLectura + ':12', e: 'operaciones', t: hLectura === 19 ? 'Lectura general y reportes' : 'Lectura general de la oficina' });
+  TURNOS.sort(function (a, b) { return a.h < b.h ? -1 : a.h > b.h ? 1 : 0; });
 
   /* ---------- Fechas y formato ---------- */
   function diaBA(fecha) {
@@ -177,7 +184,8 @@
     if (id === 'redes') return { cifra: reelsProgramados(x), unidad: 'Reels programados', filas: [] };
     if (id === 'direccion') return { cifra: Math.max(0, x.diasLanzamiento), unidad: 'días para lanzar', filas: [] };
     if (id === 'operaciones') return { cifra: '24 h', unidad: 'funcionando', filas: [] };
-    return { cifra: TURNOS.filter(function (t) { return t.e === id; }).length || 1, unidad: 'turnos por día', filas: [] };
+    var nTurnos = TURNOS.filter(function (t) { return t.e === id; }).length || 1;
+    return { cifra: nTurnos, unidad: nTurnos === 1 ? 'turno por día' : 'turnos por día', filas: [] };
   }
   function reelsProgramados(x) { return Math.ceil((x.meta.programados || 0) / 2); }
   /* Guiones del modo video: hablan solo de lo que se puede mostrar. */
@@ -568,29 +576,36 @@
         .catch(function () { boton.disabled = false; boton.textContent = 'Dar la indicación'; err.textContent = 'No se guardó la indicación. Probá de nuevo.'; err.hidden = false; });
     };
   }
+  var ESPERA_3D = 'La oficina 3D todavía está cargando. Esperá unos segundos y probá de nuevo.', SIN_GRABADOR = 'Este navegador no puede grabar video. Probá en Chrome de escritorio.';
   /* Estudio: elige el guion, graba la oficina en vertical y deja el video listo para bajar. */
   function abrirEstudio() {
     var c = d.getElementById('estudio');
     if (!c) return;
+    if (ui.foco) salirDeSala();
+    if (ui.vista !== '3d') { ui.vista = '3d'; mostrarVista(); arrancar3d(); }
     c.hidden = false;
     c.innerHTML = '<h2>Crear contenido</h2><p>Grabá la oficina en vertical para Reels y TikTok. Solo muestra datos públicos: nada de cobros, mails ni alertas.</p>'
       + '<div class="guiones" role="radiogroup" aria-label="Guion">' + Object.keys(GUIONES).map(function (k, i) { return '<label><input type="radio" name="guion" value="' + k + '"' + (i ? '' : ' checked') + '><span><b>' + esc(GUIONES[k].n) + '</b>' + esc(GUIONES[k].d) + '</span></label>'; }).join('') + '</div>'
       + '<div class="estudio-botones"><button type="button" class="boton fuerte" id="est-video">Grabar video</button><button type="button" class="boton" id="est-foto">Sacar foto</button><button type="button" class="boton" id="est-cerrar">Cerrar</button></div>';
     var elegido = function () { return c.querySelector('[name=guion]:checked').value; };
     d.getElementById('est-cerrar').onclick = function () { c.hidden = true; };
-    d.getElementById('est-foto').onclick = function () { mundo3d.foto({ tomas: guion(elegido(), datos), fin: function (b) { bajar(b, 'nexo-fit-oficina.png'); } }); };
+    var aviso = function (t) { c.querySelector('p').textContent = t; };
+    d.getElementById('est-foto').onclick = function () { if (!mundo3d) { aviso(ESPERA_3D); return; } mundo3d.foto({ tomas: guion(elegido(), datos), fin: function (b) { bajar(b, 'nexo-fit-oficina.png'); } }); };
     d.getElementById('est-video').onclick = function () {
-      if (!w.MediaRecorder) { c.querySelector('p').textContent = 'Este navegador no puede grabar video. Probá en Chrome de escritorio.'; return; }
-      var id = elegido();
+      if (!mundo3d) { aviso(ESPERA_3D); return; }
+      if (!w.MediaRecorder) { aviso(SIN_GRABADOR); return; }
+      var id = elegido(), tomas = guion(id, datos);
       c.innerHTML = '<h2>Grabando</h2><p>Dejá esta pestaña abierta hasta que termine.</p><div class="estudio-previa" id="est-previa"></div><div class="barra"><i id="est-barra"></i></div>';
-      var lienzo = mundo3d.grabar({ tomas: guion(id, datos),
+      var lienzo = mundo3d.grabar({ tomas: tomas,
         avance: function (k) { var b = d.getElementById('est-barra'); if (b) b.style.width = (k * 100).toFixed(1) + '%'; },
         fin: function (blob, tipo) {
+          if (!blob || !blob.size) { abrirEstudio(); aviso('No se pudo grabar el video. Probá de nuevo con esta pestaña a la vista.'); return; }
           var ext = /mp4/.test(tipo) ? 'mp4' : 'webm', url = URL.createObjectURL(blob);
           c.innerHTML = '<h2>Video listo</h2>' + (ext === 'webm' ? '<p>Este navegador grabó en WebM. Instagram pide MP4: actualizá Chrome para grabar en MP4.</p>' : '<p>Le falta la música: sumala al subirlo a Instagram o TikTok.</p>')
             + '<video class="estudio-previa" controls playsinline src="' + url + '"></video><div class="estudio-botones"><a class="boton fuerte" href="' + url + '" download="nexo-fit-' + id + '.' + ext + '">Descargar video</a><button type="button" class="boton" id="est-otra">Grabar otro</button></div>';
           d.getElementById('est-otra').onclick = abrirEstudio;
         } });
+      if (!lienzo) { abrirEstudio(); aviso(SIN_GRABADOR); return; }
       d.getElementById('est-previa').appendChild(lienzo);
     };
   }
@@ -615,9 +630,10 @@
     if (bajar || w.innerWidth < 980) d.getElementById('mesa').scrollIntoView({ block: 'start' });
   }
   function atarVista() {
-    var a = d.getElementById('ver-3d'), b = d.getElementById('ver-plano');
+    var a = d.getElementById('ver-3d'), b = d.getElementById('ver-plano'), c = d.getElementById('ver-estudio');
     if (!a) return;
-    if (!hay3d()) { a.hidden = true; b.hidden = true; }
+    if (!hay3d()) { a.hidden = true; b.hidden = true; c.hidden = true; }
+    c.onclick = abrirEstudio;
     a.onclick = function () { ui.vista = '3d'; mostrarVista(); arrancar3d(); };
     b.onclick = function () { ui.vista = 'plano'; mostrarVista(); };
   }

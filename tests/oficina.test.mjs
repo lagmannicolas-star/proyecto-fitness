@@ -50,8 +50,13 @@ const textos=JSON.stringify(['mate','cuenta','recorrida'].flatMap(g=>O.guion(g,c
 // Sin WebGL queda el plano y no se rompe.
 assert(!doc.querySelector('.plano').hidden,'sin 3D se ve el plano');
 // Lista de lanzamiento y turnos.
-assert.equal(O.listaLanzamiento(x).filter(i=>i.ok).length,0);assert.equal(O.proximoTurno('2026-11-04T01:10:00Z').h,'00:23','22:10 en Buenos Aires: el próximo es el de medianoche');assert.equal(O.proximoTurno('2026-11-04T12:00:00Z').h,'10:23');
+assert.equal(O.listaLanzamiento(x).filter(i=>i.ok).length,0);assert.equal(O.proximoTurno('2026-11-04T01:10:00Z').h,'23:12','22:10 en Buenos Aires: el próximo es la lectura de las 23');assert.equal(O.proximoTurno('2026-11-04T12:00:00Z').h,'09:12');
 for(const t of O.TURNOS)assert(O.SALAS.includes(t.e)&&/^\d\d:\d\d$/.test(t.h));
 assert.match(fs.readFileSync('supabase/migrations/20261104020000_oficina_turnos.sql','utf8'),/if not public\.fitness_es_admin\(\) then raise exception 'No autorizado'; end if;\n insert into public\.fitness_oficina_encargos/,'solo el administrador encarga');
 console.log('OK: oficina (permisos, pendientes, estados y dibujo)');
 for(const v of [dom,malo,sin])v.window.close();
+// El botón Crear contenido abre el estudio y la grabación avisa si no se puede.
+assert.match(js,/c\.onclick = abrirEstudio/,'Crear contenido sin conectar');
+assert.match(js,/if \(!lienzo\)/,'sin aviso si el navegador no graba');
+assert.equal(new Set(O.TURNOS.map(t=>t.h)).size,O.TURNOS.length,'dos turnos a la misma hora');
+assert.deepEqual(O.TURNOS.map(t=>t.h),O.TURNOS.map(t=>t.h).slice().sort(),'turnos fuera de orden');
