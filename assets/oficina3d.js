@@ -1273,7 +1273,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     if (tm.s) { g.fillStyle = hexa(C.lima); g.font = '600 72px ' + FUENTE; renglones(g, tm.s, 880).forEach(function (l) { g.fillText(l, 78, y + 36); y += 82; }); }
     g.restore();
     if (tm.globo && lt > 0.12) {
-      v.copy(tm.sigue ? perro.g.position : nico.g.position).setY(tm.sigue ? 0.86 : 1.62).add(mundo.position).project(camara);
+      v.copy(tm.sigue === 'robot' ? robot.position : tm.sigue ? perro.g.position : nico.g.position).setY(tm.sigue === 'robot' ? 0.9 : tm.sigue ? 0.86 : 1.62).add(mundo.position).project(camara);
       var x = (v.x + 1) / 2 * VW, yy = (1 - v.y) / 2 * VH;
       g.save(); g.font = '600 60px ' + TEXTO; g.textAlign = 'left';
       var ls = renglones(g, tm.globo, 620), an = Math.min(720, Math.max.apply(null, ls.map(function (l) { return g.measureText(l).width; })) + 64), al = ls.length * 72 + 40;
@@ -1321,6 +1321,8 @@ export function crear(THREE, Orbit, cont, opciones) {
   }
   function entrarToma(tm) {
     nico.g.visible = !tm.sinJefe;
+    robot.scale.setScalar(tm.sigue === 'robot' ? 1.5 : 1);
+    robot.position.z = tm.sigue === 'robot' ? 7.3 : 7.9;
     Object.keys(salas).forEach(function (k) { salas[k].activa = !tm.salaSola || tm.salaSola === k; });
     if (tm.festejo) festejar(tm.festejo);
     if (tm.perro) { perro.g.position.set(tm.perro[0], 0.02, tm.perro[1]); perroRumbo = [tm.perro[2], tm.perro[3]]; }
@@ -1335,7 +1337,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     if (grab.i !== i) { grab.i = i; entrarToma(tm); }
     var minutos = tm.hora ? tm.hora[0] + (tm.hora[1] - tm.hora[0]) * lt : null;
     if (minutos != null) luzDeVideo(minutos);
-    if (tm.sigue) tm.p = [perro.g.position.x, 0.3, perro.g.position.z];
+    if (tm.sigue) tm.p = tm.sigue === 'robot' ? [robot.position.x, 0.1, robot.position.z + 0.45] : [perro.g.position.x, 0.3, perro.g.position.z];
     camaraToma(i && !tm.corte ? prev : tm, tm, tm.corte ? 1 : lista(seg / 0.75), lt);
     renderer.render(escena, camara);
     var g = grab.g;
@@ -1378,7 +1380,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     var g = grab; grab = null;
     publico = false; salasColor(false); repintar();
     capa.style.visibility = '';
-    nico.g.visible = true; perroRumbo = null; perro.g.scale.y = 1; perro.g.position.copy(g.guardado.perro);
+    nico.g.visible = true; robot.scale.setScalar(1); robot.position.z = 7.9; perroRumbo = null; perro.g.scale.y = 1; perro.g.position.copy(g.guardado.perro);
     Object.keys(salas).forEach(function (k) { salas[k].activa = g.guardado.activas.indexOf(k) >= 0; });
     sol.position.copy(g.guardado.sol); dia = -1; aplicarLuz(ultimoDato && ultimoDato.info && ultimoDato.info.minutos != null ? ultimoDato.info.minutos : 720);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, chico ? 1.6 : 2));

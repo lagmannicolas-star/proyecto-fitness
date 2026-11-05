@@ -197,6 +197,8 @@
   };
   function toma(k, dur, t, extra) { return Object.assign({}, TOMAS[k], { dur: dur, t: t }, extra || {}); }
   var GUIONES = {
+    robot: { n: 'Empleado del mes', d: 'El robot aspiradora, el único que nunca para.', estilo: 'perro' },
+    viernes: { n: 'Viernes de asado', d: 'La parrilla de la terraza y el perro al acecho.', estilo: 'base' },
     madrugada: { n: 'Cámaras de las 3 am', d: 'La oficina sigue trabajando mientras dormís.', estilo: 'tenso' },
     perro: { n: 'El verdadero jefe', d: 'Un día en la vida del perro de la oficina.', estilo: 'perro' },
     dia: { n: 'Un día en 15 segundos', d: 'Del amanecer a la noche, turno por turno.', estilo: 'dia' },
@@ -217,9 +219,20 @@
       var seguir = function (dur, t, ruta, extra) { return Object.assign(toma('perroCerca', dur, t, Object.assign({ sigue: true, corte: true, perro: ruta, dormido: false }, extra || {})), {}); };
       return [seguir(2.8, 'El verdadero jefe de esta empresa', [34.2, 9.6, 35.4, 9.1], { alto: 2.1, globo: 'Guau', ladrido: [0.5] }),
         seguir(2.5, 'Control de calidad en la cocina', [14.5, 19.2, 16.6, 19.3], { az: -0.3 }),
-        seguir(2.5, 'Revisa que Comercial trabaje', [11, 5.6, 13.4, 5.6], { az: 0.2, el: 1.02, globo: '¿Y esos mails?', ladrido: [0.8] }),
+        seguir(2.5, 'Revisa que Comercial trabaje', [17.2, 5.2, 19.4, 5.2], { az: 0.2, el: 0.8, globo: '¿Y esos mails?', ladrido: [0.8] }),
         seguir(2.5, 'Pasa por la terraza', [34.4, 16.4, 36.4, 16.6], { az: 0.2, s: 'por si hay asado' }),
         seguir(2.5, 'Cobra en caricias', [34.4, 9.6, 35.2, 9.2], { alto: 1.8, s: 'no acepta Mercado Pago', sinJefe: false }), cierre];
+    }
+    if (id === 'robot') {
+      var aspira = function (dur, t, extra) { return toma('perroCerca', dur, t, Object.assign({ sigue: 'robot', corte: true, alto: 1.5, az: 0.3, el: 1.25 }, extra || {})); };
+      return [aspira(2.6, 'Empleado del mes', { s: 'otra vez', hora: [790, 800] }), aspira(2.4, 'No pide vacaciones', { az: -0.3 }), aspira(2.4, 'Choca contra todo', { s: 'y sigue', az: 0.1 }),
+        aspira(2.4, 'Nunca llegó tarde', { az: 0.2, globo: 'Bip' }), aspira(2.4, 'Trabaja de noche', { s: 'sin horas extra', hora: [1400, 1410], az: -0.2 }), cierre];
+    }
+    if (id === 'viernes') {
+      var asador = function (dur, t, ruta, extra) { return toma('terraza', dur, t, Object.assign({ corte: true, sigue: true, alto: 1.9, perro: ruta, dormido: false }, extra || {})); };
+      return [toma('terraza', 2.6, 'Viernes en la oficina', { s: 'huele a asado', corte: true, alto: 3 }), asador(2.5, 'El perro ya está en posición', [34.9, 16, 34, 15.5], { globo: '¿Y lo mío?', ladrido: [0.7] }),
+        asador(2.5, 'Control de calidad', [34, 15.5, 33.9, 15.3], { s: 'de la parrilla', az: 0.7 }), toma('comercial', 2.3, 'Comercial sigue trabajando', { s: 'por ahora', corte: true }),
+        asador(2.5, 'Pidió el vacío', [33.9, 15.3, 34.4, 15.6], { s: 'nadie le hizo caso', az: -0.2 }), cierre];
     }
     if (id === 'dia') {
       var tramo = function (a, b, t, s, extra) { return toma('todo', 2.1, t, Object.assign({ s: s, hora: [a, b], reloj: true, az: 0.1 + a / 1440 * 0.9, el: 0.9, alto: 16, sinJefe: true }, extra || {})); };

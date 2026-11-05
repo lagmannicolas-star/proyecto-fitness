@@ -61,4 +61,4 @@ assert.match(js,/if \(!lienzo\)/,'sin aviso si el navegador no graba');
 assert.equal(new Set(O.TURNOS.map(t=>t.h)).size,O.TURNOS.length,'dos turnos a la misma hora');
 assert.deepEqual(O.TURNOS.map(t=>t.h),O.TURNOS.map(t=>t.h).slice().sort(),'turnos fuera de orden');
 // Los videos nuevos: cierran con palabra clave y solo usan datos públicos.
-for(const id of ['madrugada','perro','dia','mate','cuenta','recorrida']){const g=O.guion(id,x);assert(g.length>=5,id);const c=g[g.length-1];assert.equal(c.clave,'EQUIPAR',id);assert(g.every(t=>t.dur>0&&t.t),id);assert(!/cobr[oó]|mail@|@/.test(JSON.stringify(g.filter(t=>t.globo!=='¿Y esos mails?').map(t=>t.t))),id);}
+for(const id of ['robot','viernes','madrugada','perro','dia','mate','cuenta','recorrida']){const g=O.guion(id,x);assert(g.length>=5,id);const c=g[g.length-1];assert.equal(c.clave,'EQUIPAR',id);assert(g.every(t=>t.dur>0&&t.t),id);assert(!/cobr[oó]|mail@|@/.test(JSON.stringify(g.filter(t=>t.globo!=='¿Y esos mails?').map(t=>t.t))),id);}
