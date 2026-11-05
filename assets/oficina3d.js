@@ -28,6 +28,73 @@ function suave(a, b, x) { var t = Math.max(0, Math.min(1, (x - a) / (b - a))); r
 /* 0 de noche, 1 de día, según los minutos del día en Buenos Aires. */
 export function luzDelDia(min) { return suave(360, 480, min) * (1 - suave(1110, 1230, min)); }
 
+/* Música y efectos originales, generados acá mismo: los videos salen con sonido y sin derechos de terceros. */
+function ruido(ac) {
+  var b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0), x = 22222;
+  for (var i = 0; i < d.length; i++) { x = (x * 16807) % 2147483647; d[i] = x / 1073741823.5 - 1; }
+  return b;
+}
+function golpeBajo(ac, sal, t, f0, f1, dur, vol) {
+  var o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.6);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(g); g.connect(sal); o.start(t); o.stop(t + dur + 0.02);
+}
+function soplo(ac, sal, buf, t, dur, f0, f1, vol, tipo) {
+  var n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  n.buffer = buf; n.loop = true; f.type = tipo || 'bandpass'; f.Q.value = 1.1;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0008, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  n.connect(f); f.connect(g); g.connect(sal); n.start(t, (t * 0.37) % 0.9); n.stop(t + dur + 0.02);
+}
+function nota(ac, sal, t, f, dur, vol, forma, corte) {
+  var o = ac.createOscillator(), l = ac.createBiquadFilter(), g = ac.createGain();
+  o.type = forma || 'sawtooth'; o.frequency.value = f; l.type = 'lowpass'; l.frequency.setValueAtTime(corte || 900, t); l.frequency.exponentialRampToValueAtTime(Math.max(120, (corte || 900) * 0.28), t + dur);
+  g.gain.setValueAtTime(0.0008, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(l); l.connect(g); g.connect(sal); o.start(t); o.stop(t + dur + 0.02);
+}
+var ESTILOS = {
+  base: { bpm: 118, raiz: 55, escala: [0, 0, 3, 0, 5, 0, 3, 7], acordes: [0, 3, 5, 3] },
+  dia: { bpm: 124, raiz: 65.41, escala: [0, 7, 0, 7, 3, 10, 3, 10], acordes: [0, 5, 3, 7] },
+  perro: { bpm: 132, raiz: 73.42, escala: [0, 0, 7, 5, 0, 3, 5, 7], acordes: [0, 5, 7, 5] },
+  tenso: { bpm: 84, raiz: 41.2, tenso: true }
+};
+export function sonar(ac, sal, tomas, estilo, inicio) {
+  var e = ESTILOS[estilo] || ESTILOS.base, t0 = inicio || 0, dur = tomas.reduce(function (a, b) { return a + b.dur; }, 0), buf = ruido(ac);
+  var mezcla = ac.createDynamicsCompressor(), final = ac.createGain();
+  mezcla.threshold.value = -14; mezcla.ratio.value = 5; final.gain.value = 0.82;
+  mezcla.connect(final); final.connect(sal);
+  var fin = t0 + dur, paso = 60 / e.bpm / 2, i = 0, t;
+  if (e.tenso) {
+    /* Madrugada: un zumbido grave y un latido que se acerca. */
+    var d = ac.createOscillator(), dg = ac.createGain(); d.type = 'triangle'; d.frequency.value = e.raiz;
+    dg.gain.setValueAtTime(0.0008, t0); dg.gain.exponentialRampToValueAtTime(0.22, t0 + 1.6); dg.gain.setValueAtTime(0.22, fin - 1); dg.gain.exponentialRampToValueAtTime(0.0008, fin);
+    d.connect(dg); dg.connect(mezcla); d.start(t0); d.stop(fin + 0.05);
+    for (t = t0 + 0.4; t < fin - 0.3; t += 60 / e.bpm * 2) { golpeBajo(ac, mezcla, t, 72, 38, 0.3, 0.7); golpeBajo(ac, mezcla, t + 0.22, 62, 36, 0.28, 0.45); }
+  } else {
+    for (t = t0; t < fin - 0.05; t += paso, i++) {
+      var compas = Math.floor(i / 16) % 4, f = e.raiz * Math.pow(2, (e.escala[i % 8] + e.acordes[compas]) / 12);
+      if (i % 4 === 0) golpeBajo(ac, mezcla, t, 165, 48, 0.22, 0.95);
+      if (i % 8 === 4) soplo(ac, mezcla, buf, t, 0.15, 2400, 1500, 0.42);
+      if (i % 2 === 1) soplo(ac, mezcla, buf, t, 0.05, 9000, 7000, 0.13, 'highpass');
+      if (i >= 8 && i % 2 === 0) nota(ac, mezcla, t, f, paso * 1.7, 0.3, 'sawtooth', 780);
+      if (i >= 32 && i % 8 === 6) nota(ac, mezcla, t, f * 4, 0.42, 0.13, 'square', 2600);
+    }
+  }
+  /* Un efecto en cada cambio de toma: lo que el ojo ve, el oído lo marca. */
+  var a = 0;
+  tomas.forEach(function (tm, n) {
+    var c = t0 + a;
+    if (n) { if (tm.corte) soplo(ac, mezcla, buf, c - 0.02, 0.1, 3000, 900, 0.3); else soplo(ac, mezcla, buf, c - 0.32, 0.5, 300, 3400, 0.3); }
+    if (tm.cifra != null) { nota(ac, mezcla, c + 0.12, 880, 0.12, 0.2, 'square', 3000); nota(ac, mezcla, c + 0.24, 1318, 0.2, 0.2, 'square', 3000); }
+    if (tm.camara) nota(ac, mezcla, c + 0.05, 1760, 0.07, 0.1, 'square', 4000);
+    if (tm.ladrido) tm.ladrido.forEach(function (o) { var b = c + o; golpeBajo(ac, mezcla, b, 620, 240, 0.11, 0.55); golpeBajo(ac, mezcla, b + 0.15, 700, 260, 0.12, 0.5); });
+    if (tm.festejo) { [0, 4, 7, 12].forEach(function (s, k) { nota(ac, mezcla, c + 0.1 + k * 0.09, 523.25 * Math.pow(2, s / 12), 0.34, 0.2, 'triangle', 3600); }); }
+    a += tm.dur;
+  });
+  return { ac: ac, fin: fin };
+}
+
 export function crear(THREE, Orbit, cont, opciones) {
   var quieto = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   var chico = window.innerWidth < 760;
@@ -908,9 +975,11 @@ export function crear(THREE, Orbit, cont, opciones) {
     mundo.add(g);
     return { g: g, cola: cola };
   })();
+  var perroRumbo = null;
   function moverPerro(dt) {
-    var dx = nico.g.position.x + 0.9 - perro.g.position.x, dz = nico.g.position.z + 0.5 - perro.g.position.z, d = Math.hypot(dx, dz);
-    if (d > 0.5) { perro.g.position.x += dx / d * Math.min(d, 1.1 * dt); perro.g.position.z += dz / d * Math.min(d, 1.1 * dt); perro.g.rotation.y = Math.atan2(-dx, -dz); }
+    var mx = perroRumbo ? perroRumbo[0] : nico.g.position.x + 0.9, mz = perroRumbo ? perroRumbo[1] : nico.g.position.z + 0.5;
+    var dx = mx - perro.g.position.x, dz = mz - perro.g.position.z, d = Math.hypot(dx, dz);
+    if (d > (perroRumbo ? 0.05 : 0.5)) { perro.g.position.x += dx / d * Math.min(d, 1.1 * dt); perro.g.position.z += dz / d * Math.min(d, 1.1 * dt); perro.g.rotation.y = Math.atan2(-dx, -dz); }
     perro.cola.rotation.y = Math.sin(tiempo * (d > 0.5 ? 16 : 7)) * 0.6;
   }
   var robot = fundir(conLote(function () { cil(0.5, 0.1, 0, 0, 0, 0x22282B); cil(0.28, 0.02, 0, 0.1, 0, C.acero); caja(0.12, 0.02, 0.05, 0, 0.11, -0.16, C.lima); }), mCuerpos);
@@ -1185,6 +1254,13 @@ export function crear(THREE, Orbit, cont, opciones) {
       g.fillStyle = hexa(C.lima); g.font = '700 190px ' + FUENTE; g.fillText('Nexo Fit', 76, 880);
       g.fillStyle = '#EAF1E4'; g.font = '600 86px ' + FUENTE; renglones(g, tm.t, 900).forEach(function (l, i) { g.fillText(l, 80, 1000 + i * 96); });
       g.fillStyle = hexa(C.lima); g.font = '600 64px ' + FUENTE; g.fillText('nexofitt.com.ar', 80, 1220);
+      if (tm.clave) {
+        var pulso = 1 + Math.sin(seg * 7) * 0.012;
+        g.save(); g.translate(80, 1290); g.scale(pulso, pulso);
+        g.fillStyle = hexa(C.lima); g.beginPath(); g.roundRect(0, 0, 900, 150, 16); g.fill();
+        g.fillStyle = '#0B1311'; g.font = '700 84px ' + FUENTE; g.fillText('Comentá ' + tm.clave, 36, 108);
+        g.restore();
+      }
       g.restore(); return;
     }
     var d = g.createLinearGradient(0, 960, 0, 1760);
@@ -1197,27 +1273,76 @@ export function crear(THREE, Orbit, cont, opciones) {
     if (tm.s) { g.fillStyle = hexa(C.lima); g.font = '600 72px ' + FUENTE; renglones(g, tm.s, 880).forEach(function (l) { g.fillText(l, 78, y + 36); y += 82; }); }
     g.restore();
     if (tm.globo && lt > 0.12) {
-      v.copy(nico.g.position).setY(1.62).add(mundo.position).project(camara);
+      v.copy(tm.sigue ? perro.g.position : nico.g.position).setY(tm.sigue ? 0.86 : 1.62).add(mundo.position).project(camara);
       var x = (v.x + 1) / 2 * VW, yy = (1 - v.y) / 2 * VH;
-      g.save(); g.font = '500 46px ' + TEXTO; g.textAlign = 'left';
-      var ls = renglones(g, tm.globo, 560), an = Math.min(640, Math.max.apply(null, ls.map(function (l) { return g.measureText(l).width; })) + 56), al = ls.length * 58 + 34;
+      g.save(); g.font = '600 60px ' + TEXTO; g.textAlign = 'left';
+      var ls = renglones(g, tm.globo, 620), an = Math.min(720, Math.max.apply(null, ls.map(function (l) { return g.measureText(l).width; })) + 64), al = ls.length * 72 + 40;
       var bx = Math.max(60, Math.min(VW - an - 60, x - an / 2)), by = yy - al - 34;
       g.fillStyle = 'rgba(9,15,13,.94)'; g.strokeStyle = hexa(C.lima); g.lineWidth = 5;
       g.beginPath(); g.roundRect(bx, by, an, al, 22); g.fill(); g.stroke();
       g.beginPath(); g.moveTo(x - 20, by + al - 2); g.lineTo(x, by + al + 28); g.lineTo(x + 20, by + al - 2); g.closePath(); g.fill();
-      g.fillStyle = '#EAF1E4'; ls.forEach(function (l, i) { g.fillText(l, bx + 28, by + 58 + i * 58); });
+      g.fillStyle = '#EAF1E4'; ls.forEach(function (l, i) { g.fillText(l, bx + 32, by + 72 + i * 72); });
       g.restore();
     }
+  }
+  function texturaRepetida(a, b, fn) { var c = lienzo(a, b); fn(c.getContext('2d')); return c; }
+  var rayas = null, grano = null;
+  function capaCamara(g, tm, seg) {
+    if (!rayas) {
+      rayas = texturaRepetida(4, 6, function (x) { x.fillStyle = 'rgba(0,0,0,.2)'; x.fillRect(0, 0, 4, 2); });
+      grano = texturaRepetida(256, 256, function (x) {
+        var im = x.createImageData(256, 256), n = 7;
+        for (var i = 0; i < im.data.length; i += 4) { n = (n * 16807) % 2147483647; var b = n % 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = b; im.data[i + 3] = 26; }
+        x.putImageData(im, 0, 0);
+      });
+    }
+    g.save();
+    g.globalCompositeOperation = 'saturation'; g.fillStyle = 'rgba(0,0,0,.88)'; g.fillRect(0, 0, VW, VH);
+    g.globalCompositeOperation = 'color'; g.fillStyle = 'rgba(120,205,150,.5)'; g.fillRect(0, 0, VW, VH);
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = g.createPattern(rayas, 'repeat'); g.fillRect(0, 0, VW, VH);
+    var nx = Math.floor(seg * 24) * 73 % 256, ny = Math.floor(seg * 24) * 131 % 256;
+    g.translate(-nx, -ny); g.fillStyle = g.createPattern(grano, 'repeat'); g.fillRect(0, 0, VW + 256, VH + 256); g.translate(nx, ny);
+    var r = g.createRadialGradient(VW / 2, VH / 2, 420, VW / 2, VH / 2, 1180);
+    r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,.72)');
+    g.fillStyle = r; g.fillRect(0, 0, VW, VH);
+    g.font = '600 46px ui-monospace,Menlo,Consolas,monospace'; g.fillStyle = '#EAF7EC';
+    g.fillText(tm.camara, 72, 418);
+    var seg2 = Math.floor(seg * 7), h = tm.hh + ':' + String(17 + seg2).padStart(2, '0');
+    g.fillText(h, 72, 480);
+    if (Math.floor(seg * 2) % 2 === 0) { g.fillStyle = '#FF3B30'; g.beginPath(); g.arc(860, 402, 20, 0, 7); g.fill(); }
+    g.fillStyle = '#EAF7EC'; g.fillText('REC', 894, 418);
+    g.restore();
+  }
+  function capaReloj(g, min) {
+    var h = Math.floor(min / 60) % 24, m = Math.floor(min % 60), txt = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    g.save(); g.font = '700 210px ' + FUENTE; g.fillStyle = 'rgba(9,15,13,.62)'; g.beginPath(); g.roundRect(60, 372, 520, 214, 18); g.fill();
+    g.fillStyle = '#FFFFFF'; g.fillText(txt, 92, 556); g.restore();
+  }
+  function entrarToma(tm) {
+    nico.g.visible = !tm.sinJefe;
+    Object.keys(salas).forEach(function (k) { salas[k].activa = !tm.salaSola || tm.salaSola === k; });
+    if (tm.festejo) festejar(tm.festejo);
+    if (tm.perro) { perro.g.position.set(tm.perro[0], 0.02, tm.perro[1]); perroRumbo = [tm.perro[2], tm.perro[3]]; }
+    else if (grab.conPerro) perroRumbo = [perro.g.position.x, perro.g.position.z];
+    grab.conPerro = grab.conPerro || !!tm.perro;
+    if (tm.dormido != null) perro.g.scale.y = tm.dormido ? 0.62 : 1;
   }
   function cuadroVideo(t) {
     var acu = 0, i = 0, l = grab.tomas;
     while (i < l.length - 1 && t >= acu + l[i].dur) { acu += l[i].dur; i++; }
     var tm = l[i], prev = l[Math.max(0, i - 1)], seg = t - acu, lt = seg / tm.dur;
-    camaraToma(i ? prev : tm, tm, lista(seg / 0.75), lt);
+    if (grab.i !== i) { grab.i = i; entrarToma(tm); }
+    var minutos = tm.hora ? tm.hora[0] + (tm.hora[1] - tm.hora[0]) * lt : null;
+    if (minutos != null) luzDeVideo(minutos);
+    if (tm.sigue) tm.p = [perro.g.position.x, 0.3, perro.g.position.z];
+    camaraToma(i && !tm.corte ? prev : tm, tm, tm.corte ? 1 : lista(seg / 0.75), lt);
     renderer.render(escena, camara);
     var g = grab.g;
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
     g.drawImage(renderer.domElement, 0, 0, VW, VH);
+    if (tm.camara) capaCamara(g, tm, seg);
+    if (tm.reloj && minutos != null) capaReloj(g, minutos);
     g.fillStyle = 'rgba(9,15,13,.72)'; g.beginPath(); g.roundRect(64, 236, 246, 84, 14); g.fill();
     g.fillStyle = hexa(C.lima); g.font = '700 62px ' + FUENTE; g.fillText('Nexo Fit', 88, 298);
     dibujarTextos(g, tm, lt, seg);
@@ -1226,14 +1351,21 @@ export function crear(THREE, Orbit, cont, opciones) {
   function prepararVideo(op) {
     var c = lienzo(VW, VH);
     grab = { t: 0, tomas: op.tomas, dur: op.tomas.reduce(function (a, b) { return a + b.dur; }, 0), c: c, g: c.getContext('2d'), manual: !!op.manual, avance: op.avance, fin: op.fin,
-      guardado: { pos: camara.position.clone(), tgt: controles.target.clone(), zoom: camara.zoom, up: camara.up.clone() } };
+      guardado: { pos: camara.position.clone(), tgt: controles.target.clone(), zoom: camara.zoom, up: camara.up.clone(), sol: sol.position.clone(), perro: perro.g.position.clone(), activas: Object.keys(salas).filter(function (k) { return salas[k].activa; }) } };
     controles.enabled = false; capa.style.visibility = 'hidden';
     publico = true; repintar();
     salasColor(true);
     fraseFija = null; asado = true;
     alPuesto(); nico.espera = 60; tiempo = 5.4; /* a los dos segundos toma el mate */
+    luzDeVideo(790); /* de día salvo que la toma diga otra cosa */
     renderer.setPixelRatio(1); renderer.setSize(VW, VH, false);
     return grab;
+  }
+  /* En los videos el sol cruza el cielo y las sombras se mueven. */
+  function luzDeVideo(min) {
+    var a = (min - 360) / 840 * Math.PI, y = Math.sin(a);
+    sol.position.set(-Math.cos(a) * 42, 8 + Math.max(0, y) * 30, 16);
+    dia = -1; aplicarLuz(min);
   }
   function salasColor(pub) {
     Object.keys(salas).forEach(function (k) {
@@ -1246,6 +1378,9 @@ export function crear(THREE, Orbit, cont, opciones) {
     var g = grab; grab = null;
     publico = false; salasColor(false); repintar();
     capa.style.visibility = '';
+    nico.g.visible = true; perroRumbo = null; perro.g.scale.y = 1; perro.g.position.copy(g.guardado.perro);
+    Object.keys(salas).forEach(function (k) { salas[k].activa = g.guardado.activas.indexOf(k) >= 0; });
+    sol.position.copy(g.guardado.sol); dia = -1; aplicarLuz(ultimoDato && ultimoDato.info && ultimoDato.info.minutos != null ? ultimoDato.info.minutos : 720);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, chico ? 1.6 : 2));
     camara.position.copy(g.guardado.pos); controles.target.copy(g.guardado.tgt); camara.up.copy(g.guardado.up); camara.zoom = g.guardado.zoom;
     controles.enabled = true; nico.espera = 2;
@@ -1255,14 +1390,21 @@ export function crear(THREE, Orbit, cont, opciones) {
   }
   function grabarVideo(op) {
     if (grab) return;
-    var tipo = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].filter(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported(t); })[0];
+    var tipo = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,opus', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].filter(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported(t); })[0];
     if (!tipo) return null;
     var g = prepararVideo(op), trozos = [], rec;
     cuadroVideo(0);
-    try { rec = new MediaRecorder(g.c.captureStream(30), { mimeType: tipo, videoBitsPerSecond: 9000000 }); }
-    catch (e) { g.fin = null; terminarVideo(); return null; }
+    var flujo = g.c.captureStream(30), Ctx = window.AudioContext || window.webkitAudioContext, ac = null;
+    try {
+      ac = new Ctx(); var sal = ac.createMediaStreamDestination();
+      if (ac.state === 'suspended') ac.resume();
+      sonar(ac, sal, op.tomas, op.estilo, ac.currentTime + 0.05);
+      sal.stream.getAudioTracks().forEach(function (p) { flujo.addTrack(p); });
+    } catch (e) { ac = null; } /* si falla el sonido, el video igual sale */
+    try { rec = new MediaRecorder(flujo, { mimeType: tipo, videoBitsPerSecond: 9000000, audioBitsPerSecond: 192000 }); }
+    catch (e) { if (ac) ac.close(); g.fin = null; terminarVideo(); return null; }
     rec.ondataavailable = function (e) { if (e.data && e.data.size) trozos.push(e.data); };
-    rec.onstop = function () { if (op.fin) op.fin(new Blob(trozos, { type: tipo }), tipo); };
+    rec.onstop = function () { if (ac) ac.close(); if (op.fin) op.fin(new Blob(trozos, { type: tipo }), tipo); };
     g.rec = rec; rec.start(500);
     return g.c;
   }
@@ -1297,7 +1439,7 @@ export function crear(THREE, Orbit, cont, opciones) {
     /* Nicolás dice la indicación y el mensajero la lleva a la sala. */
     ordenar: function (id, texto) { fraseFija = { t: texto, hasta: tiempo + 9 }; fraseCambio = tiempo + 9; alPuesto(); nico.espera = 9; mensajero.g.position.set(INICIO_M[0], 0.02, INICIO_M[1]); mandar(id, texto); },
     festejar: festejar,
-    grabar: grabarVideo, foto: sacarFoto,
+    grabar: grabarVideo, foto: sacarFoto, sonar: sonar,
     /* Armado cuadro por cuadro: da un video parejo aunque la máquina sea lenta. */
     videoPreparar: function (tomas) { prepararVideo({ tomas: tomas, manual: true }); return grab.dur; },
     videoCuadro: function (t, dt) { paso(dt); cuadroVideo(t); return grab.c.toDataURL('image/jpeg', 0.93); },
