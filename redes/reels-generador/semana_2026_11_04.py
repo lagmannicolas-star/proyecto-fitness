@@ -115,13 +115,13 @@ REELS = [
   scenes=[
    dict(type="title", dur=3, kicker="PROVEEDORES", text="Te llega el pedido con la lista y las cantidades. Vos ofertás.", size=92, hl=["Vos ofertás."]),
    dict(type="checklist", dur=5.4, text="Un pedido de ejemplo:", size=92, items=["Pesas rusas × 20", "Colchonetas × 20", "Bancos regulables × 4", "Barras olímpicas × 3", "Racks de sentadillas × 2"], gap=0.6, start=0.6),
-   dict(type="title", dur=3.6, text="Cargás tu oferta en un solo formato", size=100, hl=["un solo formato"], sub="Precio, envío, plazo, cuotas, garantía y validez"),
+   dict(type="title", dur=3.6, text="Cargás tu oferta en un solo formato", size=100, hl=["un solo formato"], sub="Precio, envío, plazo, cuotas y garantía"),
    dict(type="cards", dur=5, text="El comprador compara sin ver nombres", size=86, hl=["sin ver nombres"], items=[("Oferta A", "$2.300.000", "Envío aparte · Entrega 20 días"), ("Oferta B", "$2.450.000", "Envío incluido · Entrega 7 días"), ("Oferta C", "$2.380.000", "Envío incluido · Entrega 30 días")], best=1, selt=2.8, note="Precios de ejemplo"),
    dict(type="title", dur=3, text="Sin salir a buscar clientes: el pedido te llega por mail", size=92, bg="green"),
    dict(type="cta", dur=4.2, word="PROVEEDOR", ksize=150, sub="y te contamos cómo sumarte", comment=("equipamiento_sur", "PROVEEDOR")),
    dict(type="end", dur=3, text="Compartilo con alguien que venda equipamiento", icon="none"),
   ],
-  caption="Proveedor: así te llega un pedido en Nexo Fit 📩\n\nCon la lista y las cantidades ya armadas. Cargás tu oferta en un solo formato (precio, envío, plazo, cuotas, garantía y validez) y el comprador compara sin ver nombres hasta elegir.\n\nSin salir a buscar clientes: el pedido te llega por mail con tu link privado.\n\n👉 Comentá PROVEEDOR y te contamos cómo sumarte.\n\n#proveedoresfitness #equipamientofitness #mayorista #distribuidor #fitnessargentina #nexofit"),
+  caption="Proveedor: así te llega un pedido en Nexo Fit 📩\n\nCon la lista y las cantidades ya armadas. Cargás tu oferta en un solo formato (precio, envío, plazo, cuotas y garantía) y el comprador compara sin ver nombres hasta elegir.\n\nSin salir a buscar clientes: el pedido te llega por mail con tu link privado.\n\n👉 Comentá PROVEEDOR y te contamos cómo sumarte.\n\n#proveedoresfitness #equipamientofitness #mayorista #distribuidor #fitnessargentina #nexofit"),
 
  dict(slug="mudanza-local-mas-chico", date="2026-11-09T10:00:00", folder="semana-4/1-lunes-9-nov", seed=4606,
   title="Te mudás a un local más chico: ¿qué entra?",
